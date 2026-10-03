@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>거래처 관리 - 할라 장부 관리</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="css/style.css" />
+ </head>
+<body data-title="거래처 관리" data-mode="customer" data-global-search="1" data-global-search-target="#customer-search">
+  <div id="global-nav-include"></div>
+  <script type="module">
+    import { loadGlobalNav } from './js/common/nav-include.js';
+    loadGlobalNav();
+  </script>
+
+  <main class="page">
+    <div class="customer-layout page-layout">
+      <div class="customer-left-column page-left-column">
+        <!-- 거래처 구분 카드 -->
+        <section class="card customer-type-card">
+          <h2 class="card-header-split"><span class="card-title">구분</span>
+            <span class="customer-header-buttons">
+              <button type="button" id="btn-open-cust-type-modal" class="btn-row-btn customer-type-open-button">구분 추가</button>
+              <button type="button" id="btn-cust-type-edit" class="btn-row-btn">수정</button>
+              <button type="button" id="btn-cust-type-delete" class="btn-row-btn">삭제</button>
+            </span>
+          </h2>
+
+          <div class="table-box">
+            <div class="table-wrapper customer-type-table-wrapper">
+              <table class="tx-table tx-table-small">
+                <thead>
+                  <tr>
+                    <th>코드</th>
+                    <th>구분 이름</th>
+                  </tr>
+                </thead>
+                <tbody id="cust-type-list"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 거래처 분류 카드 -->
+        <section class="card customer-group-card">
+          <h2 class="card-header-split"><span class="card-title">분류</span>
+            <span class="customer-header-buttons">
+              <button type="button" id="btn-open-cust-group-modal" class="btn-row-btn customer-group-open-button">분류 추가</button>
+              <button type="button" id="btn-cust-group-edit" class="btn-row-btn">수정</button>
+              <button type="button" id="btn-cust-group-delete" class="btn-row-btn">삭제</button>
+            </span>
+          </h2>
+          <div class="table-box">
+            <div class="table-wrapper customer-type-table-wrapper">
+              <table class="tx-table tx-table-small">
+                <thead>
+                  <tr>
+                    <th>구분</th>
+                    <th>코드</th>
+                    <th>분류 이름</th>
+                  </tr>
+                </thead>
+                <tbody id="cust-group-master-list"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </div>
+
+    <!-- 거래처 목록 카드 (오른쪽) -->
+    <section class="card customer-main-card page-main-column">
+      <h2>거래처 목록
+        <span class="search-wrapper">
+          <input type="text" id="customer-search" placeholder="코드/이름/메모 검색" class="customer-search-input">
+          <span class="search-icon"></span>
+        </span>
+      </h2>
+      <div class="table-action-box">
+        <button type="button" id="btn-row-new" class="btn-row-btn left">신규등록</button>
+        <div class="table-action-right">
+          <span class="table-action-text">거래처를 선택한 뒤 수정/삭제를 사용하세요.</span>
+          <div class="table-action-buttons">
+            <button type="button" id="btn-row-edit" class="btn-row-btn">수정</button>
+            <button type="button" id="btn-row-delete" class="btn-row-btn">삭제</button>
+            <button type="button" id="btn-load-json" class="btn-row-btn">JSON 불러오기</button>
+            <button type="button" id="btn-customer-backup" class="btn-row-btn">백업(JSON)</button>
+            <button type="button" id="btn-customer-restore" class="btn-row-btn">복원(JSON)</button>
+            <input type="file" id="customer-restore-file" accept="application/json,.json" hidden>
+          </div>
+        </div>
+      </div>
+      <div class="table-box">
+        <div class="table-wrapper">
+          <table class="tx-table tx-table-auto customer-table">
+            <thead>
+              <tr>
+                <th data-sort-key="status">상태</th>
+                <th data-sort-key="type">구분</th>
+                <th data-sort-key="group">분류</th>
+                <th data-sort-key="id">코드</th>
+                <th data-sort-key="name">거래처명</th>
+                <th>수단</th>
+                <th data-sort-key="currentBalance">잔액</th>
+                <th>비고</th>
+              </tr>
+            </thead>
+            <tbody id="customer-list"></tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" class="total-cell-label">Count=&nbsp;<span id="customer-count">0</span></td>
+                <td colspan="3" class="total-cell-label">합계</td>
+                <td class="right"><span id="customer-sum">0</span></td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </section>
+    </div>
+  </main>
+
+  <!-- 거래처 추가/수정용 모달 -->
+  <div id="customer-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="customer-modal-title">
+      <section class="card">
+        <div class="modal-header">
+          <h2 id="customer-modal-title">거래처 추가</h2>
+          <button type="button" class="modal-close-x" aria-label="닫기" data-click="#btn-form-close">×</button>
+        </div>
+        <form id="customer-form" class="modal-form">
+          <div class="form-section-title">기본정보</div>
+          <label data-req="1">
+            <span class="label-text">거래처명</span>
+            <input type="text" id="cust-name" />
+          </label>
+          <label>
+            <span class="label-text">코드</span>
+            <div class="code-input-row">
+              <select id="cust-id-mode" class="field-code-mode">
+                <option value="auto">자동생성</option>
+                <option value="manual">직접입력</option>
+              </select>
+              <input type="text" id="cust-id" class="field-code-input" placeholder="예: 0001" />
+            </div>
+          </label>
+
+          <label data-req="1">
+            <span class="label-text">구분</span>
+            <select id="cust-type">
+              <option value="매출처">매출처</option>
+              <option value="매입처">매입처</option>
+              <option value="지출처">지출처</option>
+            </select>
+          </label>
+          <label data-req="1">
+            <div class="group-label-row">
+              <span class="label-text">분류</span>
+              <select id="cust-group-select">
+                <option value="">분류 선택</option>
+              </select>
+            </div>
+            <div class="group-input-row" style="display:none;">
+              <input type="hidden" id="cust-group" />
+            </div>
+          </label>
+
+          <div class="form-section-title">분류/정산정보</div>
+          <label>
+            <span class="label-text">주 결제수단</span>
+            <select id="cust-pay" class="field-pay">
+              <option value="card">카드결제</option>
+              <option value="cash">현금결제</option>
+              <option value="transfer">계좌이체</option>
+              <option value="mixed">복합/기타</option>
+            </select>
+          </label>
+          <label>
+            <span class="label-text">결제조건</span>
+            <input type="text" id="cust-term" placeholder="예: 현금, 월말, 익월10일" />
+          </label>
+
+          <label>
+            <span class="label-text">상태</span>
+            <select id="cust-status" class="field-status">
+              <option value="active">활성</option>
+              <option value="inactive">중지</option>
+            </select>
+          </label>
+          <label>
+            <span class="label-text">초기잔액</span>
+            <input type="number" id="cust-opening" value="0" />
+          </label>
+
+          <div class="form-section-title">메모/기타</div>
+          <label class="span-2">
+            <span class="label-text">메모</span>
+            <input type="text" id="cust-memo" />
+          </label>
+
+          <div class="modal-actions">
+            <button type="button" id="btn-form-save-continue" class="btn-secondary">연속</button>
+            <button type="submit" class="btn-secondary">저장</button>
+            <button type="button" id="btn-form-close" class="btn-secondary">닫기</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </div>
+
+    <!-- 구분 코드 추가용 모달 -->
+    <div id="cust-type-modal" class="modal-overlay" aria-hidden="true">
+      <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="cust-type-modal-title">
+        <section class="card">
+          <div class="modal-header">
+            <h2 id="cust-type-modal-title">구분 추가</h2>
+            <button type="button" class="modal-close-x" aria-label="닫기" data-click="#btn-cust-type-close">×</button>
+          </div>
+          <form id="cust-type-form" class="modal-form">
+            <div class="form-section-title">기본정보</div>
+            <label data-req="1">
+              <span class="label-text">구분 이름</span>
+              <input type="text" id="cust-type-name" placeholder="예: 매출처" />
+            </label>
+            <label>
+              <span class="label-text">구분코드</span>
+              <div class="code-input-row">
+                <select id="cust-type-id-mode" class="field-code-mode">
+                  <option value="auto">자동생성</option>
+                  <option value="manual">직접입력</option>
+                </select>
+                <input type="text" id="cust-type-code" class="field-code-input" />
+              </div>
+            </label>
+            <div class="modal-actions">
+              <button type="button" id="btn-cust-type-save-continue" class="btn-secondary">연속</button>
+              <button type="submit" class="btn-secondary">저장</button>
+              <button type="button" id="btn-cust-type-close" class="btn-secondary">닫기</button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </div>
+
+    <!-- 분류 코드 추가/수정용 모달 -->
+    <div id="cust-group-modal" class="modal-overlay" aria-hidden="true">
+      <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="cust-group-modal-title">
+        <section class="card">
+          <div class="modal-header">
+            <h2 id="cust-group-modal-title">분류 추가</h2>
+            <button type="button" class="modal-close-x" aria-label="닫기" data-click="#btn-cust-group-close">×</button>
+          </div>
+          <form id="cust-group-form" class="modal-form">
+            <div class="form-section-title">기본정보</div>
+            <label data-req="1">
+              <span class="label-text">분류 이름</span>
+              <input type="text" id="cust-group-name" placeholder="예: 식당" />
+            </label>
+            <label>
+              <span class="label-text">분류코드</span>
+              <div class="code-input-row">
+                <select id="cust-group-id-mode" class="field-code-mode">
+                  <option value="auto">자동생성</option>
+                  <option value="manual">직접입력</option>
+                </select>
+                <input type="text" id="cust-group-code" class="field-code-input" />
+              </div>
+            </label>
+            <label class="span-2">
+              <span class="label-text">적용 구분</span>
+              <select id="cust-group-type">
+                <option value="">전체</option>
+                <option value="매출처">매출처</option>
+                <option value="매입처">매입처</option>
+                <option value="지출처">지출처</option>
+              </select>
+            </label>
+            <div class="modal-actions">
+              <button type="button" id="btn-cust-group-save-continue" class="btn-secondary">연속</button>
+              <button type="submit" class="btn-secondary">저장</button>
+              <button type="button" id="btn-cust-group-close" class="btn-secondary">닫기</button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </div>
+
+  <script type="module" src="js/customer-manage.js"></script>
+</body>
+</html>

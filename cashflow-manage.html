@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>장부관리 - 할라 장부 관리</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="css/style.css" />
+ </head>
+<body data-title="장부관리" data-mode="cashflow" data-global-search="1" data-global-search-target="#cashflow-search">
+  <div id="global-nav-include"></div>
+  <script type="module">
+    import { loadGlobalNav } from './js/common/nav-include.js';
+    loadGlobalNav();
+  </script>
+
+  <main class="page">
+    <div class="customer-layout page-layout">
+      <!-- 왼쪽: 입출금 구분 코드 카드 -->
+      <div class="customer-left-column page-left-column">
+        <section class="card cashflow-type-card">
+          <h2 class="card-header-split"><span class="card-title">구분</span>
+            <span class="customer-header-buttons">
+              <button type="button" id="btn-open-cashflow-type-modal" class="btn-row-btn customer-type-open-button">구분 추가</button>
+              <button type="button" id="btn-cashflow-type-edit" class="btn-row-btn">수정</button>
+              <button type="button" id="btn-cashflow-type-delete" class="btn-row-btn">삭제</button>
+            </span>
+          </h2>
+          <div class="table-box">
+            <div class="table-wrapper customer-type-table-wrapper">
+              <table class="tx-table tx-table-small">
+                <thead>
+                  <tr>
+                    <th>코드</th>
+                    <th>장부구분</th>
+                    <th class="right">잔액</th>
+                  </tr>
+                </thead>
+                <tbody id="cashflow-type-list"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- 오른쪽: 장부목록 카드 (거래처/품목 관리와 동일 스타일) -->
+      <section class="card customer-main-card page-main-column">
+        <h2>장부목록
+          <span class="search-wrapper">
+            <input type="text" id="cashflow-search" placeholder="코드/이름/메모 검색" class="customer-search-input">
+            <span class="search-icon"></span>
+          </span>
+        </h2>
+        <div class="table-action-box">
+          <button type="button" id="btn-cashflow-new" class="btn-row-btn left">신규등록</button>
+          <div class="table-action-right">
+            <span class="table-action-text">장부목록을 선택한 뒤 수정/삭제를 사용하세요.</span>
+            <div class="table-action-buttons">
+              <button type="button" id="btn-cashflow-edit" class="btn-row-btn">수정</button>
+              <button type="button" id="btn-cashflow-delete" class="btn-row-btn">삭제</button>
+              <button type="button" id="btn-cashflow-init-defaults" class="btn-row-btn">JSON 불러오기</button>
+              <button type="button" id="btn-cashflow-backup" class="btn-row-btn">백업(JSON)</button>
+              <button type="button" id="btn-cashflow-restore" class="btn-row-btn">복원(JSON)</button>
+            </div>
+          </div>
+        </div>
+        <div class="table-box">
+          <div class="table-wrapper">
+            <table class="tx-table cashflow-table">
+              <thead>
+                <tr>
+                  <th data-sort-key="typeCode">구분</th>
+                  <th data-sort-key="code">코드</th>
+                  <th data-sort-key="name">장부명</th>
+                  <th class="right" data-sort-key="__inn">입금</th>
+                  <th class="right" data-sort-key="__out">출금</th>
+                  <th class="right" data-sort-key="__bal">잔액</th>
+                  <th data-sort-key="memo">메모</th>
+                </tr>
+              </thead>
+              <tbody id="cashflow-list"></tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3" class="total-cell-label">Count=&nbsp;<span id="cashflow-count">0</span></td>
+                  <td class="right"><span id="cashflow-total-inn">0</span></td>
+                  <td class="right"><span id="cashflow-total-out">0</span></td>
+                  <td class="right"><span id="cashflow-total-bal">0</span></td>
+                  <td class="total-cell-label">합계</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- 장부항목 추가/수정용 모달 -->
+  <div id="cashflow-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="cashflow-modal-title">
+      <section class="card">
+        <div class="modal-header">
+          <h2 id="cashflow-modal-title">장부항목 추가</h2>
+          <button type="button" class="modal-close-x" aria-label="닫기" data-click="#btn-cashflow-form-close">×</button>
+        </div>
+        <form id="cashflow-form" class="modal-form">
+          <div class="form-section-title">기본정보</div>
+          <label data-req="1">
+            <span class="label-text">장부명</span>
+            <input type="text" id="cashflow-name" />
+          </label>
+          <label>
+            <span class="label-text">상태</span>
+            <select id="cashflow-status" class="field-status">
+              <option value="active">사용</option>
+              <option value="inactive">미사용</option>
+            </select>
+          </label>
+          <label>
+            <span class="label-text">코드</span>
+            <div class="code-input-row">
+              <select id="cashflow-id-mode" class="field-code-mode">
+                <option value="auto">자동생성</option>
+                <option value="manual">직접입력</option>
+              </select>
+              <input type="text" id="cashflow-code" class="field-code-input" placeholder="예: 001" />
+            </div>
+          </label>
+
+          <div class="form-section-title">분류정보</div>
+          <label>
+            <span class="label-text">구분</span>
+            <select id="cashflow-type-select" class="field-status">
+              <option value="">(선택)</option>
+            </select>
+          </label>
+          <label>
+            <span class="label-text">기초잔액</span>
+            <input type="number" id="cashflow-opening" value="0" />
+          </label>
+
+          <div class="form-section-title">메모/기타</div>
+          <label class="span-2">
+            <span class="label-text">메모</span>
+            <input type="text" id="cashflow-memo" />
+          </label>
+
+          <div class="modal-actions">
+            <button type="button" id="btn-cashflow-form-save-continue" class="btn-secondary">연속</button>
+            <button type="submit" class="btn-secondary">저장</button>
+            <button type="button" id="btn-cashflow-form-close" class="btn-secondary">닫기</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </div>
+
+  <!-- 입출금 구분 코드 추가/수정용 모달 -->
+  <div id="cashflow-type-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="cashflow-type-modal-title">
+      <section class="card">
+        <div class="modal-header">
+          <h2 id="cashflow-type-modal-title">구분 추가</h2>
+          <button type="button" class="modal-close-x" aria-label="닫기" data-click="#btn-cashflow-type-close">×</button>
+        </div>
+        <form id="cashflow-type-form" class="modal-form">
+          <div class="form-section-title">기본정보</div>
+          <label data-req="1">
+            <span class="label-text">장부구분</span>
+            <input type="text" id="cashflow-type-name" placeholder="예: 법인통장" />
+          </label>
+          <label>
+            <span class="label-text">상태</span>
+            <select id="cashflow-type-status" class="field-status">
+              <option value="active">사용</option>
+              <option value="inactive">미사용</option>
+            </select>
+          </label>
+          <label>
+            <span class="label-text">구분코드</span>
+            <div class="code-input-row">
+              <select id="cashflow-type-id-mode" class="field-code-mode">
+                <option value="auto">자동생성</option>
+                <option value="manual">직접입력</option>
+              </select>
+              <input type="text" id="cashflow-type-code" class="field-code-input" />
+            </div>
+          </label>
+          <div class="modal-actions">
+            <button type="button" id="btn-cashflow-type-save-continue" class="btn-secondary">연속</button>
+            <button type="submit" class="btn-secondary">저장</button>
+            <button type="button" id="btn-cashflow-type-close" class="btn-secondary">닫기</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </div>
+
+  <!-- 입출금 분류 코드 추가/수정용 모달 -->
+  <div id="cashflow-group-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="cashflow-group-modal-title">
+      <section class="card">
+        <div class="modal-header">
+          <h2 id="cashflow-group-modal-title">분류 추가</h2>
+          <button type="button" class="modal-close-x" aria-label="닫기" data-click="#btn-cashflow-group-close">×</button>
+        </div>
+        <form id="cashflow-group-form" class="modal-form">
+          <div class="form-section-title">기본정보</div>
+          <label>
+            <span class="label-text">상태</span>
+            <select id="cashflow-group-status" class="field-status">
+              <option value="active">사용</option>
+              <option value="inactive">미사용</option>
+            </select>
+          </label>
+          <label>
+            <span class="label-text">코드</span>
+            <div class="code-input-row">
+              <select id="cashflow-group-id-mode" class="field-code-mode">
+                <option value="auto">자동생성</option>
+                <option value="manual">직접입력</option>
+              </select>
+              <input type="text" id="cashflow-group-code" class="field-code-input" />
+            </div>
+          </label>
+          <label data-req="1">
+            <span class="label-text">구분</span>
+            <select id="cashflow-group-direction" class="field-status">
+              <option value="">(선택)</option>
+            </select>
+          </label>
+
+          <label class="span-2" data-req="1">
+            <span class="label-text">구분 항목</span>
+            <select id="cashflow-group-item" class="field-status">
+              <option value="">(선택)</option>
+            </select>
+          </label>
+
+          <div class="modal-actions">
+            <button type="button" id="btn-cashflow-group-save-continue" class="btn-secondary">연속</button>
+            <button type="submit" class="btn-secondary">저장</button>
+            <button type="button" id="btn-cashflow-group-close" class="btn-secondary">닫기</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </div>
+
+  <script type="module" src="js/cashflow-manage.js"></script>
+</body>
+</html>

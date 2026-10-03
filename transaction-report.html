@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>거래 조회 / 매출·매입·지출 분석 - 할라 장부 관리</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-title="거래 조회 / 매출·매입·지출 분석" data-mode="report" data-global-search="1" data-global-search-target="#trn-q">
+  <div id="global-nav-include"></div>
+  <script type="module">
+    import { loadGlobalNav } from './js/common/nav-include.js';
+    loadGlobalNav();
+  </script>
+
+  <main class="page">
+    <section class="card">
+      <div class="purchase-type-switch" role="group" aria-label="조회 방식 선택">
+        <button type="button" class="type-switch-btn trn-view-mode-btn is-active" data-view="byItem" aria-pressed="true">품목별 조회</button>
+        <button type="button" class="type-switch-btn trn-view-mode-btn" data-view="detail" aria-pressed="false">거래처별 품목조회</button>
+        <button type="button" class="type-switch-btn trn-view-mode-btn" data-view="byGroup" aria-pressed="false">구분별 분류조회</button>
+        <button type="button" class="type-switch-btn trn-view-mode-btn" data-view="bySupplier" aria-pressed="false">거래처별 조회</button>
+        <button type="button" class="type-switch-btn trn-view-mode-btn" data-view="byMonth" aria-pressed="false">월별조회</button>
+        <button type="button" class="type-switch-btn trn-view-mode-btn" data-view="byMonthLedger" aria-pressed="false">월별장부조회</button>
+      </div>
+
+      <input type="text" id="trn-q" placeholder="거래처/품목/메모 검색" style="display:none" />
+
+      <div class="row trn-filter-row" aria-label="기간 필터">
+        <div class="trn-filter-left" aria-label="거래처 선택">
+          <div id="trn-supplier-picker-wrap">
+            <button type="button" id="btn-trn-supplier-picker-open" class="btn-secondary" aria-label="거래처 선택">거래처 선택</button>
+          </div>
+
+          <div id="trn-item-picker-wrap" style="display:none;">
+            <button type="button" id="btn-trn-item-picker-open" class="btn-secondary" aria-label="품목 선택">품목 선택</button>
+          </div>
+
+          <div id="trn-type-group-wrap" style="display:none;align-items:center;gap:0.5rem;">
+            <button type="button" id="btn-trn-type-group-picker-open" class="btn-secondary" aria-label="구분/분류 선택">구분/분류 선택</button>
+
+            <!-- 기존 select는 상태 동기화용으로 유지하되 화면에서는 숨김 -->
+            <select id="trn-type-select" class="purchase-date-input" aria-label="구분 선택" style="display:none">
+              <option value="">구분선택</option>
+            </select>
+            <select id="trn-group-select" class="purchase-date-input" aria-label="분류 선택" style="display:none">
+              <option value="">분류선택</option>
+            </select>
+          </div>
+
+          <select id="trn-supplier-select" class="purchase-date-input trn-supplier-select" aria-label="거래처 선택" style="display:none">
+            <option value="">거래처 선택</option>
+          </select>
+        </div>
+
+        <div class="trn-filter-right">
+          <div class="purchase-date-filter">
+            <input type="date" id="trn-date-from" class="purchase-date-input" aria-label="시작일" />
+            <span class="purchase-date-separator">~</span>
+            <button type="button" id="btn-trn-date-quick" class="purchase-date-quick-btn" aria-label="기간 빠른 선택" title="기간 빠른 선택">
+              <span class="date-quick-icon" aria-hidden="true">📅</span>
+            </button>
+            <input type="date" id="trn-date-to" class="purchase-date-input" aria-label="종료일" />
+            <button type="button" id="btn-trn-date-search" class="btn-primary purchase-date-search-btn">조회</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-box">
+        <div class="table-wrapper">
+          <table class="tx-table trn-table">
+            <thead id="trn-table-head">
+              <!-- JS에서 집계 방식에 따라 헤더 렌더링 -->
+            </thead>
+            <tbody id="trn-table-body">
+              <!-- JS에서 데이터 렌더링 -->
+            </tbody>
+            <tfoot id="trn-table-foot">
+              <!-- JS에서 집계 방식에 따라 합계줄 렌더링 -->
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="js/transaction-report.js"></script>
+
+  <div id="trn-date-quick-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="trn-date-quick-title">
+      <section class="card date-quick-card">
+        <div class="modal-header">
+          <h2 id="trn-date-quick-title">기간 빠른 선택</h2>
+          <button type="button" class="modal-close-x" aria-label="닫기" data-click="#btn-trn-date-quick-close">×</button>
+        </div>
+        <div class="date-quick-grid">
+          <button type="button" class="date-quick-btn" data-range="yesterday">어제</button>
+          <button type="button" class="date-quick-btn" data-range="today">오늘</button>
+          <button type="button" class="date-quick-btn" data-range="lastMonth">지난달</button>
+          <button type="button" class="date-quick-btn" data-range="thisMonth">이번달</button>
+          <button type="button" class="date-quick-btn" data-range="lastYear">작년</button>
+          <button type="button" class="date-quick-btn" data-range="thisYear">올해</button>
+        </div>
+        <div class="date-quick-footer">
+          <button type="button" class="btn-secondary date-quick-all-btn" id="btn-trn-date-quick-all" data-range="all">모두</button>
+          <button type="button" class="btn-secondary date-quick-close-btn" id="btn-trn-date-quick-close">닫기</button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <title>결제 관리 - 할라 장부 관리</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/pages/payment-manage.css" />
+  </head>
+  <body
+    data-title="결제 관리"
+    data-mode="payment"
+    data-global-search="1"
+    data-global-search-target="#q"
+    data-global-search-action="#btn-payment-date-search"
+  >
+    <!-- 공통 네비게이션 include -->
+    <div id="global-nav-include"></div>
+    <script type="module">
+      import { loadGlobalNav } from "./js/common/nav-include.js";
+      loadGlobalNav();
+    </script>
+
+    <main class="page">
+      <div class="payment-layout page-layout">
+        <!-- 왼쪽: 입출금 분류/잔액 요약 박스 -->
+        <aside class="payment-left-column page-left-column">
+          <section class="card payment-cashflow-card">
+            <h2>
+              장부관리
+              <button
+                type="button"
+                id="btn-payment-cashflow-reset"
+                class="btn-row-btn"
+              >
+                전체보기
+              </button>
+            </h2>
+            <!-- 선택된 조건의 입출금 항목별 잔액 목록 -->
+            <div class="table-box payment-supplier-table-box">
+              <div class="table-wrapper payment-supplier-table-wrapper">
+                <table class="tx-table tx-table-small payment-cashflow-table">
+                  <thead>
+                    <tr>
+                      <th>코드</th>
+                      <th>장부구분</th>
+                      <th class="right">잔액</th>
+                    </tr>
+                  </thead>
+                  <tbody id="payment-cashflow-list"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="mini mini--right">
+              총 잔액(기초 포함): <b id="payment-cashflow-total">0</b>
+            </div>
+          </section>
+
+          <section class="card payment-ledger-items-card">
+            <h2>장부목록</h2>
+            <div class="table-box payment-supplier-table-box">
+              <div class="table-wrapper payment-supplier-table-wrapper">
+                <table class="tx-table tx-table-small payment-ledger-items-table">
+                  <thead>
+                    <tr>
+                      <th>코드</th>
+                      <th>장부명</th>
+                    </tr>
+                  </thead>
+                  <tbody id="payment-ledger-items-list"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="mini mini--right">
+              Count: <b id="payment-ledger-items-count">0</b>
+            </div>
+          </section>
+        </aside>
+
+        <section class="card payment-card page-main-column">
+          <h2>
+            입출금 내역
+            <span class="search-wrapper">
+              <input
+                type="text"
+                id="q"
+                placeholder="검색: 거래처/메모/품목"
+                class="customer-search-input"
+              />
+              <span class="search-icon"></span>
+            </span>
+          </h2>
+
+          <div class="table-action-box table-action-box--tight">
+            <button type="button" id="btn-payment-new" class="btn-row-btn left">
+              거래 입력
+            </button>
+            <button type="button" id="btn-payment-import" class="btn-row-btn">
+              거래인식
+            </button>
+            <div class="table-action-right">
+              <div class="table-action-buttons">
+                <button type="button" id="btn-payment-edit" class="btn-row-btn">
+                  수정
+                </button>
+                <button
+                  type="button"
+                  id="btn-payment-delete"
+                  class="btn-row-btn"
+                >
+                  삭제
+                </button>
+              </div>
+              <div class="payment-date-filter">
+                <input
+                  type="date"
+                  id="payment-date-from"
+                  class="payment-date-input"
+                />
+                <span class="payment-date-separator">~</span>
+                <button
+                  type="button"
+                  id="btn-payment-date-quick"
+                  class="payment-date-quick-btn"
+                  aria-label="기간 빠른 선택"
+                  title="기간 빠른 선택"
+                >
+                  <span class="date-quick-icon" aria-hidden="true">📅</span>
+                </button>
+                <input
+                  type="date"
+                  id="payment-date-to"
+                  class="payment-date-input"
+                />
+                <button
+                  type="button"
+                  id="btn-payment-date-search"
+                  class="btn-primary payment-date-search-btn"
+                >
+                  조회
+                </button>
+                <span class="excel-dropdown" id="payment-excel-dropdown">
+                  <button type="button" id="btn-payment-excel-toggle" class="btn-row-btn" aria-haspopup="menu" aria-expanded="false">엑셀 ▼</button>
+                  <div id="payment-excel-menu" class="excel-menu" role="menu" hidden>
+                    <button type="button" id="btn-payment-excel-export-screen" class="excel-menu-item" role="menuitem">내보내기</button>
+                  </div>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-box payment-detail-box table-box--mt-xs">
+            <div class="table-wrapper payment-detail-wrapper">
+              <table class="tx-table payment-main-table">
+                  <thead>
+                    <tr>
+                      <th>구분</th>
+                      <th>장부목록</th>
+                      <th>거래일시</th>
+                      <th>거래처명</th>
+                      <th>보낸분/받는분</th>
+                      <th class="right">입금액</th>
+                      <th class="right">출금액</th>
+                      <th class="right">잔액</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbody"></tbody>
+                  <tfoot>
+                    <tr>
+                      <td colspan="4" class="total-cell-label">
+                        Count=&nbsp;<span id="payment-main-count">0</span>
+                      </td>
+                      <td class="total-cell-label">입출금 합계 · 총 잔액(기초 포함)</td>
+                      <td class="right">
+                        <span id="payment-main-total-inn">0</span>
+                      </td>
+                      <td class="right">
+                        <span id="payment-main-total-out">0</span>
+                      </td>
+                      <td class="right">
+                        <span id="payment-main-total-balance">0</span>
+                      </td>
+                    </tr>
+                  </tfoot>
+              </table>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script src="js/vendor/xlsx.full.min.js"></script>
+    <script type="module" src="js/payment-manage.js"></script>
+
+    <!-- 통합 결제 - 날짜 빠른 선택용 모달 -->
+    <div id="payment-date-quick-modal" class="modal-overlay" aria-hidden="true">
+      <div
+        class="modal-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="payment-date-quick-title"
+      >
+        <section class="card date-quick-card">
+          <div class="modal-header">
+            <h2 id="payment-date-quick-title">기간 빠른 선택</h2>
+            <button
+              type="button"
+              class="modal-close-x"
+              aria-label="닫기"
+              data-click="#btn-payment-date-quick-close"
+            >
+              ×
+            </button>
+          </div>
+          <div class="date-quick-grid">
+            <button type="button" class="date-quick-btn" data-range="yesterday">
+              어제
+            </button>
+            <button type="button" class="date-quick-btn" data-range="today">
+              오늘
+            </button>
+            <button type="button" class="date-quick-btn" data-range="lastMonth">
+              지난달
+            </button>
+            <button type="button" class="date-quick-btn" data-range="thisMonth">
+              이번달
+            </button>
+            <button type="button" class="date-quick-btn" data-range="lastYear">
+              작년
+            </button>
+            <button type="button" class="date-quick-btn" data-range="thisYear">
+              올해
+            </button>
+          </div>
+          <div class="date-quick-footer">
+            <button
+              type="button"
+              class="btn-secondary date-quick-all-btn"
+              id="btn-payment-date-quick-all"
+              data-range="all"
+            >
+              모두
+            </button>
+            <button
+              type="button"
+              class="btn-secondary date-quick-close-btn"
+              id="btn-payment-date-quick-close"
+            >
+              닫기
+            </button>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- 통합 결제 거래 입력 모달: (초기엔 매입 모달을 기반으로 작성) -->
+    <div id="payment-modal" class="modal-overlay" aria-hidden="true">
+      <div
+        class="modal-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="payment-modal-title"
+      >
+        <section class="card">
+          <div class="modal-header">
+            <h2 id="payment-modal-title">거래 등록</h2>
+            <button
+              type="button"
+              class="modal-close-x"
+              aria-label="닫기"
+              data-click="#btn-payment-form-close"
+            >
+              ×
+            </button>
+          </div>
+          <form id="payment-form" class="modal-form modal-form--payment">
+            <div class="form-section-title">기본정보</div>
+            <label data-req="1">
+              <span class="label-text">구분</span>
+              <div class="radio-group">
+                <label>
+                  <input type="radio" name="payment-flow" value="in" checked />
+                  입금
+                </label>
+                <label>
+                  <input type="radio" name="payment-flow" value="out" />
+                  출금
+                </label>
+                <label>
+                  <input type="radio" name="payment-flow" value="transfer" />
+                  이체
+                </label>
+              </div>
+            </label>
+            <label data-req="1">
+              <span class="label-text">거래일</span>
+              <div class="control-2col">
+                <input type="date" id="payment-entry-date" />
+                <span class="payment-date-weekday-box">
+                  <span id="payment-entry-date-weekday" class="payment-date-weekday"></span>
+                </span>
+              </div>
+            </label>
+
+            <div class="form-section-title form-section-title--col1">장부</div>
+            <div class="form-section-title form-section-title--col2">거래처</div>
+            <label data-req="1">
+              <span class="label-text" id="payment-ledger-title">장부</span>
+              <div class="control-2col">
+                <select id="payment-ledger-select" aria-label="장부 선택">
+                  <option value="">선택</option>
+                </select>
+                <input type="text" id="payment-ledger-code" class="payment-inline-ledger-code-input" readonly />
+              </div>
+              <input type="hidden" id="payment-ledger-name" value="" />
+              <input type="hidden" id="payment-ledger-type-code" value="" />
+              <input type="hidden" id="payment-ledger-balance" value="0" />
+              <input type="hidden" id="payment-cashflow-item-name" value="" />
+              <input type="hidden" id="payment-cashflow-item-code" value="" />
+            </label>
+            <label data-req="1">
+              <span class="label-text" id="payment-counterparty-title">거래처(코드)</span>
+              <div class="control-2col">
+                <select id="payment-entry-counterparty" data-field="itemName" aria-label="거래처 선택">
+                  <option value="">선택</option>
+                </select>
+                <input type="text" id="payment-entry-counterparty-code" class="payment-inline-ledger-code-input" readonly />
+              </div>
+              <input type="hidden" id="payment-supplier-balance" value="0" />
+            </label>
+            <label data-req="1">
+              <span class="label-text">항목</span>
+              <input type="text" id="payment-entry-memo" placeholder="항목 입력" />
+            </label>
+            <label data-req="1">
+              <span class="label-text">금액</span>
+              <input
+                type="text"
+                id="payment-entry-amount"
+                data-field="unitPrice"
+                data-money-input="1"
+                inputmode="numeric"
+                class="right"
+              />
+            </label>
+
+            <div class="modal-actions">
+              <button type="button" id="btn-payment-save-continue" class="btn-secondary">연속</button>
+              <button type="submit" class="btn-secondary">저장</button>
+              <button type="button" id="btn-payment-form-close" class="btn-secondary">취소</button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </div>
+
+    <!-- 통합 결제 거래 인식 모달 -->
+    <div id="payment-import-modal" class="modal-overlay" aria-hidden="true">
+      <div
+        class="modal-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="payment-import-title"
+      >
+        <section class="card import-card">
+          <div class="modal-header">
+            <h2 id="payment-import-title" class="h2-tight-right">인식하기</h2>
+            <button
+              type="button"
+              class="modal-close-x"
+              aria-label="닫기"
+              data-click="#btn-payment-import-close"
+            >
+              ×
+            </button>
+          </div>
+
+          <div class="mini mini-row">
+            <span
+              >선택한 장부: <b id="payment-import-selected-ledger"></b
+            ></span>
+            <button
+              type="button"
+              id="btn-payment-import-ledger-picker"
+              class="btn-secondary btn-mini"
+            >
+              장부 선택
+            </button>
+            <b id="payment-import-selected-account" class="is-hidden"></b>
+          </div>
+
+          <textarea
+            id="payment-import-raw"
+            class="import-textarea"
+            placeholder="인터넷뱅킹에서 조회한 거래내역을 그대로 붙여넣어 주세요."
+          ></textarea>
+
+          <div class="table-box">
+            <div class="table-wrapper">
+              <table class="tx-table payment-import-table">
+                <thead>
+                  <tr>
+                    <th>구분</th>
+                    <th>거래처</th>
+                    <th>거래일시</th>
+                    <th>보낸분/받는분</th>
+                    <th class="right">입금액</th>
+                    <th class="right">출금액</th>
+                    <th class="right">잔액</th>
+                  </tr>
+                </thead>
+                <tbody id="payment-import-result-body"></tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="3" class="total-cell-label">
+                      Count=&nbsp;<span id="payment-import-count">0</span>
+                    </td>
+                    <td class="total-cell-label">입출금 합계</td>
+                    <td class="right">
+                      <span id="payment-import-total-inn">0</span>
+                    </td>
+                    <td class="right">
+                      <span id="payment-import-total-out">0</span>
+                    </td>
+                    <td class="right">
+                      <span id="payment-import-total-balance">0</span>
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+          <div class="status" id="payment-import-status"></div>
+
+          <div class="form-button-row import-button-row">
+            <button
+              type="button"
+              id="btn-payment-import-parse"
+              class="btn-primary"
+            >
+              ① 인식하기
+            </button>
+            <button
+              type="button"
+              id="btn-payment-import-save"
+              class="btn-secondary"
+            >
+              ② 인식 결과 저장
+            </button>
+            <button
+              type="button"
+              id="btn-payment-import-close"
+              class="btn-secondary"
+            >
+              닫기
+            </button>
+            <button
+              type="button"
+              id="btn-payment-import-delete"
+              class="btn-secondary"
+            >
+              삭제
+            </button>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- 중복 저장 경고 모달 (확인/중복삭제/취소) -->
+    <div
+      id="payment-dup-warning-modal"
+      class="modal-overlay"
+      aria-hidden="true"
+    >
+      <div
+        class="modal-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="payment-dup-warning-title"
+      >
+        <section class="card">
+          <div class="modal-header">
+            <h2 id="payment-dup-warning-title">중복 저장 경고</h2>
+            <button
+              type="button"
+              class="modal-close-x"
+              aria-label="닫기"
+              data-click="#btn-payment-dup-warning-cancel"
+            >
+              ×
+            </button>
+          </div>
+
+          <pre id="payment-dup-warning-text" class="status"></pre>
+
+          <div class="form-button-row">
+            <button
+              type="button"
+              id="btn-payment-dup-warning-confirm"
+              class="btn-primary"
+            >
+              확인
+            </button>
+            <button
+              type="button"
+              id="btn-payment-dup-warning-delete"
+              class="btn-secondary"
+            >
+              중복삭제
+            </button>
+            <button
+              type="button"
+              id="btn-payment-dup-warning-cancel"
+              class="btn-secondary"
+            >
+              취소
+            </button>
+          </div>
+        </section>
+      </div>
+    </div>
+
+  </body>
+</html>

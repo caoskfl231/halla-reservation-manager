@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>할라 장부 관리</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="css/style.css" />
+ </head>
+<body
+  data-title="할라 장부 관리"
+  data-mode="home"
+  data-global-search="1"
+  data-global-search-target="#home-search"
+  data-global-search-action="#btn-home-date-search"
+>
+  <div id="global-nav-include"></div>
+  <script type="module">
+    import { loadGlobalNav } from './js/common/nav-include.js';
+    loadGlobalNav();
+  </script>
+
+  <input
+    type="text"
+    id="home-search"
+    placeholder="거래처/분류/장부 검색"
+    autocomplete="off"
+    style="display:none"
+  />
+
+  <main class="page page-home">
+    <div class="home-layout">
+      <section class="home-dashboard" aria-label="대시보드">
+        <section class="card home-working-status" aria-label="운전자금">
+          <div class="home-working-header">
+            <h2 class="home-summary-title">운전자금</h2>
+            <div id="home-date-quick-inline" class="date-quick-inline" aria-label="빠른 날짜 선택">
+              <button type="button" class="date-quick-btn" data-range="yesterday">어제</button>
+              <button type="button" class="date-quick-btn" data-range="today">오늘</button>
+              <button type="button" class="date-quick-btn" data-range="lastMonth">지난달</button>
+              <button type="button" class="date-quick-btn" data-range="thisMonth">이번달</button>
+              <button type="button" class="date-quick-btn" data-range="lastYear">작년</button>
+              <button type="button" class="date-quick-btn" data-range="thisYear">올해</button>
+            </div>
+          </div>
+          <div id="home-working-cards" class="home-summary-cards"></div>
+          <div id="home-working-breakdown" class="home-summary-breakdown" hidden></div>
+        </section>
+
+        <div class="home-status-row" aria-label="현황">
+          <section class="card home-ledger-status" aria-label="장부현황">
+            <h2 class="home-summary-title">장부현황</h2>
+            <div id="home-money-cards" class="home-summary-cards"></div>
+            <div id="home-ledger-breakdown" class="home-summary-breakdown" hidden></div>
+          </section>
+
+          <section class="card home-summary" aria-label="요약현황">
+            <h2 class="home-summary-title">요약현황</h2>
+            <div id="home-summary-cards" class="home-summary-cards"></div>
+            <div id="home-summary-breakdown" class="home-summary-breakdown" hidden></div>
+          </section>
+        </div>
+
+        <section class="card home-tx-card" aria-label="거래 목록">
+          <div class="home-dashboard-header">
+            <h2 class="home-dashboard-title">할라축산 장부 대시보드</h2>
+
+            <div class="purchase-date-filter" aria-label="기간 필터">
+              <span class="mini">조회 날짜:</span>
+              <input type="date" id="home-date-from" class="purchase-date-input" aria-label="시작일" />
+              <span class="purchase-date-separator">~</span>
+              <button type="button" id="btn-home-date-quick" class="purchase-date-quick-btn" aria-label="기간 빠른 선택" title="기간 빠른 선택">
+                <span class="date-quick-icon" aria-hidden="true">📅</span>
+              </button>
+              <input type="date" id="home-date-to" class="purchase-date-input" aria-label="종료일" />
+              <button type="button" id="btn-home-date-search" class="btn-primary purchase-date-search-btn">조회</button>
+              <button type="button" id="btn-home-db-backup" class="btn-secondary">전체백업</button>
+              <button type="button" id="btn-home-db-restore" class="btn-secondary">전체복구</button>
+              <input type="file" id="home-db-restore-file" accept="application/json" hidden />
+            </div>
+          </div>
+
+          <div class="table-box">
+            <div class="table-wrapper">
+              <table id="home-main-table" class="tx-table home-main-table">
+                <colgroup>
+                  <col style="width:110px;" />
+                  <col style="width:70px;" />
+                  <col style="width:90px;" />
+                  <col style="width:170px;" />
+                  <col style="width:110px;" />
+                  <col style="width:110px;" />
+                  <col style="width:110px;" />
+                  <col style="width:110px;" />
+                  <col style="width:110px;" />
+                  <col style="width:110px;" />
+                  <col style="width:110px;" />
+                  <col style="width:110px;" />
+                  <col style="width:110px;" />
+                  <col style="width:110px;" />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th colspan="4">거래처/장부</th>
+                    <th colspan="3">매출처</th>
+                    <th colspan="3">매입처</th>
+                    <th colspan="1">지출처</th>
+                    <th colspan="2">입출금</th>
+                    <th colspan="1">합계</th>
+                  </tr>
+                  <tr>
+                    <th>날짜</th>
+                    <th>구분</th>
+                    <th>분류</th>
+                    <th>거래처</th>
+                    <th>매출</th>
+                    <th>수금</th>
+                    <th>잔액</th>
+                    <th>매입</th>
+                    <th>지불</th>
+                    <th>잔액</th>
+                    <th>지출</th>
+                    <th>입금</th>
+                    <th>출금</th>
+                    <th>잔액</th>
+                  </tr>
+                </thead>
+                <tbody id="tx-list"></tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="3" class="total-cell-label">Count=&nbsp;<span id="home-tx-count">0</span></td>
+                    <td class="total-cell-label">합계</td>
+                    <td class="right" data-amount-color="1" data-amount-value="0"><span id="home-tx-total-sales">0</span></td>
+                    <td class="right" data-amount-color="1" data-amount-value="0"><span id="home-tx-total-receipt">0</span></td>
+                    <td class="right" data-amount-color="1" data-amount-value="0"><span id="home-tx-total-sales-balance">0</span></td>
+                    <td class="right" data-amount-color="1" data-amount-force="minus" data-amount-value="0"><span id="home-tx-total-purchase">0</span></td>
+                    <td class="right" data-amount-color="1" data-amount-value="0"><span id="home-tx-total-pay">0</span></td>
+                    <td class="right" data-amount-color="1" data-amount-value="0"><span id="home-tx-total-purchase-balance">0</span></td>
+                    <td class="right" data-amount-color="1" data-amount-force="minus" data-amount-value="0"><span id="home-tx-total-expense">0</span></td>
+                    <td class="right" data-amount-color="1" data-amount-value="0"><span id="home-tx-total-in">0</span></td>
+                    <td class="right" data-amount-color="1" data-amount-force="minus" data-amount-value="0"><span id="home-tx-total-out">0</span></td>
+                    <td class="right" data-amount-color="1" data-amount-value="0"><span id="home-tx-total-balance">0</span></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </section>
+      </section>
+    </div>
+
+    <div id="home-date-quick-modal" class="modal-overlay" aria-hidden="true">
+      <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="home-date-quick-title">
+        <section class="card date-quick-card">
+          <h2 id="home-date-quick-title">기간 빠른 선택</h2>
+          <div class="date-quick-grid">
+            <button type="button" class="date-quick-btn" data-range="yesterday">어제</button>
+            <button type="button" class="date-quick-btn" data-range="today">오늘</button>
+            <button type="button" class="date-quick-btn" data-range="lastMonth">지난달</button>
+            <button type="button" class="date-quick-btn" data-range="thisMonth">이번달</button>
+            <button type="button" class="date-quick-btn" data-range="lastYear">작년</button>
+            <button type="button" class="date-quick-btn" data-range="thisYear">올해</button>
+          </div>
+          <div class="date-quick-footer">
+            <button type="button" class="btn-secondary date-quick-all-btn" id="btn-home-date-quick-all" data-range="all">모두</button>
+            <button type="button" class="btn-secondary date-quick-close-btn" id="btn-home-date-quick-close">닫기</button>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div id="home-breakdown-modal" class="modal-overlay" aria-hidden="true" data-overlay-close="on">
+      <div class="modal-dialog modal-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="home-breakdown-title">
+        <section class="card">
+          <div class="modal-header">
+            <h2 id="home-breakdown-title">상세</h2>
+            <button type="button" class="modal-close-x" aria-label="닫기">×</button>
+          </div>
+          <div id="home-breakdown-content" class="home-summary-breakdown"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

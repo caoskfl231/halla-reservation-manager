@@ -1,0 +1,190 @@
+.<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>지출 관리 - 할라 장부 관리</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="css/style.css" />
+ </head>
+<body data-title="지출 관리" data-mode="expense" data-global-search="1" data-global-search-target="#purchase-search" data-global-search-action="#btn-purchase-date-search">
+  <div id="global-nav-include"></div>
+  <script type="module">
+    import { loadGlobalNav } from './js/common/nav-include.js';
+    loadGlobalNav();
+  </script>
+
+  <main class="page">
+    <div class="purchase-layout page-layout">
+      <aside class="purchase-left-column page-left-column">
+        <section class="card purchase-group-card">
+          <h2>거래처 분류
+            <button type="button" id="btn-purchase-group-reset" class="btn-row-btn">전체보기</button>
+          </h2>
+          <div class="purchase-type-switch" role="group" aria-label="거래처 유형 선택">
+            <button type="button" class="type-switch-btn" data-group-type="매출처" aria-pressed="false">매출</button>
+            <button type="button" class="type-switch-btn" data-group-type="매입처" aria-pressed="false">매입</button>
+            <button type="button" class="type-switch-btn is-active" data-group-type="지출처" aria-pressed="true">지출</button>
+          </div>
+          <div class="purchase-group-select-row">
+            <label for="purchase-group-select" class="purchase-group-select-label">분류명</label>
+            <select id="purchase-group-select" class="purchase-group-select"></select>
+          </div>
+          <div class="table-box purchase-supplier-table-box">
+            <div class="table-wrapper purchase-supplier-table-wrapper">
+              <table class="tx-table tx-table-small purchase-supplier-table">
+                <thead>
+                  <tr>
+                    <th data-sort-key="id">코드</th>
+                    <th data-sort-key="name">거래처명</th>
+                  </tr>
+                </thead>
+                <tbody id="purchase-supplier-list"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </aside>
+
+      <section class="card purchase-card page-main-column">
+      <h2>지출 내역
+        <span class="search-wrapper">
+          <input type="text" id="purchase-search" placeholder="거래처/품목/메모 검색" class="customer-search-input" />
+          <span class="search-icon"></span>
+        </span>
+      </h2>
+      <div class="table-action-box">
+        <button type="button" id="btn-purchase-new" class="btn-row-btn left">지출등록</button>
+        <div class="table-action-right">
+          <div class="table-action-buttons">
+            <button type="button" id="btn-purchase-edit" class="btn-row-btn">수정</button>
+            <button type="button" id="btn-purchase-delete" class="btn-row-btn">삭제</button>
+          </div>
+          <div class="purchase-date-filter">
+            <input type="date" id="purchase-date-from" class="purchase-date-input" />
+            <span class="purchase-date-separator">~</span>
+            <button type="button" id="btn-purchase-date-quick" class="purchase-date-quick-btn" aria-label="기간 빠른 선택" title="기간 빠른 선택">
+              <span class="date-quick-icon" aria-hidden="true">📅</span>
+            </button>
+            <input type="date" id="purchase-date-to" class="purchase-date-input" />
+            <button type="button" id="btn-purchase-date-search" class="btn-primary purchase-date-search-btn">조회</button>
+          </div>
+        </div>
+      </div>
+      <div class="table-box purchase-summary-box">
+        <div class="table-wrapper">
+          <table class="tx-table tx-table-small purchase-summary-table">
+            <thead>
+              <tr>
+                <th>구분</th>
+                <th>거래처명</th>
+                <th>거래일자</th>
+                <th>장부명</th>
+                <th>적요</th>
+                <th>거래</th>
+                <th>결제</th>
+                <th>잔액</th>
+              </tr>
+            </thead>
+            <tbody id="purchase-summary-body">
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4" class="total-cell-label">Count=&nbsp;<span id="purchase-count">0</span></td>
+                <td class="total-cell-label">합계</td>
+                <td class="right"><span id="purchase-total-amount">0</span></td>
+                <td class="right"><span id="purchase-total-payment">0</span></td>
+                <td class="right"><span id="purchase-total-balance">0</span></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="purchase-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="purchase-modal-title">
+      <section class="card">
+        <div class="modal-header">
+          <h2 id="purchase-modal-title">지출 등록</h2>
+          <button type="button" class="modal-close-x" aria-label="닫기" data-click="#btn-purchase-form-close">×</button>
+        </div>
+        <form id="purchase-form" class="modal-form modal-form--payment">
+          <div class="form-section-title">기본정보</div>
+          <label data-req="1">
+            <span class="label-text">지출일</span>
+            <div class="control-2col">
+              <input type="date" id="purchase-date" />
+              <span class="purchase-date-weekday-box">
+                <span id="purchase-date-weekday" class="purchase-date-weekday"></span>
+              </span>
+            </div>
+          </label>
+          <label data-req="1">
+            <span class="label-text">거래처(코드)</span>
+            <div class="control-2col">
+              <select id="purchase-supplier-select"></select>
+              <input type="text" id="purchase-supplier" class="purchase-code-input" />
+            </div>
+          </label>
+
+          <div class="form-section-title">결제정보</div>
+          <label data-req="1">
+            <span class="label-text">통장(계좌)</span>
+            <div class="control-2col">
+              <select id="purchase-inline-ledger-name" class="purchase-inline-ledger-select">
+                <option value="">통장 선택</option>
+              </select>
+              <input type="text" id="purchase-inline-ledger-code" class="purchase-inline-ledger-code-input" />
+            </div>
+          </label>
+          <label data-req="1">
+            <span class="label-text">지출금액</span>
+            <input type="number" id="purchase-inline-ledger-amount" class="purchase-supplier-balance-input" value="0" />
+          </label>
+
+          <div class="form-section-title">메모/기타</div>
+          <label class="span-2">
+            <span class="label-text">항목</span>
+            <input type="text" id="purchase-expense-memo" class="purchase-supplier-balance-input" />
+          </label>
+
+          <div class="modal-actions">
+            <button type="button" id="btn-purchase-save-continue" class="btn-secondary">연속</button>
+            <button type="submit" class="btn-secondary">저장</button>
+            <button type="button" id="btn-purchase-delete-modal" class="btn-secondary" style="display:none">삭제</button>
+            <button type="button" id="btn-purchase-form-close" class="btn-secondary">닫기</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </div>
+
+
+  <div id="purchase-date-quick-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="purchase-date-quick-title">
+      <section class="card date-quick-card">
+        <div class="modal-header">
+          <h2 id="purchase-date-quick-title">기간 빠른 선택</h2>
+          <button type="button" class="modal-close-x" aria-label="닫기" data-click="#btn-date-quick-close">×</button>
+        </div>
+        <div class="date-quick-grid">
+          <button type="button" class="date-quick-btn" data-range="yesterday">어제</button>
+          <button type="button" class="date-quick-btn" data-range="today">오늘</button>
+          <button type="button" class="date-quick-btn" data-range="lastMonth">지난달</button>
+          <button type="button" class="date-quick-btn" data-range="thisMonth">이번달</button>
+          <button type="button" class="date-quick-btn" data-range="lastYear">작년</button>
+          <button type="button" class="date-quick-btn" data-range="thisYear">올해</button>
+        </div>
+        <div class="date-quick-footer">
+          <button type="button" class="btn-secondary date-quick-all-btn" id="btn-date-quick-all" data-range="all">모두</button>
+          <button type="button" class="btn-secondary date-quick-close-btn" id="btn-date-quick-close">닫기</button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script type="module" src="js/expense-manage.js"></script>
+</body>
+</html>

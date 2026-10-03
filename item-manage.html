@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <title>품목 관리 - 할라 장부 관리</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/pages/item-manage.css" />
+  </head>
+  <body
+    data-title="품목 관리"
+    data-mode="item"
+    data-global-search="1"
+    data-global-search-target="#item-search"
+  >
+    <div id="global-nav-include"></div>
+    <script type="module">
+      import { loadGlobalNav } from "./js/common/nav-include.js";
+      loadGlobalNav();
+    </script>
+
+    <main class="page">
+      <div class="customer-layout page-layout">
+        <!-- 왼쪽: 분류 마스터 카드 -->
+        <div class="customer-left-column page-left-column">
+          <section class="card item-group-card">
+            <h2 class="card-header-split">
+              <span class="card-title">분류</span>
+              <span class="customer-header-buttons">
+                <button
+                  type="button"
+                  id="btn-open-item-group-modal"
+                  class="btn-row-btn customer-group-open-button"
+                >
+                  분류 추가
+                </button>
+                <button
+                  type="button"
+                  id="btn-item-group-edit"
+                  class="btn-row-btn"
+                >
+                  수정
+                </button>
+                <button
+                  type="button"
+                  id="btn-item-group-delete"
+                  class="btn-row-btn"
+                >
+                  삭제
+                </button>
+              </span>
+            </h2>
+            <div class="table-box">
+              <div class="table-wrapper customer-type-table-wrapper">
+                <table class="tx-table tx-table-small">
+                  <thead>
+                    <tr>
+                      <th>코드</th>
+                      <th>분류 이름</th>
+                    </tr>
+                  </thead>
+                  <tbody id="item-group-master-list"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- 오른쪽: 품목 목록 카드 -->
+        <section class="card customer-main-card page-main-column">
+          <h2>
+            품목 목록
+            <span class="search-wrapper">
+              <input
+                type="text"
+                id="item-search"
+                placeholder="코드/이름/메모 검색"
+                class="customer-search-input"
+              />
+              <span class="search-icon"></span>
+            </span>
+          </h2>
+          <div class="table-action-box">
+            <button
+              type="button"
+              id="btn-item-row-new"
+              class="btn-row-btn left"
+            >
+              신규등록
+            </button>
+            <div class="table-action-right">
+              <span class="table-action-text"
+                >품목을 선택한 뒤 수정/삭제를 사용하세요.</span
+              >
+              <div class="table-action-buttons">
+                <button
+                  type="button"
+                  id="btn-item-row-edit"
+                  class="btn-row-btn"
+                >
+                  수정
+                </button>
+                <button
+                  type="button"
+                  id="btn-item-row-delete"
+                  class="btn-row-btn"
+                >
+                  삭제
+                </button>
+                <button
+                  type="button"
+                  id="btn-item-load-json"
+                  class="btn-row-btn"
+                >
+                  JSON 불러오기
+                </button>
+                <button type="button" id="btn-item-backup" class="btn-row-btn">
+                  백업(JSON)
+                </button>
+                <button type="button" id="btn-item-restore" class="btn-row-btn">
+                  복원(JSON)
+                </button>
+                <input type="file" id="item-restore-file" accept="application/json,.json" hidden>
+              </div>
+            </div>
+          </div>
+          <div class="table-box">
+            <div class="table-wrapper">
+              <table class="tx-table item-table">
+                <colgroup>
+                  <col style="width: 50px" />
+                  <!-- 상태 (1열) -->
+                  <col style="width: 60px" />
+                  <!-- 코드 (2열) -->
+                  <col style="width: 80px" />
+                  <!-- 분류 (3열) -->
+                  <col style="width: 170px" />
+                  <!-- 품명 (4열) -->
+                  <col />
+                  <!-- 원산지: 남는 폭(auto, 5열) -->
+                  <col style="width: 40px" />
+                  <!-- 단위 (6열) -->
+                  <col style="width: 80px" />
+                  <!-- 단가 (7열) -->
+                  <col style="width: 50px" />
+                  <!-- 감량% (8열) -->
+                  <col style="width: 80px" />
+                  <!-- 감량가 (9열) -->
+                  <col style="width: 50px" />
+                  <!-- 소매 마진률 (10열) -->
+                  <col style="width: 80px" />
+                  <!-- 소매 판매가 (11열) -->
+                  <col style="width: 80px" />
+                  <!-- 소매 이익가 (12열) -->
+                  <col style="width: 70px" />
+                  <!-- 소매 이익률(매출) (13열) -->
+                  <col style="width: 50px" />
+                  <!-- 납품 마진률 (14열) -->
+                  <col style="width: 80px" />
+                  <!-- 납품 판매가 (15열) -->
+                  <col style="width: 80px" />
+                  <!-- 납품 이익가 (16열) -->
+                  <col style="width: 70px" />
+                  <!-- 납품 이익률(매출) (17열) -->
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th colspan="2">확인</th>
+                    <th colspan="2">품목</th>
+                    <th colspan="2">규격</th>
+                    <th colspan="3">매입가</th>
+                    <th colspan="4">소매가</th>
+                    <th colspan="4">납품가</th>
+                  </tr>
+                  <tr>
+                    <th class="col-status" data-sort-key="status">상태</th>
+                    <th class="col-id" data-sort-key="id">코드</th>
+                    <th class="col-group" data-sort-key="group">분류</th>
+                    <th class="col-name" data-sort-key="name">품명</th>
+                    <th class="col-origin">원산지</th>
+                    <th class="col-unit">단위</th>
+                    <th class="col-price" data-sort-key="price">단가</th>
+                    <th
+                      class="col-shrink-percent"
+                      data-sort-key="shrinkPercent"
+                    >
+                      감량%
+                    </th>
+                    <th class="col-shrink-price" data-sort-key="shrinkPrice">
+                      감량가
+                    </th>
+                    <th class="col-sale-margin" data-sort-key="saleMargin">
+                      마진률
+                    </th>
+                    <th class="col-sale-price" data-sort-key="salePrice">
+                      판매가
+                    </th>
+                    <th class="col-sale-profit" data-sort-key="saleProfit">
+                      이익가
+                    </th>
+                    <th
+                      class="col-sale-profit-rate"
+                      data-sort-key="saleProfitRateSales"
+                    >
+                      이익률(매출)
+                    </th>
+                    <th
+                      class="col-delivery-margin"
+                      data-sort-key="deliveryMargin"
+                    >
+                      마진률
+                    </th>
+                    <th
+                      class="col-delivery-price"
+                      data-sort-key="deliveryPrice"
+                    >
+                      판매가
+                    </th>
+                    <th class="col-profit-price" data-sort-key="deliveryProfit">
+                      이익가
+                    </th>
+                    <th
+                      class="col-delivery-profit-rate"
+                      data-sort-key="deliveryProfitRateSales"
+                    >
+                      이익률(매출)
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="item-list"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- 품목 추가/수정용 모달 -->
+    <div id="item-modal" class="modal-overlay" aria-hidden="true">
+      <div
+        class="modal-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="item-modal-title"
+      >
+        <section class="card">
+          <div class="modal-header">
+            <h2 id="item-modal-title">품목 추가</h2>
+            <button
+              type="button"
+              class="modal-close-x"
+              aria-label="닫기"
+              data-click="#btn-item-form-close"
+            >
+              ×
+            </button>
+          </div>
+          <form id="item-form" class="modal-form">
+            <div class="form-section-title">기본정보</div>
+            <label>
+              <span class="label-text">코드</span>
+              <div class="code-input-row">
+                <select id="item-id-mode" class="field-code-mode">
+                  <option value="auto">자동생성</option>
+                  <option value="manual">직접입력</option>
+                </select>
+                <input
+                  type="text"
+                  id="item-id"
+                  class="field-code-input"
+                  placeholder="예: 000001"
+                />
+              </div>
+            </label>
+            <label>
+              <span class="label-text">상태</span>
+              <select id="item-status" class="field-status">
+                <option value="active">활성</option>
+                <option value="inactive">중지</option>
+              </select>
+            </label>
+            <label data-req="1">
+              <span class="label-text">품목명</span>
+              <input type="text" id="item-name" />
+            </label>
+            <label data-req="1">
+              <span class="label-text">원산지</span>
+              <input
+                type="text"
+                id="item-spec"
+                placeholder="예: 국내산, 수입산, 호주산"
+              />
+            </label>
+
+            <div class="form-section-title">분류정보</div>
+            <label data-req="1">
+              <div class="group-label-row">
+                <span class="label-text">분류</span>
+                <select id="item-group-select">
+                  <option value="">분류 선택</option>
+                </select>
+              </div>
+              <div class="group-input-row is-hidden">
+                <input type="text" id="item-group" placeholder="분류 직접 입력" />
+              </div>
+            </label>
+            <label data-req="1">
+              <span class="label-text">단위</span>
+              <input type="text" id="item-unit" placeholder="예: kg, 개, 팩" />
+            </label>
+
+            <div class="form-section-title">정산/금액정보</div>
+            <div class="span-2 item-price-grid" aria-label="정산/금액정보 입력">
+              <div class="item-price-col" aria-label="매입/감량">
+                <div class="item-mini-bundle item-purchase-bundle" aria-label="매입가">
+                  <label class="mini-field">
+                    <span class="mini-label">매입가</span>
+                    <input type="number" id="item-price" value="0" />
+                  </label>
+                </div>
+
+                <div class="item-mini-bundle item-shrink-bundle" aria-label="감량 정보">
+                  <label class="mini-field">
+                    <span class="mini-label">감량율</span>
+                    <span class="percent-input-wrap">
+                      <input
+                        type="number"
+                        id="item-shrink-percent"
+                        value="0"
+                        step="0.01"
+                        data-number-normalize="off"
+                      />
+                      <span class="suffix">%</span>
+                    </span>
+                  </label>
+
+                  <label class="mini-field">
+                    <span class="mini-label">감량원가</span>
+                    <input type="number" id="item-shrink-price" value="0" readonly />
+                  </label>
+                </div>
+              </div>
+
+              <div class="item-price-col" aria-label="소매/납품">
+                <div class="item-mini-bundle item-sale-bundle" aria-label="소매 정보">
+                  <label class="mini-field">
+                    <span class="mini-label">마진율</span>
+                    <span class="percent-input-wrap">
+                      <input
+                        type="number"
+                        id="item-sale-margin"
+                        value="0"
+                        step="0.01"
+                        data-number-normalize="off"
+                      />
+                      <span class="suffix">%</span>
+                    </span>
+                  </label>
+                  <label class="mini-field">
+                    <span class="mini-label">소매가</span>
+                    <input type="number" id="item-sale-price" value="0" />
+                  </label>
+                </div>
+
+                <div class="item-mini-bundle item-delivery-bundle" aria-label="납품 정보">
+                  <label class="mini-field">
+                    <span class="mini-label">마진율</span>
+                    <span class="percent-input-wrap">
+                      <input
+                        type="number"
+                        id="item-delivery-margin"
+                        value="0"
+                        step="0.01"
+                        data-number-normalize="off"
+                      />
+                      <span class="suffix">%</span>
+                    </span>
+                  </label>
+                  <label class="mini-field">
+                    <span class="mini-label">납품가</span>
+                    <input type="number" id="item-delivery-price" value="0" />
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- 평균가는 계산/저장에 사용되므로 요소는 유지하되 UI에서는 숨김 -->
+            <input type="hidden" id="item-avg-price" value="0" />
+            <div class="modal-actions">
+              <button type="button" id="btn-item-form-save-continue" class="btn-secondary">연속</button>
+              <button type="submit" class="btn-secondary">저장</button>
+              <button type="button" id="btn-item-form-close" class="btn-secondary">
+                닫기
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </div>
+
+    <!-- 품목 분류 코드 추가/수정용 모달 -->
+    <div id="item-group-modal" class="modal-overlay" aria-hidden="true">
+      <div
+        class="modal-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="item-group-modal-title"
+      >
+        <section class="card">
+          <div class="modal-header">
+            <h2 id="item-group-modal-title">분류 추가</h2>
+            <button
+              type="button"
+              class="modal-close-x"
+              aria-label="닫기"
+              data-click="#btn-item-group-close"
+            >
+              ×
+            </button>
+          </div>
+          <form id="item-group-form" class="modal-form">
+            <div class="form-section-title">기본정보</div>
+            <label data-req="1">
+              <span class="label-text">분류 이름</span>
+              <input type="text" id="item-group-name" placeholder="예: 한돈" />
+            </label>
+            <label data-req="1">
+              <span class="label-text">분류코드</span>
+              <div class="code-input-row">
+                <select id="item-group-id-mode" class="field-code-mode">
+                  <option value="auto">자동생성</option>
+                  <option value="manual">직접입력</option>
+                </select>
+                <input type="text" id="item-group-code" class="field-code-input" />
+              </div>
+            </label>
+            <div class="modal-actions">
+              <button type="button" id="btn-item-group-save-continue" class="btn-secondary">연속</button>
+              <button type="submit" class="btn-secondary">저장</button>
+              <button type="button" id="btn-item-group-close" class="btn-secondary">
+                닫기
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </div>
+
+    <script type="module" src="js/item-manage.js"></script>
+  </body>
+</html>
