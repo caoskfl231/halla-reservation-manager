@@ -1,0 +1,14 @@
+# VS Code local history (extension)
+**/.history/
+
+# Backup files
+*.bak
+*.tmp
+*~
+
+# OS / tooling
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
