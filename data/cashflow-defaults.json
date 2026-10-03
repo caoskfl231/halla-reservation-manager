@@ -1,0 +1,51 @@
+{
+  "types": [
+    { "code": "A01", "name": "법인통장" },
+    { "code": "A02", "name": "신용카드" },
+    { "code": "A03", "name": "체크카드" },
+    { "code": "A04", "name": "현금" },
+    { "code": "A05", "name": "미수금" }
+  ],
+  "items": [
+    {
+      "code": "A0001",
+      "name": "법인통장",
+      "typeCode": "A01",
+      "openingBalance": 0,
+      "memo": ""
+    },
+    {
+      "code": "A0002",
+      "name": "신용카드",
+      "typeCode": "A02",
+      "openingBalance": 0,
+      "memo": ""
+    },
+    {
+      "code": "A0003",
+      "name": "체크카드",
+      "typeCode": "A03",
+      "openingBalance": 0,
+      "memo": ""
+    },
+    {
+      "code": "A0004",
+      "name": "현금",
+      "typeCode": "A04",
+      "openingBalance": 0,
+      "memo": ""
+    },
+    {
+      "code": "A0005",
+      "name": "미수금",
+      "typeCode": "A05",
+      "openingBalance": 0,
+      "memo": ""
+    }
+  ],
+  "groups": [
+    { "code": "A001", "name": "고정비", "direction": "out" },
+    { "code": "A002", "name": "변동비", "direction": "out" },
+    { "code": "A003", "name": "기타수입", "direction": "in" }
+  ]
+}

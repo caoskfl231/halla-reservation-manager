@@ -1,0 +1,232 @@
+/* 품목 관리 전용 스타일 */
+
+/* UX Patch */
+/* 페이지 식별은 data-mode="item" 사용 */
+
+/* 오른쪽 품목 목록은 폭 부족 시 가로 스크롤 허용 */
+body[data-mode="item"] .customer-main-card {
+  min-width: 0;
+}
+
+body[data-mode="item"] .customer-main-card .table-wrapper {
+  overflow-x: auto;
+}
+
+/* 왼쪽(분류) 영역 버튼 줄바꿈/스크롤 제어 */
+body[data-mode="item"] .customer-header-buttons button {
+  white-space: nowrap;
+}
+
+body[data-mode="item"] .customer-header-buttons {
+  flex-wrap: wrap;
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+/* 공통 헤더 레이아웃(card-header-split)에서는 3개 버튼 한 줄 유지 */
+body[data-mode="item"] .card-header-split .customer-header-buttons {
+  flex-wrap: nowrap;
+  overflow-x: visible;
+}
+
+/* 분류 카드 헤더: 버튼이 박스 밖으로 나가지 않도록 1열 레이아웃 + 줄바꿈 허용 */
+body[data-mode="item"] .item-group-card .card-header-split {
+  grid-template-columns: 1fr;
+}
+
+body[data-mode="item"]
+  .item-group-card
+  .card-header-split
+  .customer-header-buttons {
+  grid-column: 1;
+  justify-self: end;
+  flex-wrap: wrap;
+  row-gap: 0.3rem;
+  max-width: 100%;
+}
+
+body[data-mode="item"]
+  .item-group-card
+  .customer-header-buttons
+  .btn-row-btn {
+  min-width: 0;
+  padding: 0.22rem 0.55rem;
+  font-size: var(--fs-text-compact);
+}
+
+body[data-mode="item"] .customer-header-buttons .btn-row-btn {
+  min-width: 70px;
+}
+
+/* 왼쪽 분류 테이블: 줄바꿈 없이, 폭 부족하면 가로 스크롤 */
+body[data-mode="item"] .customer-type-table-wrapper {
+  overflow-x: hidden;
+}
+
+body[data-mode="item"] .customer-type-table-wrapper th,
+body[data-mode="item"] .customer-type-table-wrapper td {
+  white-space: nowrap;
+  word-break: keep-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 품목 모달: 가격/정산 UI (item-manage 전용) */
+body[data-mode="item"] .item-price-field {
+  display: flex;
+  flex-direction: column;
+}
+
+body[data-mode="item"] .modal-form .item-price-bundle {
+  grid-row: span 2;
+  min-width: 0;
+}
+
+body[data-mode="item"] .modal-form .item-mini-bundle {
+  padding: 0.45rem 0.5rem;
+  border: 1px solid var(--ux-panel-border);
+  border-radius: var(--ux-radius-sm);
+  background: var(--ux-panel-bg);
+  display: grid;
+  gap: 0.55rem;
+}
+
+body[data-mode="item"] .modal-form .item-price-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
+}
+
+body[data-mode="item"] .modal-form .item-price-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+body[data-mode="item"] .modal-form .item-shrink-bundle {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+}
+
+body[data-mode="item"] .modal-form .item-sale-bundle,
+body[data-mode="item"] .modal-form .item-delivery-bundle {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+}
+
+body[data-mode="item"] .modal-form .item-mini-bundle .mini-field {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-size: var(--fs-compact);
+  font-weight: 700;
+}
+
+body[data-mode="item"] .modal-form .item-mini-bundle .mini-label {
+  color: #445;
+  white-space: nowrap;
+  min-height: 18px;
+}
+
+@media (max-width: 720px) {
+  body[data-mode="item"] .modal-form .item-price-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+body[data-mode="item"] .percent-input-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+body[data-mode="item"] .modal-form .percent-input-wrap {
+  width: 100%;
+}
+
+body[data-mode="item"] .modal-form .percent-input-wrap input {
+  flex: 1;
+  min-width: 0;
+}
+
+body[data-mode="item"] .percent-input-wrap .suffix {
+  font-size: var(--fs-base);
+}
+
+/* 품목 목록(item-table) 전용 스타일 */
+body[data-mode="item"] .tx-table.item-table {
+  table-layout: auto;
+  width: max-content;
+  min-width: 100%;
+}
+
+body[data-mode="item"] .item-table th,
+body[data-mode="item"] .item-table td {
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+body[data-mode="item"] .item-table td.col-shrink-percent::after,
+body[data-mode="item"] .item-table td.col-sale-margin::after,
+body[data-mode="item"] .item-table td.col-delivery-margin::after {
+  content: "%";
+  margin-left: 1px;
+}
+
+body[data-mode="item"] .item-table th.col-shrink-price,
+body[data-mode="item"] .item-table td.col-shrink-price {
+  background-color: #fffbd6;
+}
+
+body[data-mode="item"] .item-table th.col-sale-price,
+body[data-mode="item"] .item-table td.col-sale-price {
+  background-color: #c2e0ff;
+}
+
+body[data-mode="item"] .item-table th.col-sale-profit,
+body[data-mode="item"] .item-table td.col-sale-profit {
+  background-color: #c2e0ff;
+}
+
+body[data-mode="item"] .item-table th.col-sale-profit-rate,
+body[data-mode="item"] .item-table td.col-sale-profit-rate {
+  background-color: #c2e0ff;
+}
+
+body[data-mode="item"] .item-table th.col-delivery-price,
+body[data-mode="item"] .item-table td.col-delivery-price {
+  background-color: #ffe066;
+}
+
+body[data-mode="item"] .item-table th.col-delivery-margin,
+body[data-mode="item"] .item-table td.col-delivery-margin,
+body[data-mode="item"] .item-table th.col-profit-price,
+body[data-mode="item"] .item-table td.col-profit-price,
+body[data-mode="item"] .item-table th.col-delivery-profit-rate,
+body[data-mode="item"] .item-table td.col-delivery-profit-rate {
+  background-color: #ffe066;
+}
+
+body[data-mode="item"] .item-table tbody tr:hover td.col-shrink-percent,
+body[data-mode="item"] .item-table tbody tr:hover td.col-sale-margin,
+body[data-mode="item"] .item-table tbody tr:hover td.col-sale-price,
+body[data-mode="item"] .item-table tbody tr:hover td.col-sale-profit,
+body[data-mode="item"] .item-table tbody tr:hover td.col-sale-profit-rate,
+body[data-mode="item"] .item-table tbody tr:hover td.col-delivery-margin,
+body[data-mode="item"] .item-table tbody tr:hover td.col-delivery-price,
+body[data-mode="item"] .item-table tbody tr:hover td.col-profit-price,
+body[data-mode="item"] .item-table tbody tr:hover td.col-delivery-profit-rate {
+  background-color: var(--ux-table-row-hover-bg);
+}
+
+body[data-mode="item"] .item-table tbody tr.selected td.col-shrink-percent,
+body[data-mode="item"] .item-table tbody tr.selected td.col-sale-margin,
+body[data-mode="item"] .item-table tbody tr.selected td.col-sale-price,
+body[data-mode="item"] .item-table tbody tr.selected td.col-sale-profit,
+body[data-mode="item"] .item-table tbody tr.selected td.col-sale-profit-rate,
+body[data-mode="item"] .item-table tbody tr.selected td.col-delivery-margin,
+body[data-mode="item"] .item-table tbody tr.selected td.col-delivery-price,
+body[data-mode="item"] .item-table tbody tr.selected td.col-profit-price,
+body[data-mode="item"] .item-table tbody tr.selected td.col-delivery-profit-rate {
+  background-color: var(--ux-table-row-selected-bg);
+}

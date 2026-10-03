@@ -1,0 +1,188 @@
+{
+  "version": 2,
+  "description": "통합결제(ledger) DB와 매입(hallapa_db) 연동 구조 스펙 및 예시 (문서/참고용)",
+  "ledgerDb": {
+    "name": "hallapa_db.ledger_tx",
+    "stores": {
+      "tx": {
+        "keyPath": "id",
+        "description": "통장/카드/장부별 입출금 및 이체 내역 한 줄(posting)에 해당하는 레코드",
+        "fields": {
+          "id": { "type": "string", "required": true, "note": "거래 라인 ID (예: UUID)" },
+          "date": { "type": "string(YYYY-MM-DD)", "required": true },
+          "flow": { "type": "'in' | 'out'", "required": true, "note": "입금/출금" },
+          "kind": { "type": "string", "required": true, "note": "'기타' | '이체' 등 (DB 내부 분류)" },
+          "eventType": { "type": "string", "required": false, "note": "'transfer' | 'purchase_payment' | 'sales_receipt' | 'expense' | 'manual' 등 UI/업무 로직용 이벤트 유형" },
+          "source": { "type": "string", "required": false, "note": "데이터 생성 화면/경로 (예: 'payment' | 'purchase' | 'sales' | 'expense')" },
+          "paymentMethod": { "type": "'bank' | 'card' | 'cash'", "required": true },
+          "accountId": { "type": "string", "required": true, "note": "통장/장부 코드 (예: A01, A06)" },
+          "accountName": { "type": "string", "required": true, "note": "통장/장부 이름 (예: 법인통장, ABL생명)" },
+          "cashflowCode": { "type": "string", "required": true, "note": "잔액 집계용 코드 (구현에 따라 장부명 코드(A0001~) 또는 장부구분 코드(A01~)가 들어갈 수 있음)" },
+          "cashflowItemCode": { "type": "string", "required": false, "note": "장부명 코드 (예: A0001). UI 표시용/호환용 필드" },
+          "cashflowItemName": { "type": "string", "required": false, "note": "장부명 (예: 국민통장). UI 표시용/호환용 필드" },
+          "amount": { "type": "number", "required": true, "note": "항상 양수 금액" },
+          "vendor": { "type": "string", "required": false, "note": "보낸분/받는분 또는 원본 거래내역 이름" },
+          "item": { "type": "string", "required": false, "note": "화면에 표시할 항목/상대 계정명" },
+          "memo": { "type": "string", "required": false },
+          "entryMemo": { "type": "string", "required": false, "note": "사용자 입력 항목/메모(표시 우선순위가 memo와 다를 수 있음)" },
+          "customerId": { "type": "string", "required": false, "note": "선택된 거래처 ID(표시/필터/연동 보조용)" },
+          "supplierId": { "type": "string", "required": false, "note": "매입처 ID(매입결제 자동연동 보조용)" },
+          "groupId": { "type": "string | null", "required": false, "note": "이체 한 건을 구성하는 양쪽 줄을 묶는 ID (없으면 단일 입출금)" },
+          "isOrigin": { "type": "boolean | null", "required": false, "note": "이체인 경우 보낸 쪽(out)인지 여부" },
+          "createdAt": { "type": "number(timestamp)", "required": true },
+          "updatedAt": { "type": "number(timestamp)", "required": true }
+        }
+      }
+    },
+    "examples": {
+      "transfer_A01_to_A06": {
+        "description": "A01 법인통장에서 A06 ABL생명으로 1,000,000 이체 (이체 1건 = tx 2줄)",
+        "out": {
+          "id": "UUID_TX_OUT",
+          "date": "2025-12-22",
+          "flow": "out",
+          "kind": "이체",
+          "eventType": "transfer",
+          "paymentMethod": "bank",
+          "accountId": "A01",
+          "accountName": "법인통장",
+          "cashflowCode": "A01",
+          "amount": 1000000,
+          "vendor": "ABL생명",
+          "item": "ABL생명",
+          "memo": "[이체출금] 법인→ABL생명 100만",
+          "groupId": "UUID_GROUP_1",
+          "isOrigin": true,
+          "createdAt": 1734900000000,
+          "updatedAt": 1734900000000
+        },
+        "in": {
+          "id": "UUID_TX_IN",
+          "date": "2025-12-22",
+          "flow": "in",
+          "kind": "이체",
+          "eventType": "transfer",
+          "paymentMethod": "bank",
+          "accountId": "A06",
+          "accountName": "ABL생명",
+          "cashflowCode": "A06",
+          "amount": 1000000,
+          "vendor": "법인통장",
+          "item": "법인통장",
+          "memo": "[이체입금] 법인→ABL생명 100만",
+          "groupId": "UUID_GROUP_1",
+          "isOrigin": false,
+          "createdAt": 1734900000000,
+          "updatedAt": 1734900000000
+        }
+      },
+      "normal_out_with_purchase_link": {
+        "description": "A01 법인통장에서 강원축산 매입결제 1,000,000 출금 (통합결제 1줄 + 매입 결제 전표 1줄)",
+        "ledgerTx": {
+          "id": "UUID_LEDGER_1",
+          "date": "2025-12-22",
+          "flow": "out",
+          "kind": "기타",
+          "eventType": "purchase_payment",
+          "source": "payment",
+          "paymentMethod": "bank",
+          "accountId": "A01",
+          "accountName": "법인통장",
+          "cashflowCode": "A01",
+          "cashflowItemCode": "A0001",
+          "cashflowItemName": "국민통장",
+          "amount": 1000000,
+          "vendor": "강원축산",
+          "item": "강원축산",
+          "memo": "2025-12-22 매입결제 강원축산",
+          "createdAt": 1734900000000,
+          "updatedAt": 1734900000000
+        }
+      }
+    }
+  },
+  "hallapaDb": {
+    "name": "hallapa_db (매입/지출 등)",
+    "stores": {
+      "transactions": {
+        "keyPath": "id",
+        "description": "매입/지출/결제 전표 (강원축산 등 매입처 기준)",
+        "fields": {
+          "id": { "type": "string", "required": true },
+          "type": { "type": "string", "required": true, "note": "예: 'expense'" },
+          "category": { "type": "string", "required": true, "note": "예: 'purchase'" },
+          "date": { "type": "string(YYYY-MM-DD)", "required": true },
+          "supplierId": { "type": "string", "required": true },
+          "supplierName": { "type": "string", "required": true },
+          "amount": { "type": "number", "required": true, "note": "매입 금액 (결제 전표에서는 0)" },
+          "payment": { "type": "number", "required": true, "note": "결제 금액 (매입 전표에서는 0)" },
+          "taxType": { "type": "string", "required": false },
+          "warehouse": { "type": "string", "required": false },
+          "supplierGroup": { "type": "string", "required": false },
+          "memo": { "type": "string", "required": false },
+          "ledgerTxId": { "type": "string | null", "required": false, "note": "연결된 통합결제 tx.id (삭제/연동용)" }
+        }
+      }
+    },
+    "examples": {
+      "purchase_payment_linked_to_ledger": {
+        "description": "위 normal_out_with_purchase_link.ledgerTx 와 1:1로 연결되는 강원축산 결제 전표",
+        "transaction": {
+          "id": "UUID_PURCHASE_PAY_1",
+          "type": "expense",
+          "category": "purchase",
+          "date": "2025-12-22",
+          "supplierId": "CUST_0001",
+          "supplierName": "강원축산",
+          "amount": 0,
+          "payment": 1000000,
+          "taxType": "",
+          "warehouse": "",
+          "supplierGroup": "축산",
+          "memo": "[통합결제] 강원축산",
+          "ledgerTxId": "UUID_LEDGER_1"
+        }
+      }
+    }
+  },
+  "designGuidelines": {
+    "summary": "ledger.tx 와 hallapa_db.transactions 를 함께 쓸 때 빠지기 쉬운 필수 규칙",
+    "rules": [
+      {
+        "id": 1,
+        "title": "ID는 1개만 (공통 거래 ID)",
+        "detail": "ledgerTxId를 공통 거래 ID(txId, eventId)로 사용하고, 이벤트/전표 쪽에서도 같은 값을 쓰는 것을 원칙으로 한다. 일반 결제/수금에서는 ledger.tx.id = ledgerTxId = eventId 이고, 이체처럼 posting이 2줄 이상인 경우에는 groupId가 eventId(거래 이벤트 ID), ledger.tx.id가 postingId(각 라인 ID) 역할을 한다. 즉, 이벤트 단위로는 ID 1개만 쓰고, 라인 구분이 필요할 때만 postingId를 추가로 둔다."
+      },
+      {
+        "id": 2,
+        "title": "저장은 항상 2군데 동시(원자성)",
+        "detail": "통장(ledger.tx)과 업무 전표(hallapa_db.transactions)는 한 번의 이벤트로 동시에 저장되어야 한다. IndexedDB를 사용할 경우 가능하면 같은 DB 내 다른 objectStore를 사용해 transaction으로 한 번에 커밋하고, 서로 다른 DB를 쓸 경우에는 실패 시 롤백/정리 로직을 반드시 둔다."
+      },
+      {
+        "id": 3,
+        "title": "수정/삭제는 ledgerTxId 기준으로 같이",
+        "detail": "나중에 수정/삭제할 때도 ledgerTxId(공통 거래 ID)를 기준으로 ledger.tx 1줄과 hallapa_db.transactions 1줄을 함께 수정/삭제해야 한다. 그렇지 않으면 통장 화면과 매입/매출/지출 화면의 데이터가 어긋난다."
+      },
+      {
+        "id": 4,
+        "title": "통장↔통장 이체는 별도 transfer 설계",
+        "detail": "거래처 결제/수금처럼 통장 1개만 관련된 이벤트와 달리, 통장 간 이체는 ledger.tx가 최소 2줄(out/in) 필요하다. 따라서 transferEvent(이체 이벤트) 개념을 따로 두거나, 하나의 txId 아래에 여러 posting(ledger.tx 라인)을 groupId나 postingId 배열로 묶는 구조가 필요하다."
+      },
+      {
+        "id": 5,
+        "title": "partyName은 표시용, 저장은 partyId 위주",
+        "detail": "거래처 이름(partyName/supplierName 등)은 마스터에서 가져와 화면에 표시하고, 저장은 가능하면 partyId/supplierId만 사용한다. 이름을 함께 저장하면 거래처 이름 변경 시 과거 데이터가 모두 옛 이름으로 남으므로, 조회/집계 로직은 ID를 기준으로 설계한다."
+      },
+      {
+        "id": 6,
+        "title": "이체(transfer)는 hallapa 연동 금지",
+        "detail": "kind = '이체' 또는 eventType = 'transfer' 인 ledger.tx 라인은 통장 간 자금 이동만을 의미하며, hallapa_db.transactions 와는 절대 연결하지 않는다. 이체에서 매입/매출/지출 전표를 만들지 않고, 매입/매출/지출 전표는 항상 별도의 결제/수금/지출 이벤트에서만 생성한다."
+      },
+      {
+        "id": 7,
+        "title": "삭제 로직: eventId(groupId)/ledgerTxId 기준으로 함께",
+        "detail": "ledger.tx 삭제 시, groupId(eventId)가 있는 경우에는 같은 groupId를 가진 ledger.tx 라인을 모두 함께 삭제한다. 또한 hallapa_db.transactions 에서 ledgerTxId가 해당 거래 ID인 전표가 있으면 같이 삭제해, 통장 화면과 매입/매출/지출 화면 사이에 '한쪽만 남는' 상태가 생기지 않도록 한다."
+      }
+    ]
+  }
+}

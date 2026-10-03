@@ -1,0 +1,3765 @@
+/* 금액 색상은 공통 amount-plus/minus/zero 클래스를 사용한다.
+   (레거시 .amount.plus/.amount.minus 는 하단 공통 규칙에서 호환 처리) */
+:root {
+  --ux-bg: #f6f7fb;
+  --ux-card: #ffffff;
+  --ux-text: #222;
+  --ux-muted: #556;
+  --ux-line: #c2c7d6;
+  --ux-line-strong: #444444;
+
+  /* UX Patch */
+  /* Border tokens (통일) */
+  --bd: #ccc;
+  --bd-strong: #bbb;
+
+  /* 입력 컨트롤 공통 규격(전역 1곳에서 관리)
+    - 기존 --ux-* 토큰은 즉시 삭제하지 않고, --ctl-*가 참조하는 브릿지로 유지한다.
+    - 전 페이지 확인 후 최종 단계에서만 정리/제거한다. */
+  --ctl-h: 27px;
+  --ctl-px: 0.5rem;
+  --ctl-radius: var(--ux-radius);
+  --ctl-radius-sm: 4px;
+  --ctl-bd: var(--ux-control-border);
+  --ctl-bg: var(--ux-card);
+
+  /* 테이블/요약 박스 행(ROW) & 셀(CELL) 규격(전역 1곳에서 관리)
+    - 입력 컨트롤 높이(--ctl-h)와 행 높이를 연결해, 화면 전체 높이 리듬을 한 번에 통제한다.
+    - 페이지별 padding/height override를 최소화하고, 예외는 꼭 필요한 경우에만 둔다. */
+  --row-h: var(--ctl-h);
+  --cell-px: 0.35rem;
+  --cell-py: 0.25rem;
+
+  /* 아이콘 버튼류 폭(기본은 정사각) */
+  --icon-btn-w: var(--ctl-h);
+
+  /* 공통 ‘패널(내역/요약/필터)’ 톤 */
+  --ux-panel-bg: #f7f9fd;
+  --ux-panel-border: #d2d6e2;
+
+  /* 테이블 톤(전 페이지 통일) */
+  --ux-table-head-bg: var(--ux-panel-bg);
+  --ux-table-row-hover-bg: var(--ux-btn-bg);
+  --ux-table-row-selected-bg: var(--ux-btn-bg-hover);
+
+  /* 등록 모달 상단 3영역(매출처/거래처/수금 등) 구분 톤 */
+  --ux-seg-a-bg: #f1f7ff;
+  --ux-seg-a-border: #cfe1ff;
+  --ux-seg-c-bg: #fff6ea;
+  --ux-seg-c-border: #ffe1ba;
+
+  /* 등록 모달 상단 타이틀(페이지별로 body[data-mode]에서 덮어씀) */
+  --tx-hdr-left: "매출처";
+  --tx-hdr-right: "수금";
+
+  --ux-radius: 8px;
+  --ux-radius-sm: 6px;
+
+  --ux-btn-bg: #d6ddf4;
+  --ux-btn-bg-hover: #c7d2f1;
+  --ux-btn-border: #444444;
+
+  /* 버튼박스(버튼 묶음) 공통 톤/간격: 전 페이지에서 한 군데만 수정 */
+  --ux-btnbox-gap: 0.5rem;
+
+    /* ===== 선택(피커) 모달 공통 규격(거래처/품목/장부) =====
+      여기 값만 바꾸면 전 페이지 피커가 동시에 반영됨 */
+    --picker-modal-maxw: 650px; /* 피커 모달 최대폭(전 페이지 공통) */
+    --picker-gap: 0.5rem;
+    --picker-left-w: clamp(9rem, 16ch, 12rem);
+    /* 거래처 선택(3단: 구분/분류/항목) 전용 고정폭: 여기 숫자만 바꾸면 됨 */
+    --picker-supplier-type-w: 100px;
+    --picker-supplier-group-w: 150px;
+    --picker-table-maxh: 20rem; /* 기본 320px: 피커 테이블 스크롤 높이 */
+    --picker-col-code: 7ch; /* 필요하면 6ch/8ch로 전역 조정 */
+    --picker-col-ledger-type: 12ch; /* 장부구분(예: 법인통장/카드미수금) */
+    --picker-col-name-min: 14ch; /* 거래처명/품목명/장부명 등 이름열 최소폭 */
+    --picker-col-ledger-name: 24ch; /* 장부 선택 모달: 장부명 고정폭 */
+    --picker-col-balance: 12ch; /* 장부 선택 모달: 잔액 열 */
+    --picker-col-check: 48px; /* 피커 다중선택 체크 열 */
+    --picker-col-unit: 6ch;
+    --picker-col-price: 10ch;
+
+  /* 삭제(위험) 버튼 hover 톤: 전 페이지에서 한 군데만 수정 */
+  --ux-danger-bg: #e74c3c;
+  --ux-danger-bd: #c0392b;
+  --ux-danger-text: #ffffff;
+
+  /* UX Patch */
+  /* 입력/셀렉트 보더 톤(페이지 전역 통일) */
+  --ux-control-border: var(--bd);
+
+  --ux-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.15);
+
+  /* ===== Typography tokens (전 페이지 글씨 통일용) =====
+     여기 숫자만 바꾸면 대부분 화면 글씨가 같이 바뀐다. */
+    --fs-base: 1rem; /* 기본 본문 */
+    --fs-sm: 0.95rem; /* 라벨/필터/테이블/버튼 */
+  --fs-xs: 0.8rem; /* 보조(작은) 텍스트 */
+  --fs-compact: 0.82rem; /* 중간(0.8~0.85 사이) 텍스트 */
+  --fs-mini: 0.78rem; /* 아주 작은 버튼/보조 */
+  --fs-xxs: 0.75rem; /* 캡슐/뱃지 등 아주 작은 텍스트 */
+  /* ===== Semantic typography tokens (용도 기반) ===== */
+  --fs-btn-icon-mini: 0.7rem; /* 아이콘/픽커 같은 작은 버튼 */
+  --fs-purchase-header-col-title: 0.92rem; /* 매입 등록/인식 상단 컬럼 타이틀 */
+  --fs-input-prominent: 1rem; /* 검색/입력 등 살짝 큰 본문 */
+  --fs-dashboard-amount: 1.05rem; /* 대시보드 핵심 금액 */
+  --fs-page-title: 1.1rem; /* 페이지/카드 타이틀 */
+  --fs-page-title-lg: 1.2rem; /* 큰 타이틀 */
+  --fs-modal-title: 0.95rem;
+  --fs-section-title: 0.9rem;
+  --fs-icon-close: 18px; /* X 버튼 등 아이콘용 */
+
+
+  --fs-text-body: var(--fs-base);
+  --fs-text-label: var(--fs-sm);
+  --fs-text-subtle: var(--fs-xs);
+  --fs-text-compact: var(--fs-compact);
+  --fs-text-mini: var(--fs-mini);
+  --fs-text-badge: var(--fs-xxs);
+
+  /* 매우 작은 아이콘/표식(예: select ▼ 표시) */
+  --fs-icon-micro: 0.6rem;
+  --lh-base: 1.35;
+}
+
+/* 페이지별 등록 모달 상단 타이틀 */
+body[data-mode="purchase"] {
+  --tx-hdr-left: "매입처";
+}
+
+/* BASE RESET */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", "Malgun Gothic", Arial, sans-serif;
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  color: var(--ux-text);
+  background: var(--ux-bg);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+/* 스크롤바(전체 페이지) 세로줄을 조금 더 진하고 굵게 */
+body::-webkit-scrollbar {
+  width: 10px;
+}
+
+body::-webkit-scrollbar-track {
+  background: #eef1f7;
+}
+
+body::-webkit-scrollbar-thumb {
+  background-color: #c1c9d8;
+  border-radius: 5px;
+  border: 2px solid #eef1f7;
+}
+
+/* 공통 버튼: .btn 계열 클래스 기반으로만 동일 규격 통일 */
+.btn,
+.btn-primary,
+.btn-row-btn,
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: var(--ctl-h);
+  padding: 0 12px;
+  border-radius: var(--ux-radius-sm);
+  border: 1px solid var(--ux-btn-border);
+  background: var(--ux-btn-bg);
+  color: var(--ux-text);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: var(--ux-shadow-1);
+  user-select: none;
+}
+
+.btn:hover,
+.btn-primary:hover,
+.btn-row-btn:hover,
+.btn-secondary:hover {
+  background: var(--ux-btn-bg-hover);
+}
+
+.btn:active,
+.btn-primary:active,
+.btn-row-btn:active,
+.btn-secondary:active {
+  transform: translateY(0.5px);
+}
+
+.btn:disabled,
+.btn-primary:disabled,
+.btn-row-btn:disabled,
+.btn-secondary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* 거래조회(전표조회) 피커: '선택(다중선택 모드)' 토글 상태를 색상으로 명확히 표시 */
+:is(#btn-trn-supplier-picker-confirm, #btn-trn-item-picker-confirm)[aria-pressed="true"] {
+  background: #2f6fed;
+  border-color: #1f55c8;
+  color: #fff;
+}
+
+:is(#btn-trn-supplier-picker-confirm, #btn-trn-item-picker-confirm)[aria-pressed="true"]:hover {
+  background: #295fd3;
+}
+
+/* 피커 리스트 비활성(단계 선택 규칙) */
+.picker-disabled {
+  opacity: 0.45;
+  filter: grayscale(20%);
+  pointer-events: none;
+}
+
+/* 테이블 UX: 헤더 고정 + 가독성 */
+.table-wrapper {
+  position: relative;
+  max-height: 480px;
+  /* 대략 15줄 정도가 보이도록 높이 지정 */
+  overflow-y: auto;
+  overflow-x: auto;
+  border-top: 1px solid #888;
+}
+
+.tx-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--ux-table-head-bg);
+  font-weight: 800;
+}
+
+/* 2단 헤더(헤더 2줄) sticky 겹침 방지
+   - 거래조회(trn-table) 등에서 1단 헤더가 스크롤 시 '접혀' 보이는 현상 해결
+   - 2번째 줄은 1번째 줄 높이만큼 아래에 고정한다.
+   - (row 높이는 전역 --row-h 를 사용) */
+.trn-table thead tr:nth-child(2) th {
+  top: var(--row-h);
+}
+.trn-table thead tr:nth-child(1) th {
+  z-index: 3;
+}
+
+/* 홈(대시보드) 테이블도 2줄 헤더를 사용하므로 sticky 겹침을 방지한다. */
+.home-main-table thead tr:nth-child(2) th {
+  top: var(--row-h);
+}
+.home-main-table thead tr:nth-child(1) th {
+  z-index: 3;
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 1.2rem;
+  background: #34495e;
+  color: #fff;
+}
+
+/* 상단 가운데 공통 검색창 (페이지 opt-in 시에만 표시) */
+.global-search-container {
+  flex: 1 1 auto;
+  display: none;
+  justify-content: center;
+  min-width: 0;
+}
+
+body[data-global-search="1"] .global-search-container {
+  display: flex;
+}
+
+.global-search-wrapper {
+  width: clamp(240px, 40vw, 320px);
+}
+
+.global-search-wrapper .customer-search-input {
+  margin-left: 0;
+  width: 100%;
+}
+
+/* 공통 검색은 버튼 결합형이 아니므로 포커스 시 우측 테두리/둥글기 유지 */
+.global-search-wrapper .customer-search-input:focus {
+  border-right: 1px solid #1c8a56;
+  border-radius: 999px;
+}
+
+.top-bar h1 {
+  margin: 0;
+  font-size: var(--fs-page-title);
+  font-weight: 800; /* 상단 제목 더 굵게 */
+}
+
+.top-bar nav a {
+  color: #ecf0f1;
+  margin-left: 0.8rem;
+  text-decoration: none;
+  font-size: var(--fs-base);
+}
+
+.top-bar nav a[aria-current="page"] {
+  font-weight: 800;
+  text-decoration: none;
+  border-bottom: 3px solid #f1c40f; /* 현재 페이지 황금색 밑줄 강조 */
+}
+
+.page {
+  max-width: none; /* 화면 전체를 사용하되 */
+  margin: 1rem 2rem 2rem; /* 양쪽 끝 여백을 동일하게 2rem 만큼 두고 */
+  padding: 0; /* 안쪽 여백은 제거 */
+}
+
+.card {
+  background: var(--ux-card); /* 카드 박스를 완전 흰색으로 */
+  border-radius: var(--ux-radius);
+  padding: 1rem 1.2rem 1.2rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid transparent; /* 카드 바깥선은 숨기고 */
+}
+
+.card h2 {
+  margin-top: 0;
+  font-size: var(--fs-page-title);
+  font-weight: 800; /* 카드 제목 더 굵게 */
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* 제목 왼쪽, 버튼/검색창 오른쪽 */
+}
+
+/* 등록/인식 모달(매입) 제목은 조금 더 작게/간결하게 */
+:is(#purchase-modal, #purchase-import-modal, #sales-modal, #sales-import-modal)
+  .card
+  h2 {
+  font-size: var(--fs-page-title);
+  margin-bottom: 0.4rem;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+:is(#purchase-modal, #sales-modal) .card {
+  padding-top: 0.7rem;
+  padding-bottom: 0.8rem;
+}
+
+/* 공통 2컬럼 레이아웃: 왼쪽(고정폭) + 오른쪽(잔여폭)
+   - 홈/거래조회는 이 클래스를 사용하지 않음
+   - 기존 클래스(purchase/customer)는 점진적으로 공통 클래스로 통일 중 */
+
+.page-layout,
+.purchase-layout,
+.payment-layout,
+.sales-layout,
+.customer-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.page-left-column,
+.purchase-left-column,
+.payment-left-column,
+.sales-left-column,
+.customer-left-column {
+  flex: 0 0 300px;
+  width: 300px;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.page-main-column,
+.purchase-card,
+.payment-card,
+.sales-card,
+.customer-main-card {
+  flex: 1 1 auto;
+  min-width: 0; /* 내용이 넓어도 레이아웃 밖으로 나가지 않도록 허용 */
+}
+
+/* 매입/매출/입출금 내역 날짜 범위 필터 */
+:is(.purchase-date-filter, .payment-date-filter, .sales-date-filter) {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.3rem 0 0.4rem;
+}
+
+:is(.purchase-date-input, .payment-date-input, .sales-date-input) {
+  font-size: var(--fs-sm);
+  height: var(--ctl-h);
+  min-height: var(--ctl-h);
+  padding: 0 var(--ctl-px);
+  padding-right: 1.6rem; /* 캘린더 아이콘 영역(브라우저 기본) 여유 */
+  border: 1px solid var(--ctl-bd);
+  border-radius: var(--ctl-radius-sm);
+  background: var(--ctl-bg);
+  box-sizing: border-box;
+}
+
+:is(.purchase-date-separator, .payment-date-separator, .sales-date-separator) {
+  font-size: var(--fs-sm);
+  color: #555;
+}
+
+:is(.purchase-date-search-btn, .payment-date-search-btn, .sales-date-search-btn) {
+  font-size: var(--fs-sm);
+}
+
+/* 엑셀 드롭다운(조회 옆) */
+body[data-mode="purchase"] .excel-dropdown,
+body[data-mode="sales"] .excel-dropdown,
+body[data-mode="payment"] .excel-dropdown {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+body[data-mode="purchase"] .excel-menu,
+body[data-mode="purchase"] .excel-submenu,
+body[data-mode="sales"] .excel-menu,
+body[data-mode="sales"] .excel-submenu,
+body[data-mode="payment"] .excel-menu,
+body[data-mode="payment"] .excel-submenu {
+  position: absolute;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.35rem;
+  border: 1px solid var(--ux-panel-border);
+  border-radius: var(--ux-radius-sm);
+  background: var(--ux-panel-bg);
+  box-shadow: var(--ux-shadow-1);
+}
+
+/* hidden 속성이 UA 스타일보다 약할 수 있어 강제 */
+body[data-mode="purchase"] :is(.excel-menu, .excel-submenu)[hidden],
+body[data-mode="sales"] :is(.excel-menu, .excel-submenu)[hidden],
+body[data-mode="payment"] :is(.excel-menu, .excel-submenu)[hidden] {
+  display: none !important;
+}
+
+body[data-mode="purchase"] .excel-menu,
+body[data-mode="sales"] .excel-menu,
+body[data-mode="payment"] .excel-menu {
+  top: calc(100% + 0.35rem);
+  left: 0;
+}
+
+body[data-mode="purchase"] .excel-menu-item,
+body[data-mode="sales"] .excel-menu-item,
+body[data-mode="payment"] .excel-menu-item {
+  width: 100%;
+  text-align: left;
+  white-space: nowrap;
+  min-height: var(--ctl-h);
+  padding: 0.22rem 0.5rem;
+  border-radius: var(--ctl-radius);
+  border: 1px solid var(--ux-btn-border);
+  background-color: var(--ux-btn-bg);
+  box-shadow: var(--ux-shadow-1);
+  cursor: pointer;
+  font-size: var(--fs-sm);
+}
+
+body[data-mode="purchase"] .excel-menu-item:hover,
+body[data-mode="sales"] .excel-menu-item:hover,
+body[data-mode="payment"] .excel-menu-item:hover {
+  background: var(--ux-btn-bg-hover);
+}
+
+/* 공통: 인라인 빠른 날짜 버튼(어제/오늘/지난달...) */
+.date-quick-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.date-quick-inline .date-quick-btn {
+  width: auto;
+  min-height: var(--ctl-h);
+  padding: 0.22rem 0.45rem;
+}
+
+/* 버튼 줄에 올렸을 때 정렬 보정 */
+.table-action-right :is(.purchase-date-filter, .payment-date-filter, .sales-date-filter) {
+  margin: 0 0 0 0.8rem;
+}
+
+:is(.purchase-date-quick-btn, .payment-date-quick-btn, .sales-date-quick-btn) {
+  width: var(--icon-btn-w);
+  height: var(--ctl-h);
+  margin: 0 0.25rem;
+  border-radius: var(--ctl-radius);
+  border: 1px solid var(--ux-btn-border);
+  background-color: var(--ux-btn-bg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: var(--ux-shadow-1);
+}
+
+:is(.purchase-date-quick-btn, .payment-date-quick-btn, .sales-date-quick-btn):hover {
+  background: var(--ux-btn-bg-hover);
+}
+
+.date-quick-icon {
+  font-size: var(--fs-base);
+  line-height: 1;
+}
+
+:is(.purchase-group-table-wrapper, .sales-group-table-wrapper) {
+  max-height: 260px;
+}
+
+:is(.purchase-group-select-row, .sales-group-select-row) {
+  margin: 0.4rem 0 0.6rem;
+}
+
+:is(.purchase-group-select-label, .sales-group-select-label) {
+  display: block;
+  font-size: var(--fs-xs);
+  margin-bottom: 0.2rem;
+}
+
+:is(.purchase-group-select, .sales-group-select) {
+  width: 100%;
+  font-size: var(--fs-sm);
+}
+
+:is(.purchase-supplier-table-wrapper, .payment-supplier-table-wrapper, .sales-supplier-table-wrapper) {
+  max-height: 220px;
+}
+
+/* 매출/매입/지출 왼쪽 거래처 분류 테이블: 코드 열 폭 고정 (모든 페이지 공통) */
+:is(.purchase-supplier-table, .sales-supplier-table) th:first-child,
+:is(.purchase-supplier-table, .sales-supplier-table) td:first-child {
+  width: 40px;
+  text-align: center;
+}
+
+/* 매입 화면 지불등록 모달 간단 레이아웃 */
+.purchase-payment-panel {
+  margin: 0.4rem auto 0; /* 카드 안에서 가로 중앙 정렬 */
+  padding: 0.18rem 0 0.6rem; /* 좌우 패딩은 내부 헤더/바디에서 통일 적용 */
+  border: 1px solid var(--ux-panel-border);
+  border-radius: 6px;
+  background-color: #f8f9fc;
+  width: 95%;
+  max-width: 520px;
+}
+
+/* 지불등록 모달: 2열 필드 그리드 (지불일/매입처/통장/지불금액 + 메모) */
+.purchase-payment-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 0.9rem;
+  row-gap: 0.5rem;
+  padding: 0 0.9rem 0.2rem 0.9rem;
+}
+
+/* 지불등록 모달: 위/아래 2x2 입력을 공통 flex 레이아웃으로 맞춤 */
+:is(#purchase-payment-form, #sales-payment-form) .purchase-payment-row {
+  display: flex;
+  gap: 0.6rem;
+}
+
+:is(#purchase-payment-form, #sales-payment-form) .purchase-payment-account-label,
+:is(#purchase-payment-form, #sales-payment-form) .purchase-payment-amount-label {
+  flex: 1 1 0;
+  padding: 0;
+}
+
+:is(.purchase-inline-payment-content, .sales-inline-payment-content) {
+  display: flex;
+  align-items: stretch;
+  gap: 0.25rem; /* 지불 영역 최소 폭을 줄이기 위해 간격 축소 */
+}
+
+/* 기본값: 다른 모달에서는 플렉스로 한 줄 배치 */
+.purchase-supplier-payment-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 1rem;
+}
+
+.purchase-inline-payment-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.purchase-inline-label {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--fs-xs);
+}
+
+.purchase-inline-row {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.purchase-inline-row input[type="text"] {
+  flex: 1;
+}
+
+.purchase-inline-picker {
+  width: var(--icon-btn-w);
+  height: var(--ctl-h);
+  border-radius: var(--ctl-radius);
+  border: 1px solid var(--ctl-bd);
+  background-color: var(--ctl-bg);
+  cursor: pointer;
+}
+
+/* 지출 모달: 통장 선택 + 코드 입력을 한 줄에 배치 */
+:is(.purchase-inline-ledger-combo, .sales-inline-ledger-combo) {
+  display: flex;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+:is(.purchase-inline-ledger-combo, .sales-inline-ledger-combo) :is(.purchase-inline-ledger-select, .sales-inline-ledger-select) {
+  flex: 1;
+  min-width: 0;
+}
+
+:is(.purchase-inline-ledger-code-input, .sales-inline-ledger-code-input) {
+  width: 70px;
+  margin: 0;
+  padding: 0 0.4rem;
+  border-radius: var(--ctl-radius-sm);
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--ctl-bd);
+  box-sizing: border-box;
+}
+
+#purchase-payment-amount {
+  text-align: right;
+}
+
+/* 통합 결제 내역 테이블: 거래 인식 결과 테이블과 동일한 헤더 순서/금액 열 폭 적용 */
+.purchase-main-table th:nth-child(1) {
+  /* No. */
+  width: 80px;
+}
+.purchase-main-table th:nth-child(2) {
+  /* 항목 */
+  width: 110px;
+}
+.purchase-main-table th:nth-child(3) {
+  /* 거래일시 */
+  width: 120px;
+}
+.purchase-main-table th:nth-child(4) {
+  /* 보낸분/받는분 */
+  width: 260px;
+}
+.purchase-main-table th:nth-child(5) {
+  /* 입금액 */
+  width: 130px;
+}
+.purchase-main-table th:nth-child(6) {
+  /* 출금액 */
+  width: 130px;
+}
+.purchase-main-table th:nth-child(7) {
+  /* 잔액 */
+  width: 130px;
+}
+:is(.purchase-type-switch, .sales-type-switch) {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.4rem 0 0.6rem;
+}
+
+:is(.purchase-type-switch, .sales-type-switch) .type-switch-btn {
+  flex: 1;
+  /* UX Patch */
+  /* 전역 button 높이 규칙과 충돌하지 않도록 중앙정렬 고정 */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--ctl-h);
+  padding: 0 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--bd-strong);
+  background: #f0f2f7;
+  color: #1f2a44;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+:is(.purchase-type-switch, .sales-type-switch) .type-switch-btn.is-active {
+  background: #4c5d85;
+  color: #fff;
+}
+
+/* (기존 customer/purchase 레이아웃은 위 공통 규칙으로 통일됨) */
+
+.customer-type-open-button {
+  margin: 0;
+}
+
+.customer-group-open-button {
+  margin: 0;
+}
+
+.customer-header-buttons {
+  margin-left: 0.6rem;
+  display: inline-flex;
+  gap: 0.3rem;
+  vertical-align: middle;
+  flex-wrap: nowrap;
+}
+
+/* 제목이 글자 단위로 줄바꿈되며 세로로 보이는 현상 방지 */
+.card-title {
+  white-space: nowrap;
+}
+
+/* 구분/분류 카드 헤더 통일: 1행(제목-왼쪽), 2행(버튼-오른쪽) */
+.card-header-split {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 0.25rem 0.6rem;
+}
+
+/* .card h2 기본 flex 규칙을 덮어써서 2줄 배치가 항상 적용되게 함 */
+.card h2.card-header-split {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  justify-content: initial;
+  gap: 0.25rem 0.6rem;
+}
+
+.card-header-split .card-title {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: start;
+}
+
+.card-header-split .customer-header-buttons {
+  grid-column: 2;
+  grid-row: 2;
+  justify-self: end;
+}
+
+/* 헤더 버튼 텍스트 줄바꿈 방지(구분 추가 같은 2줄 깨짐 방지) */
+.card-header-split .customer-header-buttons,
+.card-header-split .customer-header-buttons button {
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+/* 좌측 300px 안에서 3개 버튼이 자연스럽게 들어가도록 헤더 전용 버튼 크기 조정 */
+.card-header-split .customer-header-buttons .btn-row-btn {
+  padding: 0.25rem 0.6rem;
+  font-size: var(--fs-sm);
+  line-height: 1.2;
+}
+
+.customer-type-form label {
+  font-size: var(--fs-xs);
+}
+
+.customer-type-form input {
+  width: 100%;
+}
+
+.customer-type-button-row {
+  justify-content: flex-end;
+}
+
+.mini {
+  font-size: var(--fs-xs);
+  color: #6b7280;
+}
+
+.ghost {
+  background: var(--ctl-bg);
+  color: #111;
+  border: 1px solid #cbd5f0;
+}
+
+.danger {
+  background: var(--ux-danger-bg);
+  color: var(--ux-danger-text);
+  border: 1px solid var(--ux-danger-bd);
+}
+
+/* 작은 테이블 */
+.tx-table.tx-table-small {
+  width: 100%;
+}
+
+.customer-type-table-wrapper {
+  max-height: 220px;
+}
+
+/* 토스트(전 페이지 공통) */
+.halla-toast-stack {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 2000;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  max-width: min(420px, calc(100vw - 2rem));
+}
+
+.halla-toast {
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--ux-radius-sm);
+  background: var(--ux-panel-bg);
+  border: 1px solid var(--ux-panel-border);
+  box-shadow: var(--ux-shadow-1);
+  color: var(--ux-text);
+  font-size: var(--fs-sm);
+  line-height: 1.3;
+
+  cursor: pointer;
+}
+
+.halla-toast[data-tone="error"] {
+  border-color: var(--ux-danger-bd);
+}
+
+.halla-toast:focus {
+  outline: 2px solid var(--ux-btn-bg-hover);
+  outline-offset: 2px;
+}
+
+/* 모달 */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-overlay.is-open {
+  display: flex;
+}
+
+.modal-dialog {
+  width: 100%;
+  max-width: 500px;
+  margin-top: 2rem;
+}
+
+.modal-dialog.modal-dialog--wide {
+  max-width: 760px;
+}
+
+/* 모달 템플릿 */
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-bottom: 0;
+  border-bottom: none;
+  margin-bottom: 0.6rem;
+
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.modal-dialog.is-dragging .modal-header {
+  cursor: grabbing;
+}
+
+.modal-header h2 {
+  margin: 0;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.modal-close-x {
+  flex: 0 0 auto;
+  width: var(--icon-btn-w);
+  height: var(--ctl-h);
+  border-radius: var(--ctl-radius);
+  border: 1px solid var(--ctl-bd);
+  background: var(--ctl-bg);
+  color: #222;
+  font-size: var(--fs-icon-close);
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.modal-close-x:hover {
+  background: #f3f5fb;
+}
+
+.modal-dialog input[type="text"],
+.modal-dialog input[type="number"],
+.modal-dialog input[type="date"],
+.modal-dialog select {
+  height: var(--ctl-h);
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.modal-dialog input[type="number"] {
+  text-align: right;
+}
+
+.modal-form {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  column-gap: 1rem;
+  row-gap: 0.65rem;
+}
+
+/* 지불/수금/지출(결제형) 모달: 2열 1:1 공통 템플릿 */
+.modal-form.modal-form--payment {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+@media (max-width: 720px) {
+  .modal-form.modal-form--payment {
+    grid-template-columns: 1fr;
+  }
+}
+
+.modal-form > label {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  min-width: 0;
+  padding: 0.55rem 0.6rem;
+  border: 1px solid var(--ux-panel-border);
+  border-radius: var(--ux-radius-sm);
+  background: var(--ux-panel-bg);
+}
+
+.modal-form label[data-req="1"] .label-text::after {
+  content: " *";
+  color: var(--ux-danger-bg);
+  font-weight: 900;
+}
+
+.modal-form input,
+.modal-form select,
+.modal-form textarea {
+  margin-top: 0.25rem;
+  border-radius: var(--ctl-radius);
+  border: 1px solid var(--ctl-bd);
+  background: var(--ctl-bg);
+  min-width: 0;
+}
+
+/* modal-form 내 라디오/체크박스는 텍스트 입력처럼 위쪽 마진을 주지 않는다 */
+.modal-form input[type="radio"],
+.modal-form input[type="checkbox"] {
+  margin-top: 0;
+}
+
+/* modal-form 내 라디오 그룹(결제 모달 등) */
+.modal-form .radio-group {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  height: var(--ctl-h);
+  padding: 0 0.6rem;
+  border: 1px solid var(--ctl-bd);
+  border-radius: var(--ctl-radius);
+  background: var(--ctl-bg);
+}
+
+.modal-form .radio-group label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+/* 모달: 라벨 안 기본 입력요소는 칸 폭을 채움 */
+.modal-form label > input,
+.modal-form label > select,
+.modal-form label > textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* modal-form 안 2열 컨트롤(셀렉트 + 입력) 정렬 */
+.modal-form .control-2col {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.modal-form .control-2col > select {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.modal-form .control-2col > input {
+  min-width: 0;
+}
+
+.modal-form .control-2col > select,
+.modal-form .control-2col > input,
+.modal-form .control-2col > :is(.purchase-date-weekday-box, .payment-date-weekday-box, .sales-date-weekday-box) {
+  margin-top: 0;
+  height: var(--ctl-h);
+}
+
+.modal-form .control-2col :is(.purchase-inline-ledger-code-input, .payment-inline-ledger-code-input, .sales-inline-ledger-code-input),
+.modal-form .control-2col .purchase-code-input {
+  flex: 0 0 70px;
+  width: 70px;
+}
+
+.modal-form .control-2col :is(.purchase-date-weekday-box, .payment-date-weekday-box, .sales-date-weekday-box) {
+  /* 코드 입력칸과 동일한 폭으로 맞춰 상하 정렬이 흔들리지 않게 */
+  flex: 0 0 70px;
+  width: 70px;
+}
+
+.modal-form .control-2col--equal > * {
+  flex: 1 1 0;
+}
+
+/* 지출 등록 모달: 수금/지불 모달과 동일한 폭으로 정렬 */
+body[data-mode="expense"] :is(#purchase-payment-modal, #purchase-modal) .modal-dialog {
+  max-width: 520px;
+}
+
+.modal-form .balance-unit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-xs);
+  color: #444;
+  background: #f8f8f8;
+  border: 1px solid var(--ctl-bd);
+  border-radius: var(--ctl-radius);
+}
+
+
+.modal-form .span-2 {
+  grid-column: 1 / -1;
+}
+
+.modal-form .form-section-title {
+  grid-column: 1 / -1;
+  margin-top: 0.15rem;
+  padding-top: 0.4rem;
+  border-top: 2px solid var(--ux-panel-border);
+  font-size: var(--fs-section-title);
+  font-weight: 800;
+  color: #1f2a44;
+}
+
+/* 결제형 modal-form(2열)에서 섹션 타이틀을 좌/우 컬럼에 각각 배치할 때 사용 */
+.modal-form.modal-form--payment .form-section-title.form-section-title--col1 {
+  grid-column: 1 / 2;
+}
+
+.modal-form.modal-form--payment .form-section-title.form-section-title--col2 {
+  grid-column: 2 / 3;
+}
+
+@media (max-width: 720px) {
+  .modal-form.modal-form--payment .form-section-title.form-section-title--col1,
+  .modal-form.modal-form--payment .form-section-title.form-section-title--col2 {
+    grid-column: 1 / -1;
+  }
+}
+
+/* 한 박스 안에서 라벨+컨트롤 좌우 정렬 */
+.modal-form .modal-form-row {
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 0.6rem;
+}
+
+.modal-form .modal-form-row .label-text {
+  margin: 0;
+}
+
+.modal-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--ux-btnbox-gap);
+  margin-top: 0.35rem;
+}
+
+/* 매입/매출/지출 */
+:is(#purchase-modal, #purchase-import-modal, #sales-modal, #sales-import-modal)
+  .modal-dialog {
+  max-width: 1100px;
+  margin-top: 0.8rem;
+}
+
+/* 지불/수금 등록 모달: 공통 modal-form 템플릿 사용 (조금 넓게) */
+:is(#purchase-payment-modal, #sales-payment-modal) .modal-dialog {
+  max-width: 520px;
+  margin-top: 0.8rem;
+}
+
+/* 지불/수금 등록 모달: 2열을 1:1로 맞춤 (기본 modal-form은 220px + 1fr) */
+:is(#purchase-payment-form, #sales-payment-form).modal-form {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+@media (max-width: 720px) {
+  :is(#purchase-payment-form, #sales-payment-form).modal-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+:is(#purchase-form, #sales-form):not(.modal-form) {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+:is(#purchase-form, #sales-form) :is(.purchase-form-header, .sales-form-header),
+:is(#purchase-import-modal, #sales-import-modal) :is(.purchase-form-header, .sales-form-header),
+:is(#purchase-payment-form, #sales-payment-form) :is(.purchase-form-header, .sales-form-header) {
+  display: flex;
+  gap: 1rem;
+  padding: 0.18rem 0.7rem;
+  border: 1px solid var(--bd);
+  border-radius: var(--ctl-radius-sm);
+  background-color: #f7f8fb;
+}
+
+:is(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-form-header-row, .sales-form-header-row) {
+  display: grid;
+  grid-template-columns: 1fr;
+  column-gap: 0.75rem;
+  align-items: stretch;
+  margin-bottom: 0.6rem;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--bd);
+  border-radius: var(--ctl-radius-sm);
+  background-color: #f7f8fb;
+}
+
+:is(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-form-header-row, .sales-form-header-row)
+  :is(.purchase-form-header, .sales-form-header) {
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  display: contents;
+}
+
+:is(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-3col-card, .sales-header-3col-card) {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 0.75rem;
+  padding: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+:is(#purchase-form, #sales-form)
+  :is(.purchase-header-3col-card, .sales-header-3col-card)
+  :is(.purchase-supplier-payment-header, .sales-supplier-payment-header):is(.purchase-header-3col-header, .sales-header-3col-header) {
+  grid-column: 1 / 4;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 0.6rem;
+  align-items: flex-end;
+  margin-bottom: 0.1rem;
+}
+
+:is(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-3col-content, .sales-header-3col-content) {
+  grid-column: 1 / 4;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 0.75rem;
+  align-items: stretch;
+  min-width: 0;
+}
+
+/* 인식 모달 헤더는 좌측만 있고(거래처), 나머지 2/3은 비워두므로 스페이서 1개로 2칸을 채운다 */
+:is(#purchase-import-modal, #sales-import-modal)
+  :is(.purchase-form-header-row, .sales-form-header-row):is(.purchase-import-header-row, .sales-import-header-row)
+  :is(.purchase-header-3col-content, .sales-header-3col-content)
+  > :is(.purchase-header-col-spacer, .sales-header-col-spacer) {
+  grid-column: 2 / 4;
+}
+
+/* 3등분 그리드에서 내용 때문에 컬럼 폭이 찌그러지지 않도록 허용 */
+:is(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-3col-content, .sales-header-3col-content)
+  > * {
+  min-width: 0;
+}
+
+/* 등록 모달 상단: 3영역(매출처/거래처/수금)을 컬럼별로 색 분리 */
+:is(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-3col-content, .sales-header-3col-content)
+  > :is(.purchase-header-col, .sales-header-col) {
+  display: grid;
+  grid-template-rows: auto 1fr; /* 타이틀 + 내용(세트 박스) */
+  row-gap: 0.5rem;
+  padding: 0.55rem 0.6rem;
+  border-radius: var(--ux-radius-sm);
+  border: 1px solid var(--ux-panel-border);
+  background: var(--ux-panel-bg);
+}
+
+/* 좌/우 컬럼 안쪽 작은 박스(세트)를 같은 높이로 스트레치 */
+:is(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-3col-content, .sales-header-3col-content)
+  > :is(.purchase-header-col, .sales-header-col)
+  > :is(.purchase-header-set, .sales-header-set) {
+  height: 100%;
+  box-sizing: border-box;
+  align-content: start;
+}
+
+/* 상단 컬럼 내부 row 간격은 그리드 gap으로 통일 */
+:is(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-3col-content, .sales-header-3col-content)
+  .field-row {
+  margin-top: 0;
+}
+
+/* 제목줄(매출처/거래처/수금)은 컬럼 내부 타이틀로 대체 */
+:is(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-supplier-payment-header, .sales-supplier-payment-header):is(.purchase-header-3col-header, .sales-header-3col-header) {
+  display: none;
+}
+
+:is(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-3col-content, .sales-header-3col-content)
+  > :is(.purchase-header-col, .sales-header-col)::before {
+  display: block;
+  font-size: var(--fs-purchase-header-col-title);
+  font-weight: 900;
+  line-height: 1.1;
+  padding: 0.3rem 0.45rem;
+  border-radius: var(--ux-radius-sm);
+  border: 1px solid transparent;
+}
+
+:is(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-3col-content, .sales-header-3col-content)
+  > :is(.purchase-header-col-left, .sales-header-col-left) {
+  background: var(--ux-seg-a-bg);
+  border-color: var(--ux-seg-a-border);
+}
+
+:is(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-3col-content, .sales-header-3col-content)
+  > :is(.purchase-header-col-left, .sales-header-col-left)::before {
+  content: var(--tx-hdr-left);
+  background: rgba(255, 255, 255, 0.55);
+  border-color: var(--ux-seg-a-border);
+}
+
+/* 가운데 영역이 비어있는 화면(예: 매출 등록)에서는 여백 컬럼으로 사용 */
+:is(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-3col-content, .sales-header-3col-content)
+  > :is(.purchase-header-col-spacer, .sales-header-col-spacer) {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  min-height: 0;
+  pointer-events: none;
+}
+
+:is(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-3col-content, .sales-header-3col-content)
+  > :is(.purchase-header-col-right, .sales-header-col-right) {
+  background: var(--ux-seg-c-bg);
+  border-color: var(--ux-seg-c-border);
+}
+
+:is(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-3col-content, .sales-header-3col-content)
+  > :is(.purchase-header-col-right, .sales-header-col-right)::before {
+  content: var(--tx-hdr-right);
+  background: rgba(255, 255, 255, 0.55);
+  border-color: var(--ux-seg-c-border);
+}
+
+:is(#purchase-form, #sales-form) .purchase-supplier-payment-row,
+:is(#purchase-form, #sales-form) .purchase-supplier-payment-row-bottom {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 0.6rem;
+  align-items: center;
+}
+
+/* 매입/매출 등록 모달 상단 필드 박스: label + input 세트를 한 덩어리로 묶기 위한 래퍼 */
+:is(.purchase-header-field, .sales-header-field) {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+:is(.purchase-header-field-date, .sales-header-field-date) {
+  font-size: var(--fs-sm);
+}
+
+:is(.purchase-header-field-supplier, .sales-header-field-supplier) {
+  font-size: var(--fs-sm);
+}
+
+:is(#purchase-form, #sales-form) .purchase-form-top {
+  display: grid;
+  grid-template-columns: 1fr;
+  column-gap: 1rem;
+  row-gap: 0.6rem;
+}
+
+.purchase-form-supplier-label {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--fs-sm);
+  padding: 0.25rem 0.4rem 0.3rem; /* 인라인 지불/수금 카드와 동일한 상단 여백 적용 */
+}
+
+/* ===== 거래 등록/인식 모달(매출/매입/지출) 헤더 공통 규칙 =====
+   - 한 줄: 라벨(고정폭) + 입력영역(가변폭)
+   - 입력영역 2칸: 왼쪽 1fr + 오른쪽 고정폭
+   이 규칙을 매출등록/매출인식/매입등록/매입인식/지출등록에서 공통 사용 */
+:where(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-set, .sales-header-set) {
+  --tx-hdr-label-w: 90px;
+  /* 오른쪽 고정폭 칸(요일/코드) 폭은 전역 코드 입력칸(70px)과 동일하게 통일 */
+  --tx-hdr-right-w: 70px;
+  --tx-hdr-col-gap: 0.4rem;
+  --tx-hdr-row-gap: 0.5rem;
+
+  display: grid;
+  gap: var(--tx-hdr-row-gap);
+  padding: 0.45rem 0.5rem;
+  border: 1px solid var(--ux-panel-border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+:where(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-set, .sales-header-set)
+  .field-row {
+  display: grid;
+  grid-template-columns: var(--tx-hdr-label-w) minmax(0, 1fr);
+  column-gap: var(--tx-hdr-col-gap);
+  align-items: center;
+  margin-top: 0;
+}
+
+:where(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-set, .sales-header-set)
+  .field-label {
+  flex: none;
+}
+
+/* 2칸 입력영역 공통: (1fr + 140px 고정) */
+:is(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-set, .sales-header-set)
+  .control-2col {
+  /* 다른 곳의 flex 규칙이 덮어써도 헤더에서는 반드시 2칸 그리드로 고정 */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--tx-hdr-right-w);
+  column-gap: var(--tx-hdr-col-gap);
+  align-items: stretch;
+  min-width: 0;
+}
+
+:where(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-set, .sales-header-set)
+  .control-2col
+  > * {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  flex: initial;
+}
+
+/* flex로 렌더링되는 경우(캐시/특정 브라우저/확장 등)에도 동일한 폭 규칙 유지 */
+:where(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-set, .sales-header-set)
+  .control-2col
+  > :first-child {
+  flex: 1 1 auto;
+}
+
+:where(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-set, .sales-header-set)
+  .control-2col
+  > :last-child {
+  flex: 0 0 var(--tx-hdr-right-w);
+  max-width: var(--tx-hdr-right-w);
+}
+
+/* 거래처 select는 보통 클래스가 없으므로(width/flex 미적용), 헤더에서는 항상 꽉 차게 */
+:where(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-set, .sales-header-set)
+  .control-2col
+  > select {
+  width: 100%;
+}
+
+/* header 안에서는 코드 입력칸의 레거시 width(70px)를 무시하고 고정폭 칸에 맞춰 꽉 채우기 */
+:where(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-set, .sales-header-set)
+  :is(.purchase-inline-ledger-code-input, .payment-inline-ledger-code-input, .sales-inline-ledger-code-input) {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* 헤더 세트 내부 컨트롤 높이/패딩 통일 */
+:is(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-set, .sales-header-set)
+  select,
+:is(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-set, .sales-header-set)
+  input[type="text"],
+:is(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-set, .sales-header-set)
+  input[type="number"],
+:is(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-set, .sales-header-set)
+  input[type="date"],
+:is(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-set, .sales-header-set)
+  :is(.purchase-date-weekday-box, .payment-date-weekday-box, .sales-date-weekday-box) {
+  /* 브라우저 기본 스타일(select/date)이 높이/패딩을 덮어쓰는 경우가 있어 헤더에서는 통일 */
+  height: var(--ctl-h);
+  min-height: var(--ctl-h);
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 0.45rem;
+  padding-right: 0.45rem;
+  box-sizing: border-box;
+  font-size: var(--fs-sm);
+  border-radius: var(--ctl-radius-sm);
+  border: 1px solid var(--ctl-bd);
+  display: block;
+}
+
+/* 2칸 그리드 내부 컨트롤은 항상 칸을 꽉 채우게 강제(폭 들쭉날쭉 방지) */
+:is(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-set, .sales-header-set)
+  .control-2col
+  > * {
+  justify-self: stretch;
+  align-self: stretch;
+}
+
+/* date는 캘린더 아이콘 영역 때문에 우측 패딩이 부족하면 텍스트가 잘려 보일 수 있어 헤더에서만 보정 */
+:is(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-set, .sales-header-set)
+  input[type="date"] {
+  padding-right: 1.6rem;
+}
+
+/* 폭(레이아웃)은 그대로, 거래등록 헤더 '거래일' date 글자만 1단계 축소 */
+:where(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-set, .sales-header-set)
+  :is(.purchase-header-field-date, .sales-header-field-date)
+  input[type="date"] {
+  font-size: calc(var(--fs-sm) - 0.08rem);
+}
+
+/* 요일 박스는 텍스트가 정확히 중앙에 오도록 flex로 정렬 */
+:is(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-set, .sales-header-set)
+  :is(.purchase-date-weekday-box, .payment-date-weekday-box, .sales-date-weekday-box) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+:where(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-set, .sales-header-set)
+  :is(.purchase-date-weekday-box, .payment-date-weekday-box, .sales-date-weekday-box)
+  :is(.purchase-date-weekday, .payment-date-weekday, .sales-date-weekday) {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* date input은 내부 편집 영역이 따로 렌더링되어 line-height가 무시되는 경우가 있어 WebKit 계열을 보정 */
+:where(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-set, .sales-header-set)
+  input[type="date"]::-webkit-datetime-edit {
+  padding: 0;
+  /* NOTE: WebKit 계열 date 입력은 내부 편집 영역이 별도 렌더링되어
+     line-height를 빼면 텍스트가 위/아래로 치우치거나 잘려 보이는 경우가 있어 예외로 유지 */
+  line-height: var(--ctl-h);
+}
+
+:where(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-set, .sales-header-set)
+  :is(.purchase-header-field-date, .sales-header-field-date)
+  input[type="date"]::-webkit-datetime-edit {
+  font-size: calc(var(--fs-sm) - 0.08rem);
+}
+
+:where(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-set, .sales-header-set)
+  input[type="date"]::-webkit-calendar-picker-indicator {
+  margin: 0;
+  padding: 0;
+}
+
+:where(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-set, .sales-header-set)
+  .field-label {
+  width: var(--tx-hdr-label-w);
+  font-size: var(--fs-xs); /* 거래처명 / 장부명 / 코드 / 금액 / 현재잔액 / 요일 라벨 글씨 통일 */
+  font-weight: 600; /* 살짝 굵게, 모두 같은 두께 */
+  line-height: 1.2; /* 위/아래 줄맞춤 안정화 */
+  color: #555;
+}
+
+/* 모달 헤더의 코드 입력칸은 readonly 여부와 관계없이 동일한 스타일로 보이게 통일 */
+:is(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-3col-content, .sales-header-3col-content)
+  :is(.purchase-inline-ledger-code-input, .payment-inline-ledger-code-input, .sales-inline-ledger-code-input)[readonly],
+:is(#purchase-form, #purchase-import-modal, #sales-form, #sales-import-modal)
+  :is(.purchase-header-3col-content, .sales-header-3col-content)
+  :is(.purchase-inline-ledger-code-input, .payment-inline-ledger-code-input, .sales-inline-ledger-code-input):read-only {
+  background-color: var(--ctl-bg);
+  color: inherit;
+  -webkit-text-fill-color: currentColor;
+  opacity: 1;
+}
+
+:is(.purchase-supplier-balance-input, .sales-supplier-balance-input) {
+  text-align: right;
+  background-color: #f8f8f8;
+}
+
+/* 매입/매출 헤더에서 요일 표시를 입력 박스처럼 보이게 감싸는 래퍼 */
+:is(.purchase-date-weekday-box, .payment-date-weekday-box, .sales-date-weekday-box) {
+  flex: 1;
+  padding: 0 0.4rem; /* 높이는 공통 27px 규칙으로만 맞추고, 위아래 패딩은 제거 */
+  border-radius: var(--ctl-radius-sm);
+  border: 1px solid var(--ctl-bd);
+  font-size: var(--fs-sm);
+  background-color: #f8f8f8;
+  display: flex;
+  align-items: center;
+}
+
+:is(.purchase-date-weekday-box, .payment-date-weekday-box, .sales-date-weekday-box) :is(.purchase-date-weekday, .payment-date-weekday, .sales-date-weekday) {
+  flex: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* 매출 등록 상단: 매출처 / 수금을 한 세트 그리드로 정렬 */
+:is(.purchase-supplier-payment-group, .sales-supplier-payment-group) {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.purchase-supplier-payment-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 0.75rem;
+  align-items: center;
+}
+
+.purchase-supplier-payment-row-bottom {
+  grid-template-columns: 1fr 1fr;
+}
+
+/* 현재잔액: 공통 amount-* 클래스 사용(레거시 positive/negative 호환) */
+:is(.purchase-supplier-balance-input, .sales-supplier-balance-input).amount-minus,
+:is(.purchase-supplier-balance-input, .sales-supplier-balance-input).negative {
+  color: #c0392b;
+}
+
+:is(.purchase-supplier-balance-input, .sales-supplier-balance-input).amount-plus,
+:is(.purchase-supplier-balance-input, .sales-supplier-balance-input).positive {
+  color: #0066ff;
+}
+
+/* 거래 인식 모달의 거래일 입력 스타일 */
+:is(.purchase-date-weekday, .payment-date-weekday, .sales-date-weekday) {
+  margin-top: 0.15rem;
+  display: block;
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--ctl-radius-sm);
+  border: 1px solid var(--ctl-bd);
+  font-size: var(--fs-compact);
+  color: #333;
+  background-color: var(--ctl-bg);
+  text-align: center;
+}
+
+/* 요일이 purchase-date-weekday-box 안에 들어갈 때는 안쪽 테두리를 제거해 이중 박스로 보이지 않게 한다. */
+:is(.purchase-date-weekday-box, .payment-date-weekday-box, .sales-date-weekday-box) :is(.purchase-date-weekday, .payment-date-weekday, .sales-date-weekday) {
+  margin-top: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+:is(.purchase-entry-table, .sales-entry-table) {
+  width: 100%;
+  table-layout: auto; /* 열별 개별 width 값을 반영하도록 변경 */
+  /* 저장행/입력행을 동일한 표 스타일로 보이게 */
+  border-collapse: separate;
+  border-spacing: 0;
+  /* 셀 내부 컨트롤이 찌그러지지 않도록 컨트롤 높이(--ctl-h)를 기준으로 통일 */
+  --purchase-row-h: var(--row-h);
+}
+
+:is(.purchase-entry-table, .sales-entry-table) th,
+:is(.purchase-entry-table, .sales-entry-table) td {
+  white-space: nowrap;
+  font-size: var(--fs-xs); /* 전체 테이블보다 한 단계 작은 글씨 */
+  /* 합계행(기본 tx-table)과 같은 패딩 톤으로 맞춰 행 높이 일치 */
+  padding: var(--cell-py) var(--cell-px);
+  line-height: 1.2;
+}
+
+/* tbody(저장행/입력행): td 자체로 높이를 억지로 맞추지 않고, 안쪽 .cell(flex)로 정렬/높이 통일 */
+:is(.purchase-entry-table, .sales-entry-table) tbody td {
+  padding: 0;
+  vertical-align: middle;
+}
+
+:is(.purchase-entry-table, .sales-entry-table) tbody td > .cell {
+  min-height: var(--purchase-row-h);
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  padding: 0 var(--cell-px);
+}
+
+:is(.purchase-entry-table, .sales-entry-table) tbody td.center > .cell {
+  justify-content: center;
+}
+
+:is(.purchase-entry-table, .sales-entry-table) tbody td.right > .cell {
+  justify-content: flex-end;
+}
+
+/* 합계행(tfoot)은 별도 높이 강제하지 않음(기존 디자인 유지) */
+
+/* 입력행만 더 컴팩트하게 */
+
+/* 지출 관리(expense) 화면에서는 공통 품목 입력 테이블(purchase-entry-box)을 숨긴다 */
+body[data-mode="expense"] .purchase-entry-box {
+  display: none;
+}
+
+/* 하단 입력행은 자체 위/아래 가로선은 지우고,
+   위는 헤더/윗행, 아래는 합계줄의 선만 보이도록 조정 */
+:is(.purchase-entry-table, .sales-entry-table) .entry-input-row td {
+  background: var(--ctl-bg);
+  border-top: none;
+  border-left: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+:is(.purchase-entry-table, .sales-entry-table) .entry-input-row td:last-child {
+  border-right: none;
+}
+
+/* .cell 안의 컨트롤은 박스 모델/기본 여백을 통일 */
+:is(.purchase-entry-table, .sales-entry-table) .cell input,
+:is(.purchase-entry-table, .sales-entry-table) .cell select,
+:is(.purchase-entry-table, .sales-entry-table) .cell button {
+  box-sizing: border-box;
+}
+
+:is(.purchase-entry-table, .sales-entry-table) .cell input,
+:is(.purchase-entry-table, .sales-entry-table) .cell select {
+  width: 100%;
+  display: block;
+  margin: 0;
+}
+
+/* 입력행은 .cell 패딩을 제거하고 컨트롤이 셀 높이를 꽉 채우게 한다 */
+:is(.purchase-entry-table, .sales-entry-table) .entry-input-row td > .cell {
+  padding: 0;
+  align-items: center;
+}
+
+/* .cell 안 컨트롤은 전역 높이(--ctl-h) 기준으로 통일 */
+:is(.purchase-entry-table, .sales-entry-table) .cell input,
+:is(.purchase-entry-table, .sales-entry-table) .cell select,
+:is(.purchase-entry-table, .sales-entry-table) .cell textarea,
+:is(.purchase-entry-table, .sales-entry-table) .cell button {
+  height: var(--ctl-h);
+  min-height: var(--ctl-h);
+}
+
+/* purchase 화면 템플릿(cell-view/cell-edit): 기본은 view만, 활성 행만 edit 노출 */
+:is(.purchase-entry-table, .sales-entry-table) tr:is(.purchase-entry-row, .sales-entry-row) .cell-edit {
+  display: none;
+}
+
+/* 선택 행(클릭 후 유지): 활성행과 별도로 색상을 남긴다 */
+:is(.purchase-entry-table, .sales-entry-table) tr:is(.purchase-entry-row, .sales-entry-row).is-selected td {
+  background-color: #eaf2ff;
+}
+
+:is(.purchase-entry-table, .sales-entry-table) tr:is(.purchase-entry-row, .sales-entry-row).is-selected td:first-child {
+  box-shadow: inset 3px 0 0 #2b7cff;
+}
+
+/* 선택 + 활성 동시일 때는 약간 더 진하게 */
+:is(.purchase-entry-table, .sales-entry-table) tr:is(.purchase-entry-row, .sales-entry-row).is-selected.is-active td {
+  background-color: #dceaff;
+}
+
+/* 클릭한 '칸'만 여백색(밝게)으로 보이게 + 테두리 강조 */
+:is(.purchase-entry-table, .sales-entry-table) tr:is(.purchase-entry-row, .sales-entry-row).is-active td.is-cell-active {
+  background-color: var(--ctl-bg);
+  box-shadow: inset 0 0 0 2px #2b7cff;
+}
+
+/* 필수값 누락(빈 칸) 표시: 배경 + 붉은 테두리 */
+:is(.purchase-entry-table, .sales-entry-table)
+  tr:is(.purchase-entry-row, .sales-entry-row)
+  td.is-missing {
+  background-color: color-mix(in srgb, var(--ux-danger-bg) 12%, var(--ctl-bg));
+  box-shadow: inset 0 0 0 2px var(--ux-danger-bd);
+}
+
+/* 활성 셀(파란 테두리)보다 누락 표시(빨간 테두리)를 우선 */
+:is(.purchase-entry-table, .sales-entry-table)
+  tr:is(.purchase-entry-row, .sales-entry-row).is-active
+  td.is-missing.is-cell-active {
+  box-shadow: inset 0 0 0 2px var(--ux-danger-bd);
+}
+
+/* 행이 선택(파랑) 상태여도, 활성 셀(클릭한 자리)은 여백색이 우선 */
+:is(.purchase-entry-table, .sales-entry-table) tr:is(.purchase-entry-row, .sales-entry-row).is-selected td.is-cell-active {
+  background-color: var(--ctl-bg);
+}
+
+/* 매입 인식 결과 테이블 누락 표시 */
+:is(.purchase-import-table, .payment-import-table) td.is-missing {
+  background-color: color-mix(in srgb, var(--ux-danger-bg) 12%, var(--ctl-bg));
+  box-shadow: inset 0 0 0 2px var(--ux-danger-bd);
+}
+
+/* 활성 행이어도 기본은 view 유지(셀 1개만 edit로 전환) */
+:is(.purchase-entry-table, .sales-entry-table) tr:is(.purchase-entry-row, .sales-entry-row).is-active .cell-view {
+  display: inline;
+}
+
+:is(.purchase-entry-table, .sales-entry-table) tr:is(.purchase-entry-row, .sales-entry-row).is-active .cell-edit {
+  display: none;
+}
+
+/* 클릭한 셀만 edit 표시 */
+:is(.purchase-entry-table, .sales-entry-table) tr:is(.purchase-entry-row, .sales-entry-row).is-active td.is-cell-active .cell-view {
+  display: none;
+}
+
+:is(.purchase-entry-table, .sales-entry-table) tr:is(.purchase-entry-row, .sales-entry-row).is-active td.is-cell-active .cell-edit {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  align-items: stretch;
+}
+
+/* 품명(품목) 셀은 예외: 활성 행에서는 …/▼ 버튼은 항상 보이게 한다.
+   - td가 활성 셀이 아닐 때는 입력칸만 숨기고(텍스트는 view로), 버튼/▼만 유지 */
+:is(.purchase-entry-table, .sales-entry-table) tr:is(.purchase-entry-row, .sales-entry-row).is-active .cell-edit:is(.purchase-item-cell, .sales-item-cell) {
+  display: grid;
+  align-items: center;
+}
+
+:is(.purchase-entry-table, .sales-entry-table) tr:is(.purchase-entry-row, .sales-entry-row).is-active td:not(.is-cell-active) .cell-edit:is(.purchase-item-cell, .sales-item-cell) {
+  width: auto;
+  min-width: 0;
+  margin-left: auto;
+  grid-template-columns: var(--purchase-row-h) var(--purchase-row-h);
+}
+
+:is(.purchase-entry-table, .sales-entry-table) tr:is(.purchase-entry-row, .sales-entry-row).is-active td:not(.is-cell-active) .cell-edit:is(.purchase-item-cell, .sales-item-cell) input[data-field="itemName"] {
+  display: none;
+}
+
+/* 매입/매출 '붙여넣기 인식' 결과 테이블은 data-field 키가 name 이라서,
+   비활성 셀에서는 품명 입력칸을 숨기고(텍스트는 view로) .../▼만 보이게 한다. */
+:is(.purchase-entry-table, .sales-entry-table) tr:is(.purchase-entry-row, .sales-entry-row).is-active td:not(.is-cell-active) .cell-edit:is(.purchase-item-cell, .sales-item-cell) input[data-field="name"] {
+  display: none;
+}
+
+/* 활성 셀: 셀 패딩 제거 + 컨트롤이 행 높이를 꽉 채우게 */
+:is(.purchase-entry-table, .sales-entry-table) tr:is(.purchase-entry-row, .sales-entry-row).is-active td.is-cell-active > .cell {
+  padding: 0;
+  height: var(--purchase-row-h);
+  min-height: var(--purchase-row-h);
+  align-items: stretch;
+}
+
+/* 활성 행: 입력 컨트롤은 정사각(둥근 모서리 제거) */
+:is(.purchase-entry-table, .sales-entry-table) tr:is(.purchase-entry-row, .sales-entry-row).is-active td.is-cell-active .cell-edit input,
+:is(.purchase-entry-table, .sales-entry-table) tr:is(.purchase-entry-row, .sales-entry-row).is-active td.is-cell-active .cell-edit select,
+:is(.purchase-entry-table, .sales-entry-table) tr:is(.purchase-entry-row, .sales-entry-row).is-active td.is-cell-active .cell-edit button {
+  height: 100%;
+  min-height: 100%;
+  border-radius: 0;
+}
+
+/* 활성 행(품명 셀 제외): 테이블 격자선에 딱 맞게 보이도록 내부 테두리 제거 */
+:is(.purchase-entry-table, .sales-entry-table) tr:is(.purchase-entry-row, .sales-entry-row).is-active td.is-cell-active .cell-edit:not(.purchase-item-cell):not(.sales-item-cell) input,
+:is(.purchase-entry-table, .sales-entry-table) tr:is(.purchase-entry-row, .sales-entry-row).is-active td.is-cell-active .cell-edit:not(.purchase-item-cell):not(.sales-item-cell) select {
+  border: 0;
+  background: transparent;
+}
+
+/* 활성 행에서도 품명 셀은 grid 레이아웃 유지(입력 + ... + ▼) */
+:is(.purchase-entry-table, .sales-entry-table) tr:is(.purchase-entry-row, .sales-entry-row).is-active td.is-cell-active .cell-edit:is(.purchase-item-cell, .sales-item-cell) {
+  display: grid;
+  align-items: center;
+}
+
+/* 품명 셀: 입력칸 + ... + ▼ 3칸을 나란히 붙이기 */
+:is(.purchase-item-cell, .sales-item-cell) {
+  display: grid;
+  grid-template-columns: 1fr var(--purchase-row-h) var(--purchase-row-h); /* 입력 + 정사각 버튼 + 정사각 셀렉트 */
+  align-items: center;
+  padding: 0; /* td에 이미 padding이 있어 중복 제거 */
+}
+
+/* 품명 셀 내부 3요소는 높이를 동일하게(윗줄/아랫줄 라인 정렬) */
+:is(.purchase-item-cell, .sales-item-cell) > * {
+  height: var(--purchase-row-h);
+  box-sizing: border-box;
+}
+
+/* 품명 셀 내부 컨트롤도 행 높이에 맞춤 */
+:is(.purchase-item-cell, .sales-item-cell) input[type="text"],
+:is(.purchase-item-cell, .sales-item-cell) .item-btn,
+:is(.purchase-item-cell, .sales-item-cell) .item-history-select {
+  height: var(--purchase-row-h);
+  min-height: var(--purchase-row-h);
+}
+
+:is(.purchase-item-cell, .sales-item-cell) input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: var(--ctl-radius-sm) 0 0 var(--ctl-radius-sm); /* 왼쪽만 둥글게 */
+}
+
+.item-btn {
+  width: var(--purchase-row-h);
+  min-width: var(--purchase-row-h);
+  padding: 0;
+  font-size: var(--fs-btn-icon-mini);
+  text-align: center;
+  border: 1px solid var(--bd);
+  border-left: none; /* 왼쪽 경계선은 앞 칸과 공유 */
+  background-color: var(--ctl-bg);
+  height: var(--purchase-row-h);
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#btn-purchase-item-picker {
+  border-radius: 0; /* 가운데 버튼: 모서리 없음 */
+}
+
+/* ▼ 콤보박스(이전 품목 선택) 스타일 */
+:is(.purchase-entry-table, .sales-entry-table) .item-history-select {
+  width: var(--purchase-row-h);
+  min-width: var(--purchase-row-h);
+  box-sizing: border-box;
+  border: 1px solid var(--bd);
+  border-left: none; /* 앞 칸과 경계선 공유 */
+  border-radius: 0 7px 7px 0;
+  padding: 0;
+  background-color: var(--ctl-bg);
+  height: var(--purchase-row-h);
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  text-indent: -9999px; /* 선택된 텍스트는 숨기고 아이콘만 */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="%23666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 12px 12px;
+}
+
+/* 드롭다운 목록 안에서는 텍스트 보이도록 */
+.item-history-select option {
+  text-indent: 0;
+}
+
+:is(.purchase-entry-table, .sales-entry-table) .entry-input-row input[type="number"] {
+  text-align: right;
+}
+
+.item-hidden-select {
+  display: none;
+}
+
+:is(.purchase-entry-table, .sales-entry-table) select.item-hidden-select {
+  display: none;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 1rem;
+  row-gap: 0.6rem;
+}
+
+.form-grid label {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end; /* 같은 줄 박스 3개 하단 정렬 */
+  font-size: var(--fs-sm);
+  font-weight: 700; /* 폼 필드 제목 글씨 굵게 */
+}
+.form-grid input,
+.form-grid select {
+  margin-top: 0.25rem;
+}
+
+/* 수량/단가 등 숫자 입력칸에서 위아래 화살표 숨기기 */
+:is(.purchase-entry-table, .sales-entry-table) input[type="number"]::-webkit-outer-spin-button,
+:is(.purchase-entry-table, .sales-entry-table) input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+:is(.purchase-entry-table, .sales-entry-table) input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* 코드/결제/상태 입력칸 공통 폭 규칙 */
+.field-code-mode,
+#cust-id-mode {
+  width: 90px; /* 자동생성 텍스트 기준 */
+}
+
+.field-code-input,
+#cust-id {
+  width: 70px; /* 코드 입력칸 */
+}
+
+.field-pay {
+  width: 90px; /* 주 결제수단 */
+}
+
+.field-status {
+  width: 90px; /* 상태 */
+}
+
+/* 모달 폼에서는 셀렉트 폭을 칸에 맞춤 */
+.modal-form .field-status,
+.modal-form .field-pay {
+  width: 100%;
+  min-width: 120px;
+}
+
+/* 모달 폼: 코드 입력 줄 폭 통일 */
+.modal-form .code-input-row {
+  width: 100%;
+}
+
+.modal-form .code-input-row select,
+.modal-form .field-code-mode {
+  flex: 0 0 110px;
+  width: 110px;
+}
+
+.modal-form .code-input-row input,
+.modal-form .field-code-input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.code-input-row,
+.group-input-row {
+  display: flex;
+  gap: 0.4rem;
+  width: 100%; /* 코드 줄도 거래처명과 같은 전체 폭 사용 */
+}
+
+.code-input-row select {
+  flex: 0 0 90px; /* 실제 보이는 폭도 90px로 맞춤 */
+}
+
+.code-input-row input {
+  flex: 1; /* 나머지 폭을 코드 입력칸이 채움 */
+}
+.group-label-row {
+  display: flex;
+  flex-direction: column; /* 구분과 같이 라벨 위, 셀렉트 아래 배치 */
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.group-label-row select {
+  width: 100%;
+}
+
+.code-status-pay-row {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 1rem;
+}
+
+.code-status-pay-row label {
+  flex: 1;
+  min-width: 0;
+}
+
+.type-group-name-row {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 1rem;
+}
+
+.type-group-name-row label {
+  flex: 1;
+  min-width: 0; /* 긴 placeholder 때문에 박스 밖으로 안 튀어나가게 */
+}
+
+/* 메모 라인은 폼 전체 폭 사용 */
+form label.memo-full-row {
+  grid-column: 1 / -1;
+}
+
+.form-button-row {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-start;
+  gap: var(--ux-btnbox-gap);
+  margin-top: 0.4rem;
+}
+
+/* 등록/수정 모달 내 버튼 줄은 항상 우측 끝 정렬 */
+.modal-dialog .form-button-row {
+  justify-content: flex-end;
+}
+
+/* 기존 split 배치용 auto-margin 규칙은 모달에서는 무효화 */
+.modal-dialog #btn-purchase-delete-modal,
+.modal-dialog #btn-purchase-import-close {
+  margin-left: 0;
+}
+
+/* 매입 등록/수정 모달: 삭제/닫기 버튼을 오른쪽 끝으로 보내기 위해
+   삭제 버튼에 auto 마진을 주어 오른쪽 그룹의 시작 지점으로 사용 */
+#btn-purchase-delete-modal {
+  margin-left: auto;
+}
+
+/* 매입 인식 모달: 닫기 버튼을 오른쪽 끝으로 배치 */
+#btn-purchase-import-close {
+  margin-left: auto;
+}
+
+/* 폼 하단 JSON 불러오기 버튼을 가운데 정렬 */
+.button-row.button-row-center {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+}
+
+/* 거래처 목록 전체 박스 */
+.table-box {
+  border: 1px solid var(--ux-panel-border);
+  border-radius: var(--ux-radius);
+  background: var(--ux-panel-bg);
+  overflow: hidden;
+}
+
+.tx-table {
+  width: 100%; /* 바깥 .table-box 폭에 테이블을 맞춤 */
+  table-layout: fixed; /* 각 칸 폭 비율을 유지하면서 넓게 배치 */
+  border-collapse: separate; /* 셀 폭 계산을 box 모델 기준으로 더 직관적으로 */
+  border-spacing: 0; /* 셀 사이 간격은 0 (collapse 와 동일한 시각 효과) */
+  font-size: var(--fs-compact); /* 기본 글씨 크기 조금 축소 */
+  /* 바깥 .table-box가 외곽선을 가지므로 여기선 선 제거 */
+}
+
+.tx-table tr {
+  height: var(--row-h);
+}
+
+/* 내용(헤더/셀 텍스트) 기준으로 열 폭 자동 + 필요 시 가로 스크롤 */
+.tx-table.tx-table-auto {
+  table-layout: auto;
+  width: max-content;
+  min-width: 100%;
+}
+
+.tx-table.tx-table-auto th,
+.tx-table.tx-table-auto td {
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+/* 전표 조회 테이블은 내용에 따라 폭을 좀 더 유연하게 배치 */
+.tx-table.trn-table {
+  table-layout: auto;
+}
+
+.tx-table th,
+.tx-table td {
+  box-sizing: border-box; /* width 값에 패딩/테두리 포함 (실제 보이는 폭과 일치) */
+  border-bottom: 1px solid #888; /* 가로줄 진하게 */
+  border-right: 1px solid #c5c9d0; /* 세로줄은 한 톤 연하게 */
+  padding: var(--cell-py) var(--cell-px);
+  vertical-align: middle;
+}
+
+.tx-table th:last-child,
+.tx-table td:last-child {
+  border-right: none; /* 마지막 칸 오른쪽 선은 중복 제거 */
+}
+
+/* 품목 목록 테이블은 줄바꿈을 막고, 셀 패딩/행 높이는 전역 토큰을 따른다. */
+
+
+/* 열 폭: 상태 열이 첫 번째 (일반 tx-table 전용)
+   - 아래 테이블들은 각 화면 전용 규칙(요약/입출금/홈 등) 또는 colgroup 을 사용하므로 제외한다. */
+.tx-table:not(.tx-table-auto):not(.item-table):not(.trn-table):not(.purchase-entry-table):not(.sales-entry-table):not(.purchase-summary-table):not(.sales-summary-table):not(.purchase-supplier-table):not(.sales-supplier-table):not(.purchase-main-table):not(.payment-main-table):not(.purchase-import-table):not(.payment-import-table):not(.sales-import-table):not(.home-main-table)
+  th:nth-child(1),
+.tx-table:not(.tx-table-auto):not(.item-table):not(.trn-table):not(.purchase-entry-table):not(.sales-entry-table):not(.purchase-summary-table):not(.sales-summary-table):not(.purchase-supplier-table):not(.sales-supplier-table):not(.purchase-main-table):not(.payment-main-table):not(.purchase-import-table):not(.payment-import-table):not(.sales-import-table):not(.home-main-table)
+  td:nth-child(1) {
+  width: 50px; /* 상태 */
+}
+
+.tx-table:not(.tx-table-auto):not(.item-table):not(.trn-table):not(.purchase-entry-table):not(.sales-entry-table):not(.purchase-summary-table):not(.sales-summary-table):not(.purchase-supplier-table):not(.sales-supplier-table):not(.purchase-main-table):not(.payment-main-table):not(.purchase-import-table):not(.payment-import-table):not(.sales-import-table):not(.home-main-table)
+  th:nth-child(2),
+.tx-table:not(.tx-table-auto):not(.item-table):not(.trn-table):not(.purchase-entry-table):not(.sales-entry-table):not(.purchase-summary-table):not(.sales-summary-table):not(.purchase-supplier-table):not(.sales-supplier-table):not(.purchase-main-table):not(.payment-main-table):not(.purchase-import-table):not(.payment-import-table):not(.sales-import-table):not(.home-main-table)
+  td:nth-child(2) {
+  width: 70px; /* 구분 */
+}
+
+.tx-table:not(.tx-table-auto):not(.item-table):not(.trn-table):not(.purchase-entry-table):not(.sales-entry-table):not(.purchase-summary-table):not(.sales-summary-table):not(.purchase-supplier-table):not(.sales-supplier-table):not(.purchase-main-table):not(.payment-main-table):not(.purchase-import-table):not(.payment-import-table):not(.sales-import-table):not(.home-main-table)
+  th:nth-child(3),
+.tx-table:not(.tx-table-auto):not(.item-table):not(.trn-table):not(.purchase-entry-table):not(.sales-entry-table):not(.purchase-summary-table):not(.sales-summary-table):not(.purchase-supplier-table):not(.sales-supplier-table):not(.purchase-main-table):not(.payment-main-table):not(.purchase-import-table):not(.payment-import-table):not(.sales-import-table):not(.home-main-table)
+  td:nth-child(3) {
+  width: 80px; /* 분류 */
+}
+
+.tx-table:not(.tx-table-auto):not(.item-table):not(.trn-table):not(.purchase-entry-table):not(.sales-entry-table):not(.purchase-summary-table):not(.sales-summary-table):not(.purchase-supplier-table):not(.sales-supplier-table):not(.purchase-main-table):not(.payment-main-table):not(.purchase-import-table):not(.payment-import-table):not(.sales-import-table):not(.home-main-table)
+  th:nth-child(4),
+.tx-table:not(.tx-table-auto):not(.item-table):not(.trn-table):not(.purchase-entry-table):not(.sales-entry-table):not(.purchase-summary-table):not(.sales-summary-table):not(.purchase-supplier-table):not(.sales-supplier-table):not(.purchase-main-table):not(.payment-main-table):not(.purchase-import-table):not(.payment-import-table):not(.sales-import-table):not(.home-main-table)
+  td:nth-child(4) {
+  width: 70px; /* 코드 */
+}
+
+.tx-table:not(.tx-table-auto):not(.item-table):not(.trn-table):not(.purchase-entry-table):not(.sales-entry-table):not(.purchase-summary-table):not(.sales-summary-table):not(.purchase-supplier-table):not(.sales-supplier-table):not(.purchase-main-table):not(.payment-main-table):not(.purchase-import-table):not(.payment-import-table):not(.sales-import-table):not(.home-main-table)
+  th:nth-child(5),
+.tx-table:not(.tx-table-auto):not(.item-table):not(.trn-table):not(.purchase-entry-table):not(.sales-entry-table):not(.purchase-summary-table):not(.sales-summary-table):not(.purchase-supplier-table):not(.sales-supplier-table):not(.purchase-main-table):not(.payment-main-table):not(.purchase-import-table):not(.payment-import-table):not(.sales-import-table):not(.home-main-table)
+  td:nth-child(5) {
+  width: 120px; /* 거래처명 */
+}
+
+.tx-table:not(.tx-table-auto):not(.item-table):not(.trn-table):not(.purchase-entry-table):not(.sales-entry-table):not(.purchase-summary-table):not(.sales-summary-table):not(.purchase-supplier-table):not(.sales-supplier-table):not(.purchase-main-table):not(.payment-main-table):not(.purchase-import-table):not(.payment-import-table):not(.sales-import-table):not(.home-main-table)
+  th:nth-child(6),
+.tx-table:not(.tx-table-auto):not(.item-table):not(.trn-table):not(.purchase-entry-table):not(.sales-entry-table):not(.purchase-summary-table):not(.sales-summary-table):not(.purchase-supplier-table):not(.sales-supplier-table):not(.purchase-main-table):not(.payment-main-table):not(.purchase-import-table):not(.payment-import-table):not(.sales-import-table):not(.home-main-table)
+  td:nth-child(6) {
+  width: 80px; /* 결제수단 */
+}
+
+.tx-table:not(.tx-table-auto):not(.item-table):not(.trn-table):not(.purchase-entry-table):not(.sales-entry-table):not(.purchase-summary-table):not(.sales-summary-table):not(.purchase-supplier-table):not(.sales-supplier-table):not(.purchase-main-table):not(.payment-main-table):not(.purchase-import-table):not(.payment-import-table):not(.sales-import-table):not(.home-main-table)
+  th:nth-child(7),
+.tx-table:not(.tx-table-auto):not(.item-table):not(.trn-table):not(.purchase-entry-table):not(.sales-entry-table):not(.purchase-summary-table):not(.sales-summary-table):not(.purchase-supplier-table):not(.sales-supplier-table):not(.purchase-main-table):not(.payment-main-table):not(.purchase-import-table):not(.payment-import-table):not(.sales-import-table):not(.home-main-table)
+  td:nth-child(7) {
+  width: 160px; /* 잔액 */
+}
+
+.tx-table:not(.tx-table-auto):not(.item-table):not(.trn-table):not(.purchase-entry-table):not(.sales-entry-table):not(.purchase-summary-table):not(.sales-summary-table):not(.purchase-supplier-table):not(.sales-supplier-table):not(.purchase-main-table):not(.payment-main-table):not(.purchase-import-table):not(.payment-import-table):not(.sales-import-table):not(.home-main-table)
+  th:nth-child(8),
+.tx-table:not(.tx-table-auto):not(.item-table):not(.trn-table):not(.purchase-entry-table):not(.sales-entry-table):not(.purchase-summary-table):not(.sales-summary-table):not(.purchase-supplier-table):not(.sales-supplier-table):not(.purchase-main-table):not(.payment-main-table):not(.purchase-import-table):not(.payment-import-table):not(.sales-import-table):not(.home-main-table)
+  td:nth-child(8) {
+  width: 180px; /* 비고 */
+}
+
+/* 전표 조회 전용 테이블(품목별 2줄 헤더 포함) 칼럼 폭 재정의
+   byItem 뷰에서는 열 의미 클래스(col-*) 기준으로 폭을 설정한다. */
+.trn-table th.col-code,
+.trn-table td.col-code {
+  /* 코드 */
+  width: clamp(56px, 7vw, 70px);
+}
+
+.trn-table th.col-group,
+.trn-table td.col-group {
+  /* 분류 */
+  width: clamp(56px, 7vw, 70px);
+}
+
+.trn-table th.col-name,
+.trn-table td.col-name {
+  /* 품명 */
+  width: clamp(110px, 16vw, 150px);
+}
+
+.trn-table th.col-spec,
+.trn-table td.col-spec {
+  /* 규격 */
+  width: clamp(56px, 7vw, 70px);
+}
+
+.trn-table th.col-unit,
+.trn-table td.col-unit {
+  /* 단위 */
+  width: clamp(44px, 6vw, 50px);
+}
+
+.trn-table th.col-purchase-qty,
+.trn-table td.col-purchase-qty {
+  /* 매입 수량 */
+  width: clamp(70px, 9vw, 80px);
+}
+
+.trn-table th.col-purchase-amt,
+.trn-table td.col-purchase-amt {
+  /* 매입 금액 */
+  width: clamp(96px, 12vw, 120px);
+}
+
+.trn-table th.col-purchase-avg,
+.trn-table td.col-purchase-avg {
+  /* 매입 평균가 */
+  width: clamp(52px, 7vw, 60px);
+}
+
+.trn-table th.col-sales-qty,
+.trn-table td.col-sales-qty {
+  /* 매출 수량 */
+  width: clamp(70px, 9vw, 80px);
+}
+
+.trn-table th.col-sales-amt,
+.trn-table td.col-sales-amt {
+  /* 매출 금액 */
+  width: clamp(96px, 12vw, 120px);
+}
+
+.trn-table th.col-sales-avg,
+.trn-table td.col-sales-avg {
+  /* 매출 평균가 */
+  width: clamp(52px, 7vw, 60px);
+}
+
+.trn-table th.col-shrink-qty,
+.trn-table td.col-shrink-qty {
+  /* 감량 */
+  width: clamp(52px, 7vw, 60px);
+}
+
+.trn-table th.col-cost-qty,
+.trn-table td.col-cost-qty {
+  /* 수량(원가 기준) */
+  width: clamp(86px, 11vw, 100px);
+}
+
+.trn-table th.col-cost-amt,
+.trn-table td.col-cost-amt {
+  /* 금액(원가) */
+  width: clamp(96px, 12vw, 120px);
+}
+
+.trn-table th.col-profit-amt,
+.trn-table td.col-profit-amt {
+  /* 이익액 */
+  width: clamp(110px, 13vw, 130px);
+}
+
+.trn-table th.col-profit-rate,
+.trn-table td.col-profit-rate {
+  /* 이익률 */
+  width: clamp(52px, 7vw, 60px);
+}
+
+/* 전표 조회 헤더 텍스트는 가로 한 줄로 표시 (줄바꿈/세로 쪼개짐 방지) */
+.trn-table thead th {
+  white-space: nowrap;
+  word-break: keep-all;
+  text-align: center;
+}
+
+.trn-table tbody td {
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+/* 전표 테이블: 금액 칸을 제외한 일반 셀은 가운데 정렬로 폭과 글씨 균형 맞추기 */
+.trn-table tbody td:not(.amount-cell) {
+  text-align: center;
+}
+
+/* 전표 조회 페이지 전용 필터/요약 레이아웃 */
+.trn-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--ux-panel-border);
+  border-radius: var(--ux-radius-sm);
+  background: var(--ux-panel-bg);
+}
+
+.trn-filter-left {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.trn-filter-right {
+  margin-left: auto;
+}
+
+.trn-supplier-select {
+  min-width: 220px;
+}
+
+.trn-filter-row + .trn-filter-row {
+  margin-top: 0.6rem;
+}
+
+.trn-summary {
+  margin: 0.8rem 0 0.4rem;
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  font-size: var(--fs-base);
+}
+
+/* 매출/매입/지출 왼쪽 거래처 분류 테이블: 공통 tx-table 폭 정의를 덮어써서 코드 열을 더 좁게 */
+:is(.purchase-supplier-table, .sales-supplier-table).tx-table th:nth-child(1),
+:is(.purchase-supplier-table, .sales-supplier-table).tx-table td:nth-child(1) {
+  width: 40px;
+  text-align: center;
+}
+
+/* 품목 관리용 열 폭 (item-table)
+  2단 헤더(아래줄) + 데이터 행 기준:
+  상태, 코드, 분류, 품명, 원산지, 단위,
+  단가, 감량%, 감량가, 소매 마진률, 소매 판매가,
+  납품 마진률, 납품 판매가, 평균가
+
+  ※ 1단 그룹 헤더(확인/품목/규격/매입가/소매가/납품가)는 폭 계산에서 제외하고,
+    실제 픽셀 폭은 colgroup 으로 지정한다. */
+
+:is(.purchase-table, .sales-table) th:nth-child(1),
+:is(.purchase-table, .sales-table) td:nth-child(1) {
+  width: 60px; /* 구분 */
+}
+
+:is(.purchase-table, .sales-table) th:nth-child(2),
+:is(.purchase-table, .sales-table) td:nth-child(2) {
+  width: 90px; /* 코드 */
+}
+
+:is(.purchase-table, .sales-table) th:nth-child(3),
+:is(.purchase-table, .sales-table) td:nth-child(3) {
+  width: 300px; /* 품명 */
+}
+
+:is(.purchase-table, .sales-table) th:nth-child(4),
+:is(.purchase-table, .sales-table) td:nth-child(4) {
+  width: 110px; /* 규격 */
+}
+
+:is(.purchase-table, .sales-table) th:nth-child(5),
+:is(.purchase-table, .sales-table) td:nth-child(5) {
+  width: 60px; /* 단위 */
+}
+
+:is(.purchase-table, .sales-table) th:nth-child(6),
+:is(.purchase-table, .sales-table) td:nth-child(6) {
+  width: 80px; /* 수량 */
+}
+
+:is(.purchase-table, .sales-table) th:nth-child(7),
+:is(.purchase-table, .sales-table) td:nth-child(7) {
+  width: 95px; /* 단가 */
+}
+
+:is(.purchase-table, .sales-table) th:nth-child(8),
+:is(.purchase-table, .sales-table) td:nth-child(8) {
+  width: 120px; /* 합계액 */
+}
+
+:is(.purchase-table, .sales-table) th:nth-child(9),
+:is(.purchase-table, .sales-table) td:nth-child(9) {
+  width: 70px; /* 매입가 */
+}
+
+:is(.purchase-table, .sales-table) th:nth-child(10),
+:is(.purchase-table, .sales-table) td:nth-child(10) {
+  width: 95px; /* 매입합계 */
+}
+
+:is(.purchase-table, .sales-table) th:nth-child(11),
+:is(.purchase-table, .sales-table) td:nth-child(11) {
+  width: 95px; /* 마진 */
+}
+
+:is(.purchase-table, .sales-table) th:nth-child(12),
+:is(.purchase-table, .sales-table) td:nth-child(12) {
+  width: 70px; /* 마진율 */
+}
+
+/* 매입 내역 테이블은 카드 폭 안에서 가로 스크롤 없이,
+   세로로는 11줄 정도까지만 보이고 그 이상은 내부 스크롤 */
+:is(.purchase-card .purchase-table, .sales-card .sales-table) {
+  min-width: 0;
+}
+
+:is(.purchase-card, .sales-card) .table-wrapper {
+  max-height: 360px; /* 약 11행 + 헤더/합계 줄 높이 */
+  overflow-y: auto; /* 11행을 넘으면 세로 스크롤 */
+  overflow-x: hidden; /* 가로 스크롤 막기 */
+}
+
+/* 아래 상세 내역 테이블은 한 화면에 약 10행 정도 보이게 */
+:is(.purchase-card .purchase-detail-wrapper, .payment-card .payment-detail-wrapper, .sales-card .sales-detail-wrapper) {
+  max-height: 340px; /* 약 10행 + 헤더/합계 줄 높이 */
+}
+
+/* 각 섹션별 테이블에서 내용이 넘칠 경우 가로 스크롤 허용 */
+:is(.purchase-summary-box, .sales-summary-box) .table-wrapper,
+:is(.purchase-detail-box, .payment-detail-box, .sales-detail-box) .table-wrapper {
+  overflow-x: auto;
+}
+
+:is(.purchase-detail-box, .payment-detail-box, .sales-detail-box) .tx-table {
+  min-width: 100%;
+  table-layout: auto; /* 내용에 맞춰 열 폭 자동 조정 */
+}
+
+:is(.purchase-detail-box, .payment-detail-box, .sales-detail-box) .tx-table th,
+:is(.purchase-detail-box, .payment-detail-box, .sales-detail-box) .tx-table td {
+  white-space: nowrap;
+  word-break: keep-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 상세 내역 열 폭 비율 (날짜~비고 순) */
+:is(.purchase-detail-box, .payment-detail-box, .sales-detail-box) .tx-table th:nth-child(1),
+:is(.purchase-detail-box, .payment-detail-box, .sales-detail-box) .tx-table td:nth-child(1) {
+  width: 110px; /* 날짜 */
+}
+
+:is(.purchase-detail-box, .payment-detail-box, .sales-detail-box) .tx-table th:nth-child(2),
+:is(.purchase-detail-box, .payment-detail-box, .sales-detail-box) .tx-table td:nth-child(2) {
+  width: 70px; /* 구분 */
+}
+
+:is(.purchase-detail-box, .payment-detail-box, .sales-detail-box) .tx-table th:nth-child(3),
+:is(.purchase-detail-box, .payment-detail-box, .sales-detail-box) .tx-table td:nth-child(3) {
+  width: 90px; /* 코드 */
+}
+
+:is(.purchase-detail-box, .payment-detail-box, .sales-detail-box) .tx-table th:nth-child(4),
+:is(.purchase-detail-box, .payment-detail-box, .sales-detail-box) .tx-table td:nth-child(4) {
+  min-width: 140px; /* 품명 */
+  width: auto;
+}
+
+:is(.purchase-detail-box, .payment-detail-box, .sales-detail-box) .tx-table th:nth-child(5),
+:is(.purchase-detail-box, .payment-detail-box, .sales-detail-box) .tx-table td:nth-child(5) {
+  min-width: 100px; /* 규격 */
+  width: auto;
+}
+
+:is(.purchase-detail-box, .payment-detail-box, .sales-detail-box) .tx-table th:nth-child(6),
+:is(.purchase-detail-box, .payment-detail-box, .sales-detail-box) .tx-table td:nth-child(6) {
+  width: 80px; /* 단위 */
+  text-align: center;
+}
+
+:is(.purchase-detail-box, .payment-detail-box, .sales-detail-box) .tx-table th:nth-child(7),
+:is(.purchase-detail-box, .payment-detail-box, .sales-detail-box) .tx-table td:nth-child(7) {
+  width: 100px; /* 수량 */
+}
+
+:is(.purchase-detail-box, .payment-detail-box, .sales-detail-box) .tx-table th:nth-child(8),
+:is(.purchase-detail-box, .payment-detail-box, .sales-detail-box) .tx-table td:nth-child(8) {
+  width: 110px; /* 단가 */
+}
+
+:is(.purchase-detail-box, .payment-detail-box, .sales-detail-box) .tx-table th:nth-child(9),
+:is(.purchase-detail-box, .payment-detail-box, .sales-detail-box) .tx-table td:nth-child(9) {
+  width: 140px; /* 합계액 */
+}
+
+:is(.purchase-detail-box, .payment-detail-box, .sales-detail-box) .tx-table th:nth-child(10),
+:is(.purchase-detail-box, .payment-detail-box, .sales-detail-box) .tx-table td:nth-child(10) {
+  min-width: 150px; /* 비고 */
+  width: auto;
+}
+
+/* 입출금 내역 메인 테이블도 내용에 따라 폭 조정 */
+.cashflow-type-card .tx-table {
+  table-layout: fixed;
+}
+
+.cashflow-type-card .tx-table th,
+.cashflow-type-card .tx-table td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cashflow-type-card .tx-table th:nth-child(1),
+.cashflow-type-card .tx-table td:nth-child(1) {
+  width: 80px; /* 코드 */
+}
+
+.cashflow-type-card .tx-table th:nth-child(3),
+.cashflow-type-card .tx-table td:nth-child(3) {
+  width: 130px; /* 잔액 */
+}
+
+.cashflow-table {
+  table-layout: fixed;
+}
+
+.cashflow-table th,
+.cashflow-table td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cashflow-table th:nth-child(1),
+.cashflow-table td:nth-child(1) {
+  width: 80px; /* 구분 */
+}
+
+.cashflow-table th:nth-child(2),
+.cashflow-table td:nth-child(2) {
+  width: 90px; /* 코드 */
+}
+
+.cashflow-table th:nth-child(4),
+.cashflow-table td:nth-child(4),
+.cashflow-table th:nth-child(5),
+.cashflow-table td:nth-child(5),
+.cashflow-table th:nth-child(6),
+.cashflow-table td:nth-child(6) {
+  width: 130px; /* 입금/출금/잔액 (항상 동일 폭) */
+}
+
+.purchase-main-table {
+  table-layout: auto;
+  min-width: 100%;
+}
+
+.purchase-main-table th,
+.purchase-main-table td {
+  white-space: nowrap;
+  word-break: keep-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.purchase-main-table th:nth-child(1),
+.purchase-main-table td:nth-child(1) {
+  width: 80px; /* 구분 */
+}
+
+.purchase-main-table th:nth-child(2),
+.purchase-main-table td:nth-child(2) {
+  min-width: 80px; /* 장부명 */
+}
+
+.purchase-main-table th:nth-child(3),
+.purchase-main-table td:nth-child(3) {
+  min-width: 90px; /* 거래일시 */
+}
+
+.purchase-main-table th:nth-child(4),
+.purchase-main-table td:nth-child(4) {
+  min-width: 200px; /* 거래처명 */
+}
+
+.purchase-main-table th:nth-child(5),
+.purchase-main-table td:nth-child(5) {
+  min-width: 170px; /* 보낸분/받는분 */
+}
+
+.purchase-main-table th:nth-child(6),
+.purchase-main-table td:nth-child(6),
+.purchase-main-table th:nth-child(7),
+.purchase-main-table td:nth-child(7),
+.purchase-main-table th:nth-child(8),
+.purchase-main-table td:nth-child(8) {
+  min-width: 130px; /* 금액/잔액 */
+}
+
+.purchase-main-table th:nth-child(4),
+.purchase-main-table td:nth-child(4),
+.purchase-main-table th:nth-child(5),
+.purchase-main-table td:nth-child(5),
+.purchase-main-table th:nth-child(6),
+.purchase-main-table td:nth-child(6),
+.purchase-main-table th:nth-child(7),
+.purchase-main-table td:nth-child(7),
+.purchase-main-table th:nth-child(8),
+.purchase-main-table td:nth-child(8) {
+  width: auto; /* 여유 폭 배분 */
+}
+
+/* 입출금관리 메인 테이블(9열): 헤더 폭 통일 (내용 길이에 따라 흔들리지 않도록)
+   - 6열(보낸분/받는분)은 남는 폭을 사용 */
+/* 매입 내역 상단 "이 내역" 요약 박스 */
+:is(.purchase-summary-box, .sales-summary-box) {
+  margin: 0.3rem 0 0.4rem;
+}
+
+:is(.purchase-summary-table, .sales-summary-table) th,
+:is(.purchase-summary-table, .sales-summary-table) td {
+  font-size: var(--fs-compact); /* 전체 테이블 기본 크기와 맞춤 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+:is(.purchase-summary-table, .sales-summary-table) th {
+  text-align: center;
+}
+
+:is(.purchase-summary-box, .sales-summary-box) .tx-table:not(.tx-table-auto) {
+  width: 100%;
+  table-layout: fixed;
+}
+
+/* 요약 테이블(구분/거래처명/거래일자/장부명/적요/거래/결제/잔액) 헤더 폭 통일
+   - 적요(5열)는 남는 폭을 사용 */
+:is(.purchase-summary-table, .sales-summary-table) {
+  --summary-col-type: clamp(52px, 6vw, 60px);
+  --summary-col-customer: clamp(110px, 18vw, 150px);
+  --summary-col-date: clamp(96px, 12vw, 110px);
+  --summary-col-ledger: clamp(96px, 12vw, 110px);
+  --summary-col-amount: clamp(96px, 12vw, 120px);
+  --summary-col-payment: clamp(96px, 12vw, 120px);
+  --summary-col-balance: clamp(96px, 12vw, 120px);
+}
+
+:is(.purchase-summary-table, .sales-summary-table):not(.tx-table-auto) th:nth-child(1),
+:is(.purchase-summary-table, .sales-summary-table):not(.tx-table-auto) td:nth-child(1) {
+  width: var(--summary-col-type);
+}
+
+:is(.purchase-summary-table, .sales-summary-table):not(.tx-table-auto) th:nth-child(2),
+:is(.purchase-summary-table, .sales-summary-table):not(.tx-table-auto) td:nth-child(2) {
+  width: var(--summary-col-customer);
+}
+
+:is(.purchase-summary-table, .sales-summary-table):not(.tx-table-auto) th:nth-child(3),
+:is(.purchase-summary-table, .sales-summary-table):not(.tx-table-auto) td:nth-child(3) {
+  width: var(--summary-col-date);
+}
+
+:is(.purchase-summary-table, .sales-summary-table):not(.tx-table-auto) th:nth-child(4),
+:is(.purchase-summary-table, .sales-summary-table):not(.tx-table-auto) td:nth-child(4) {
+  width: var(--summary-col-ledger);
+}
+
+:is(.purchase-summary-table, .sales-summary-table):not(.tx-table-auto) th:nth-child(6),
+:is(.purchase-summary-table, .sales-summary-table):not(.tx-table-auto) td:nth-child(6) {
+  width: var(--summary-col-amount);
+}
+
+:is(.purchase-summary-table, .sales-summary-table):not(.tx-table-auto) th:nth-child(7),
+:is(.purchase-summary-table, .sales-summary-table):not(.tx-table-auto) td:nth-child(7) {
+  width: var(--summary-col-payment);
+}
+
+:is(.purchase-summary-table, .sales-summary-table):not(.tx-table-auto) th:nth-child(8),
+:is(.purchase-summary-table, .sales-summary-table):not(.tx-table-auto) td:nth-child(8) {
+  width: var(--summary-col-balance);
+}
+
+/* 요약 박스: 헤더 아래에는 선 한 줄만 보이도록
+   tbody 쪽 가로선은 숨긴다 */
+/* 지출/매입 요약 테이블에서도 각 행의 경계선이 보이도록 한다. */
+:is(.purchase-summary-table, .sales-summary-table) tbody td {
+  border-top: 1px solid #9aa3c0;
+  border-bottom: 1px solid #9aa3c0;
+}
+
+/* 요약 테이블: 데이터 행은 클릭 가능 커서 */
+:is(.purchase-summary-table, .sales-summary-table) tbody tr {
+  cursor: pointer;
+}
+
+/* 매입 내역 상세 제목 */
+:is(.purchase-detail-title, .sales-detail-title) {
+  margin: 0.1rem 0 0.2rem;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+}
+
+/* 홈(대시보드) 거래 목록(5열): 헤더 폭 통일 + 함께 줄어드는 폭 */
+.home-main-table {
+  width: 100%;
+  table-layout: fixed;
+  /* 홈 표는 colgroup에 고정 px 폭이 들어있어 가로 스크롤이 생기기 쉬움
+     → home 전용으로 반응형 폭으로 덮어써서 화면 안에 맞춘다. */
+  --home-col-date: clamp(80px, 9vw, 100px);
+  --home-col-type: clamp(52px, 6vw, 64px);
+  --home-col-group: clamp(60px, 7vw, 80px);
+  --home-col-customer: clamp(110px, 16vw, 170px);
+  --home-col-amt: clamp(64px, 7vw, 92px);
+}
+
+.home-main-table th,
+.home-main-table td {
+  white-space: nowrap;
+  word-break: keep-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-main-table th:nth-child(1),
+.home-main-table td:nth-child(1) {
+  width: var(--home-col-date);
+}
+
+.home-main-table th:nth-child(2),
+.home-main-table td:nth-child(2) {
+  width: var(--home-col-type);
+}
+
+.home-main-table th:nth-child(3),
+.home-main-table td:nth-child(3) {
+  width: var(--home-col-group);
+}
+
+.home-main-table th:nth-child(4),
+.home-main-table td:nth-child(4) {
+  width: var(--home-col-customer);
+}
+
+/* 홈 대시보드: 가로는 화면에 맞춰 수축(가로 스크롤 제거) */
+body[data-mode="home"] .page-home .home-tx-card .table-wrapper {
+  overflow-x: hidden;
+}
+
+/* colgroup 인라인 폭(style="width:110px")을 홈에서만 반응형으로 오버라이드 */
+body[data-mode="home"] .home-main-table col {
+  width: auto !important;
+}
+
+body[data-mode="home"] .home-main-table col:nth-child(1) { width: var(--home-col-date) !important; }
+body[data-mode="home"] .home-main-table col:nth-child(2) { width: var(--home-col-type) !important; }
+body[data-mode="home"] .home-main-table col:nth-child(3) { width: var(--home-col-group) !important; }
+body[data-mode="home"] .home-main-table col:nth-child(4) { width: var(--home-col-customer) !important; }
+
+/* 금액/잔액류 컬럼들은 동일한 폭으로 촘촘하게 */
+body[data-mode="home"] .home-main-table col:nth-child(5),
+body[data-mode="home"] .home-main-table col:nth-child(6),
+body[data-mode="home"] .home-main-table col:nth-child(7),
+body[data-mode="home"] .home-main-table col:nth-child(8),
+body[data-mode="home"] .home-main-table col:nth-child(9),
+body[data-mode="home"] .home-main-table col:nth-child(10),
+body[data-mode="home"] .home-main-table col:nth-child(11),
+body[data-mode="home"] .home-main-table col:nth-child(12),
+body[data-mode="home"] .home-main-table col:nth-child(13),
+body[data-mode="home"] .home-main-table col:nth-child(14) {
+  width: var(--home-col-amt) !important;
+}
+
+/* 5열(비고)은 남는 폭을 사용 */
+
+.tx-table td.right {
+  text-align: right;
+}
+
+/* 잔액: 플러스/마이너스에 따라 색상 구분 */
+.tx-table td.amount-plus,
+.amount-plus,
+.amount.plus {
+  color: #0066ff; /* 플러스: 파란색 계열 */
+  font-weight: 600;
+}
+
+.tx-table td.amount-minus,
+.amount-minus,
+.amount.minus {
+  color: #c0392b; /* 마이너스: 붉은 계열 */
+  font-weight: 600;
+}
+
+.tx-table td.amount-zero,
+.amount-zero {
+  color: #555; /* 0원은 기본 진한 회색 */
+}
+
+/* 홈(대시보드) 3단 레이아웃 */
+.page-home .home-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+/* 홈(대시보드): 외부(브라우저) 스크롤 사용 + 거래목록만 15줄(초과 시 내부 스크롤)
+   - 홈 전용으로 적용해 다른 페이지 레이아웃에는 영향이 없도록 한다. */
+body[data-mode="home"] {
+  height: auto;
+  overflow: auto;
+  display: block;
+}
+
+body[data-mode="home"] main.page.page-home {
+  overflow: visible;
+  margin: 0;
+  padding: 1rem 2rem 2rem;
+}
+
+body[data-mode="home"] .page-home .home-layout {
+  height: auto;
+  min-height: initial;
+}
+
+.page-home .home-summary-title {
+  margin-top: 0;
+}
+
+.page-home .home-subtitle {
+  margin: 1rem 0 0.2rem;
+  font-size: var(--fs-input-prominent);
+  font-weight: 900;
+  color: #2b3445;
+}
+
+.page-home .home-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+body[data-mode="home"] .page-home .home-dashboard {
+  height: auto;
+  min-height: initial;
+  overflow: visible;
+}
+
+body[data-mode="home"] .page-home .home-tx-card {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+body[data-mode="home"] .page-home .home-tx-card .table-box {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+body[data-mode="home"] .page-home .home-tx-card .table-wrapper {
+  /* 2줄 헤더 + 15줄 데이터 기준(= 17행 높이) */
+  max-height: calc(var(--row-h) * 17 + 4px);
+  overflow: auto;
+}
+
+.page-home .home-status-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+/* 홈에서는 카드 간 간격을 grid/flex의 gap으로만 관리(기본 margin-bottom 제거) */
+.page-home .home-dashboard .card {
+  margin-bottom: 0;
+  padding: 0.85rem 1rem 0.95rem;
+}
+
+.page-home .card h2 {
+  margin-bottom: 0.35rem;
+  font-size: var(--fs-page-title);
+}
+
+.page-home .home-dashboard-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.page-home .home-dashboard-title {
+  margin: 0;
+}
+
+.page-home .home-dashboard-header .purchase-date-filter {
+  margin-left: auto;
+}
+
+.page-home .home-summary-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.55rem;
+}
+
+/* 홈 > 장부현황/요약현황: 항목을 좌우 2열로 배치 */
+.page-home .home-ledger-status .home-summary-cards,
+.page-home .home-summary .home-summary-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.page-home .home-ledger-status .home-summary-card,
+.page-home .home-summary .home-summary-card {
+  width: 100%;
+}
+
+/* 홈 > 운전자금: 4개 박스를 1줄(좌→우)로 배치 */
+.page-home .home-working-status .home-summary-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
+  gap: 0.55rem;
+  overflow-x: auto;
+  padding-bottom: 0.15rem;
+}
+
+/* 홈 > 운전자금: 제목 오른쪽에 빠른 날짜 버튼(한 줄) */
+.page-home .home-working-status .home-working-header {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.page-home .home-working-status .home-working-header > h2 {
+  margin-bottom: 0;
+}
+
+.page-home .home-working-status .home-working-header .date-quick-inline {
+  justify-self: center;
+  justify-content: center;
+}
+
+.page-home .home-working-status .home-working-header .date-quick-inline .date-quick-btn {
+  font-size: var(--fs-sm);
+  padding: 0.35rem 0.7rem;
+  border-radius: var(--ux-radius-sm);
+  border: 1px solid var(--ux-btn-border);
+  background: var(--ux-btn-bg);
+  color: var(--ux-text);
+}
+
+.page-home .home-working-status .home-working-header .date-quick-inline .date-quick-btn:hover {
+  background: var(--ux-btn-bg-hover);
+}
+
+.page-home .home-working-status .home-working-header .date-quick-inline .date-quick-btn.is-active,
+.page-home .home-working-status .home-working-header .date-quick-inline .date-quick-btn[aria-pressed="true"] {
+  background: #0066ff;
+  border-color: #0066ff;
+  color: #ffffff;
+}
+
+.page-home .home-working-status .home-summary-card {
+  width: 100%;
+}
+
+/* 홈 카드 포인트 컬러(섹션별) */
+.page-home .home-working-status {
+  --home-summary-accent: #0ea5e9;
+}
+
+.page-home .home-ledger-status {
+  --home-summary-accent: #1976d2;
+}
+
+.page-home .home-summary {
+  --home-summary-accent: #1c8a56;
+}
+
+.page-home .home-summary-card {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.75rem;
+  border: 2px solid #b9c2d6;
+  border-left: 10px solid var(--home-summary-accent, #5b6b91);
+  border-radius: 12px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+  box-shadow:
+    0 4px 12px rgba(15, 23, 42, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    border-color 120ms ease;
+}
+
+.page-home .home-summary-card:hover {
+  transform: translateY(-1px);
+  border-color: #98a6c3;
+  box-shadow:
+    0 8px 18px rgba(15, 23, 42, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+.page-home .home-summary-card .home-summary-card-label {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 700;
+}
+
+.page-home .home-summary-card strong {
+  flex: 0 0 auto;
+  font-size: var(--fs-dashboard-amount);
+  font-weight: 900;
+  letter-spacing: 0.01em;
+}
+
+/* 홈 요약현황: 카드 클릭(펼침) 버튼도 동일 스타일 유지 */
+.page-home button.home-summary-card {
+  width: 100%;
+  height: auto;
+  min-height: unset;
+  text-align: left;
+  cursor: pointer;
+}
+
+.page-home button.home-summary-card:focus-visible {
+  outline: 3px solid rgba(47, 111, 237, 0.35);
+  outline-offset: 2px;
+}
+
+.page-home .home-summary-card-left {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.page-home .home-summary-card-label {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 700;
+}
+
+.page-home .home-summary-toggle-caret {
+  font-size: 0.95em;
+  color: #4b5563;
+  transition: transform 120ms ease;
+}
+
+.page-home button.home-summary-card[aria-expanded="true"] .home-summary-toggle-caret {
+  transform: rotate(180deg);
+}
+
+.page-home .home-summary-breakdown {
+  margin-top: 0.6rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #d2d6e2;
+  border-radius: 12px;
+  background: #f7f9fd;
+}
+
+/* 홈 상세 모달에서는 컨텐츠 박스가 바로 시작되므로 위 여백 제거 */
+#home-breakdown-modal .home-summary-breakdown {
+  margin-top: 0;
+}
+
+.page-home .home-summary-breakdown-title {
+  font-weight: 800;
+  color: #2b3445;
+  margin: 0 0 0.35rem;
+}
+
+.page-home .home-summary-breakdown-rows {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.35rem;
+}
+
+.page-home .home-summary-breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.35rem 0.45rem;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid rgba(185, 194, 214, 0.7);
+}
+
+.page-home .home-summary-breakdown-row[role="button"] {
+  cursor: pointer;
+}
+
+.page-home .home-summary-breakdown-row[role="button"]:hover {
+  background: var(--ux-btn-bg-hover);
+  border-color: var(--ux-panel-border);
+}
+
+.page-home .home-summary-breakdown-row[role="button"]:active {
+  transform: translateY(0.5px);
+}
+
+.page-home .home-summary-breakdown-row[role="button"]:focus-visible {
+  outline: 3px solid rgba(47, 111, 237, 0.35);
+  outline-offset: 2px;
+}
+
+.page-home .home-summary-breakdown-row .label {
+  font-weight: 700;
+  color: #2b3445;
+}
+
+.page-home .home-summary-breakdown-row .amount {
+  font-weight: 900;
+  letter-spacing: 0.01em;
+}
+
+/* 홈 금액 색상도 공통 amount-plus/minus/zero 사용 */
+
+.page-home .home-summary-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.55rem;
+}
+
+@media (max-width: 1100px) {
+  .page-home .home-dashboard-header .purchase-date-filter {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .page-home .home-working-status .home-summary-cards {
+    grid-template-columns: repeat(4, minmax(200px, 1fr));
+  }
+  .page-home .home-ledger-status .home-summary-cards,
+  .page-home .home-summary .home-summary-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 피커 모달 상단 버튼줄(검색/전체/닫기 등) 공통: 줄바꿈 방지 옵션 */
+.picker-actions--nowrap {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-wrap: nowrap;
+}
+
+.picker-actions--nowrap .customer-search-input {
+  flex: 1 1 220px;
+  min-width: 160px;
+}
+
+.picker-actions--nowrap button {
+  white-space: nowrap;
+}
+
+/* 테이블 하단 합계 행: 금액 합계 박스는 남은 폭 전체 사용 + 오른쪽 정렬 */
+.total-amount-cell {
+  text-align: right;
+}
+
+/* 거래처 목록 검색창: 테이블과 어울리는 둥근 입력창 */
+.search-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.customer-search-input {
+  margin-left: 8px;
+  font-size: var(--fs-input-prominent); /* 살짝 더 크게 */
+  border: 1px solid var(--ctl-bd);
+  border-radius: 999px; /* 캡슐 형태 */
+  background-color: #d6ddf4; /* 합계 안쪽 작은 칸과 동일한 색 */
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.08);
+  padding-right: 32px; /* 오른쪽 돋보기 아이콘 영역 확보 */
+}
+
+.customer-search-input:focus {
+  border-right: none; /* 오른쪽은 버튼들과 경계선 공유 */
+  border-radius: var(--ctl-radius-sm) 0 0 var(--ctl-radius-sm); /* 왼쪽 모서리만 둥글게 */
+  border-color: #1c8a56;
+  box-shadow:
+    0 0 0 1px rgba(28, 138, 86, 0.25),
+    inset 0 1px 2px rgba(15, 23, 42, 0.12);
+}
+
+.search-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--fs-base);
+  color: #4b5563;
+  pointer-events: auto; /* 클릭 가능하도록 변경 */
+  cursor: pointer;
+}
+
+.search-icon::before {
+  content: "\1F50D"; /* 돋보기 아이콘(🔍) */
+}
+
+/* 거래처 목록 행 강조: hover/선택 */
+.tx-table tbody tr:hover {
+  background-color: var(--ux-table-row-hover-bg);
+}
+
+.tx-table tbody tr.selected {
+  background-color: var(--ux-table-row-selected-bg);
+}
+
+/* 중복 후보(인식 결과 표시): 컨트롤에 안 가려지는 'border-left' 빨간줄 */
+.tx-table tbody tr.dup-candidate > td:first-child {
+  border-left: 6px solid var(--ux-danger-bd);
+}
+
+/* 중복 후보(인식 결과 표시): 배경도 아주 옅게 */
+.tx-table tbody tr.dup-candidate {
+  background-color: color-mix(in srgb, var(--ux-danger-bg) 10%, var(--ctl-bg));
+}
+
+/* 마스터 비활성(미사용) 표시: 새 색상 없이 투명도만 낮춤 */
+.tx-table tbody tr.is-inactive {
+  opacity: 0.55;
+}
+
+/* 매입 품목 선택 모달 - 분류 전용 박스 + 품목 리스트 레이아웃 */
+.purchase-item-layout {
+  display: flex;
+  gap: var(--picker-gap);
+}
+
+/* ===== Picker Modal 공통(거래처/품목/장부) ===== */
+.picker-modal .modal-dialog {
+  width: min(calc(100vw - 2rem), var(--picker-modal-maxw));
+  max-width: var(--picker-modal-maxw);
+}
+
+.picker-layout {
+  display: flex;
+  gap: var(--picker-gap);
+  overflow-x: auto;
+}
+
+/* ===== Picker Box(거래처/품목/장부 공통 규칙 1개) =====
+   - picker-layout 에 picker-box 클래스를 같이 붙이면 동일한 외곽/간격/여백 규칙이 적용된다.
+*/
+.picker-modal .picker-box {
+  --picker-box-gap: var(--picker-gap);
+  --picker-box-pad: 6px;
+  --picker-box-bd: 2px solid #8a90a2;
+
+  gap: var(--picker-box-gap);
+  padding: var(--picker-box-pad);
+  border: var(--picker-box-bd);
+  border-radius: var(--ux-radius);
+  background: #fff;
+}
+
+.picker-left {
+  flex: 0 0 var(--picker-left-w);
+  width: var(--picker-left-w);
+}
+
+/* ===== 거래처 선택 모달(3단) 폭 고정(공용) =====
+  아래 2개 모달이 동일한 3단 레이아웃을 공유하므로 전역에서 함께 관리한다:
+  - 입출금관리: #payment-import-customer-modal
+  - 거래조회:   #trn-supplier-picker-modal
+
+  구분/분류 박스는 아래 2개 변수로만 조절한다:
+  - --picker-supplier-type-w, --picker-supplier-group-w
+*/
+:is(#payment-import-customer-modal, #trn-supplier-picker-modal)
+  .purchase-item-group-box {
+  flex: 0 0 var(--picker-supplier-type-w) !important;
+  width: var(--picker-supplier-type-w) !important;
+  max-width: var(--picker-supplier-type-w) !important;
+  min-width: 0;
+}
+
+:is(#payment-import-customer-modal, #trn-supplier-picker-modal)
+  .payment-import-group-box {
+  flex: 0 0 var(--picker-supplier-group-w) !important;
+  width: var(--picker-supplier-group-w) !important;
+  max-width: var(--picker-supplier-group-w) !important;
+  min-width: 0;
+}
+
+.picker-right {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.picker-modal table {
+  width: 100%;
+  table-layout: auto;
+}
+
+.picker-modal .table-wrapper {
+  max-height: var(--picker-table-maxh);
+  overflow-y: auto;
+}
+
+.picker-modal.picker-modal--tall {
+  --picker-table-maxh: 30rem; /* 480px: 품목 선택 모달 등 긴 목록용 */
+}
+
+.picker-modal :is(th, td) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.picker-modal col.col-code,
+.picker-modal :is(th, td).col-code {
+  width: var(--picker-col-code);
+  min-width: var(--picker-col-code);
+}
+
+.picker-modal col.col-check,
+.picker-modal :is(th, td).col-check {
+  width: var(--picker-col-check);
+  min-width: var(--picker-col-check);
+  text-align: center;
+}
+
+.picker-modal col.col-ledger-type,
+.picker-modal :is(th, td).col-ledger-type {
+  width: var(--picker-col-ledger-type);
+  min-width: var(--picker-col-ledger-type);
+}
+
+.picker-modal :is(th, td).col-name {
+  min-width: var(--picker-col-name-min);
+}
+
+.picker-modal col.col-unit,
+.picker-modal :is(th, td).col-unit {
+  width: var(--picker-col-unit);
+  min-width: var(--picker-col-unit);
+}
+
+.picker-modal col.col-price,
+.picker-modal :is(th, td).col-price {
+  width: var(--picker-col-price);
+  min-width: var(--picker-col-price);
+}
+
+.picker-modal col.col-balance,
+.picker-modal :is(th, td).col-balance {
+  width: var(--picker-col-balance);
+  min-width: var(--picker-col-balance);
+}
+
+.picker-modal :is(th, td).col-balance {
+  text-align: right;
+}
+
+/* 장부 선택 모달: (코드/장부구분/장부명) 고정폭 통일 */
+.picker-modal.picker-modal--ledger {
+  --picker-left-w: 180px;
+}
+
+.picker-modal.picker-modal--ledger col.col-name,
+.picker-modal.picker-modal--ledger :is(th, td).col-name {
+  width: var(--picker-col-ledger-name);
+  min-width: var(--picker-col-ledger-name);
+}
+
+/* 장부 선택 모달도 picker-box 규칙을 그대로 사용한다.
+   (특별한 가운데 구분선/여백 규칙은 두지 않고, 모든 피커가 동일 규칙을 사용)
+*/
+.picker-modal.picker-modal--ledger .ledger-picker-box {
+  overflow: hidden;
+}
+
+.table-summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--row-h);
+  padding: var(--cell-py) var(--cell-px);
+  font-size: var(--fs-sm);
+  background: #fff9c4; /* 합계 박스 전체 노란색 배경 */
+  border-top: 1px solid #888; /* 마지막 행과 이어지는 선만 표시 */
+}
+
+.import-textarea {
+  width: 100%;
+  min-height: 110px; /* 약 5줄 정도 보이게 */
+  max-height: 110px;
+  resize: none;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  font-size: var(--fs-sm);
+  padding: 0.5rem 0.6rem;
+  border-radius: var(--ctl-radius-sm);
+  border: 1px solid var(--ctl-bd);
+  box-sizing: border-box;
+  margin-bottom: 0.6rem;
+  overflow-y: auto; /* 5줄 넘는 내용은 스크롤 */
+}
+
+.import-button-row {
+  justify-content: flex-start;
+  gap: 0.5rem;
+}
+
+#btn-purchase-import-continue {
+  margin-left: auto; /* 연속/닫기 버튼 묶음을 오른쪽 끝으로 밀기 */
+}
+
+/* 모든 테이블의 합계(tfoot) 줄 공통 스타일 */
+.tx-table tfoot td {
+  background: #fff9c4; /* 합계 줄도 노란색으로 통일 */
+  font-weight: 600;
+}
+
+/* 매입 입력 테이블의 합계 줄 위쪽 경계선 다시 표시 */
+.purchase-entry-table tfoot td {
+  border-top: 1px solid #888;
+}
+
+/* 스크롤해도 합계(tfoot) 줄이 박스 하단에 고정되도록 */
+.table-wrapper tfoot td {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+}
+
+/* 인식 모달: 숨기는 컬럼 없음 (필요한 값만 표에 표시) */
+
+.status:is(#purchase-import-status, #sales-import-status) {
+  margin-top: 0.4rem;
+  font-size: var(--fs-xs);
+  color: #555;
+}
+
+/* 인식하기 모달: 결과 테이블은 한 화면에 대략 11줄만 보이고, 나머지는 스크롤 */
+:is(#purchase-import-modal, #sales-import-modal) .table-wrapper {
+  max-height: 340px; /* 헤더/합계 포함, 데이터 행 기준 약 11줄만 보이게 */
+  overflow-y: auto;
+}
+
+/* 인식하기 모달: 행별 구분(입출금 / 이체) 토글 버튼 */
+.import-mode-cell {
+  display: inline-flex;
+  gap: 0.2rem;
+}
+
+.import-mode-btn {
+  border: 1px solid #cbd5f0;
+  background: #f9fafb;
+  color: #374151;
+  font-size: var(--fs-xxs);
+  padding: 0.05rem 0.35rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.import-mode-btn.is-active {
+  background: #4c5d85;
+  color: #fff;
+  border-color: #4c5d85;
+}
+
+/* 인식 모달에서는 합계 줄을 일반 행처럼 표시 (스크롤 고정 없음) */
+:is(#purchase-import-modal, #sales-import-modal) .table-wrapper tfoot td {
+  position: static;
+}
+
+
+
+/* 날짜 빠른 선택 모달(매입/매출/지출/거래조회 공통) */
+:is(
+    #purchase-date-quick-modal,
+    #sales-date-quick-modal,
+    #trn-date-quick-modal,
+    #payment-date-quick-modal
+  )
+  .modal-dialog {
+  width: auto;
+  max-width: 260px;
+}
+
+.date-quick-card h2 {
+  margin-bottom: 0.4rem;
+  font-size: var(--fs-modal-title);
+}
+
+.date-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.3rem 0.4rem;
+}
+
+.date-quick-btn {
+  width: 100%;
+  min-height: var(--ctl-h);
+  height: auto;
+  padding: 0.32rem 0.5rem;
+  font-size: var(--fs-xs);
+  border-radius: var(--ctl-radius-sm);
+  border: 1px solid var(--bd);
+  background: #f4f4f4;
+  cursor: pointer;
+}
+
+.date-quick-btn:hover {
+  background: #e5e5e5;
+}
+
+.date-quick-footer {
+  margin-top: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.4rem;
+}
+
+.date-quick-all-btn {
+  width: 100%;
+  font-size: var(--fs-xs);
+  padding: 0.35rem 0.5rem;
+}
+
+.date-quick-close-btn {
+  align-self: flex-end;
+  font-size: var(--fs-mini);
+  padding: 0.3rem 0.55rem;
+}
+
+.purchase-item-group-filter {
+  min-width: 120px;
+}
+
+/* 매입 등록/통합결제 거래 입력 모달 안 입력 테이블: 11행 정도까지만 보이고
+  넘는 부분만 세로 스크롤, 가로 스크롤은 숨김 */
+:is(#purchase-modal, #sales-modal) :is(.purchase-entry-box, .sales-entry-box) .table-wrapper {
+  max-height: 360px;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+/* 거래처 목록 위 안내 박스 */
+.table-action-box {
+  margin-bottom: 4px;
+  padding: 0.3rem 0.6rem;
+  font-size: var(--fs-xs);
+  background: var(--ux-panel-bg);
+  border: 1px solid var(--ux-panel-border);
+  border-radius: var(--ux-radius-sm);
+  color: #222; /* 검은색에 가까운 짙은 글씨 */
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem;
+}
+.table-action-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-left: auto; /* 오른쪽 영역은 끝으로 밀어내기 */
+}
+
+.table-action-buttons {
+  display: flex;
+  gap: var(--ux-btnbox-gap);
+}
+
+/* 삭제 버튼: hover 시 빨간색(전 페이지 공통) */
+:where(.btn, .btn-primary, .btn-row-btn, .btn-secondary)[id*="delete" i]:hover {
+  background: var(--ux-danger-bg);
+  border-color: var(--ux-danger-bd);
+  color: var(--ux-danger-text);
+}
+
+/* 신규등록 버튼만 폭을 조금 더 넓게 */
+.btn-row-btn.left {
+  min-width: 110px;
+}
+
+/* 인식하기 모달 구분/항목을 select 박스처럼 보이게
+  + 셀(td)을 가득 채우도록 폭 100% 사용 */
+.purchase-import-table td:nth-child(1),
+.purchase-import-table td:nth-child(2),
+.payment-import-table td:nth-child(1),
+.payment-import-table td:nth-child(2),
+.sales-import-table td:nth-child(1),
+.sales-import-table td:nth-child(2) {
+  padding: 0; /* 셀 안 여백 제거 → 버튼이 칸 전체 사용 */
+}
+
+/* 검색창 외곽 박스 - 합계 박스 느낌 */
+.search-box {
+  margin: 6px 0 10px;
+  padding: 8px 10px;
+  background: #f5f7fb;
+  border: 1px solid #c2c7d6;
+  border-radius: 6px;
+}
+
+.table-summary .summary-left,
+.table-summary .summary-center,
+.table-summary .summary-right {
+  background: #ffec8b; /* 안쪽 작은 칸은 진한 노랑 */
+  border: 1px solid #e0c85a; /* 작은 칸 테두리도 노랑 계열 */
+  border-right-color: #c9aa34; /* 가운데 구분선은 조금 더 진하게 */
+  min-height: var(--row-h);
+  display: flex;
+  align-items: center;
+  padding: var(--cell-py) var(--cell-px);
+  margin: 0 2px; /* 큰 칸 안에 살짝 떠 있는 느낌 */
+}
+
+.table-summary .summary-left {
+  text-align: left;
+  width: 220px; /* 첫 칸 220 */
+  flex: 0 0 220px;
+}
+
+.table-summary .summary-center {
+  text-align: center;
+  font-weight: 600;
+  width: 230px; /* 두 번째 칸 230 */
+  flex: 0 0 230px;
+}
+
+.table-summary .summary-right {
+  text-align: right;
+  font-weight: 600;
+  width: 280px; /* 세 번째 칸 280 */
+  flex: 0 0 280px;
+  border-right-color: #c0c6da;
+}
+
+.hint {
+  font-size: var(--fs-xs);
+  color: #555;
+  margin-top: 0.8rem;
+}
+
+@media (max-width: 1024px) {
+  .page-layout,
+  .purchase-layout,
+  .payment-layout,
+  .customer-layout {
+    flex-direction: column;
+  }
+
+  .page-left-column,
+  .page-main-column,
+  .purchase-left-column,
+  .purchase-card,
+  .payment-left-column,
+  .payment-card,
+  .customer-left-column,
+  .customer-main-card {
+    width: 100%;
+    flex: 1;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-dialog {
+    max-width: 95%;
+  }
+}

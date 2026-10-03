@@ -1,0 +1,273 @@
+/* 통합 결제(입출금관리) 전용 스타일 */
+
+/* UX Patch */
+/* 컨트롤 높이/보더는 style.css 공통 규칙을 따른다.
+  - 보더 색은 var(--bd)/var(--bd-strong) 사용 */
+
+/* payment-modal 내부 카드 min-width 강제 해제 (박스 크기는 공통 .modal-dialog 규칙 사용) */
+#payment-modal .card {
+  min-width: 0;
+}
+
+/* 등록/인식 모달(통합 결제) 제목/패딩은 결제 화면에서만 조정 */
+body[data-mode="payment"] #payment-modal .card h2 {
+  font-size: var(--fs-page-title);
+  margin-bottom: 0.4rem;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+body[data-mode="payment"] #payment-modal .card {
+  padding-top: 0.7rem;
+  padding-bottom: 0.8rem;
+}
+
+/* payment 폼 헤더/인풋라인 정렬 (전역에서 payment 전용 규칙 분리) */
+body[data-mode="payment"] #payment-form .payment-name-picker {
+  align-items: center;
+}
+
+body[data-mode="payment"] #payment-form .purchase-form-header {
+  display: flex;
+  gap: 1rem;
+  padding: 0.18rem 0.7rem;
+  border: 1px solid var(--bd);
+  border-radius: var(--ctl-radius-sm);
+  background-color: #f7f8fb;
+}
+
+/* 통합결제 거래 입력용 선택 모달 (거래처/장부 선택) 크기 축소 */
+#payment-entry-choice-modal .modal-dialog {
+  max-width: 360px;
+  width: auto;
+  display: flex;
+  justify-content: center;
+}
+
+#payment-entry-choice-modal .card {
+  padding: 0.5rem 0.7rem 0.6rem;
+  min-width: 0;
+  width: auto;
+  display: inline-block;
+}
+
+#payment-entry-choice-modal h2 {
+  font-size: var(--fs-input-prominent);
+  margin-bottom: 0.4rem;
+}
+
+#payment-entry-choice-modal .mini {
+  font-size: var(--fs-text-mini);
+}
+
+#payment-entry-choice-modal .form-button-row {
+  margin-top: 0.4rem;
+}
+
+
+/* 거래 등록 모달은 공통 .modal-form 템플릿을 사용한다. */
+
+/* 입출금관리 메인 테이블(9열): 헤더 폭 통일 (내용 길이에 따라 흔들리지 않도록)
+   - 6열(보낸분/받는분)은 남는 폭을 사용 */
+.payment-main-table {
+  width: 100%;
+  table-layout: fixed;
+  --payment-col-type: clamp(60px, 8vw, 70px);
+  --payment-col-ledger-type: clamp(90px, 12vw, 110px);
+  --payment-col-ledger-name: clamp(100px, 14vw, 120px);
+  --payment-col-datetime: clamp(110px, 16vw, 140px);
+  --payment-col-customer: clamp(120px, 18vw, 160px);
+  --payment-col-amount: clamp(96px, 12vw, 120px);
+  --payment-col-balance: clamp(96px, 12vw, 120px);
+}
+
+.payment-main-table th:nth-child(1),
+.payment-main-table td:nth-child(1) {
+  width: var(--payment-col-type);
+}
+
+.payment-main-table th:nth-child(2),
+.payment-main-table td:nth-child(2) {
+  width: var(--payment-col-ledger-type);
+}
+
+.payment-main-table th:nth-child(3),
+.payment-main-table td:nth-child(3) {
+  width: var(--payment-col-ledger-name);
+}
+
+.payment-main-table th:nth-child(4),
+.payment-main-table td:nth-child(4) {
+  width: var(--payment-col-datetime);
+}
+
+.payment-main-table th:nth-child(5),
+.payment-main-table td:nth-child(5) {
+  width: var(--payment-col-customer);
+}
+
+/* 6열은 남는 폭 자동 분배 */
+
+.payment-main-table th:nth-child(7),
+.payment-main-table td:nth-child(7) {
+  width: var(--payment-col-amount);
+}
+
+.payment-main-table th:nth-child(8),
+.payment-main-table td:nth-child(8) {
+  width: var(--payment-col-amount);
+}
+
+.payment-main-table th:nth-child(9),
+.payment-main-table td:nth-child(9) {
+  width: var(--payment-col-balance);
+}
+
+/* 좌측 장부 잔액 요약 테이블 (입출금관리) */
+.payment-cashflow-table {
+  width: 100%;
+  table-layout: fixed;
+  --payment-cashflow-col-code: clamp(50px, 8vw, 60px);
+  --payment-cashflow-col-type: clamp(90px, 16vw, 120px);
+  --payment-cashflow-col-balance: clamp(90px, 16vw, 120px);
+}
+
+.payment-cashflow-table th:nth-child(1),
+.payment-cashflow-table td:nth-child(1) {
+  width: var(--payment-cashflow-col-code);
+}
+
+.payment-cashflow-table th:nth-child(2),
+.payment-cashflow-table td:nth-child(2) {
+  width: var(--payment-cashflow-col-type);
+}
+
+.payment-cashflow-table th:nth-child(3),
+.payment-cashflow-table td:nth-child(3) {
+  width: var(--payment-cashflow-col-balance);
+}
+
+/* 인식 모달 테이블(통합 결제 붙여넣기) 열 폭 설정 - 결제 전용 */
+#payment-import-modal :is(.purchase-import-table, .payment-import-table) {
+  width: 100%;
+  table-layout: fixed;
+}
+
+/* 1열: 구분 */
+#payment-import-modal :is(.purchase-import-table, .payment-import-table) th:nth-child(1),
+#payment-import-modal :is(.purchase-import-table, .payment-import-table) td:nth-child(1) {
+  width: clamp(60px, 8vw, 80px);
+}
+
+/* 2열: 항목(버튼) */
+#payment-import-modal :is(.purchase-import-table, .payment-import-table) th:nth-child(2),
+#payment-import-modal :is(.purchase-import-table, .payment-import-table) td:nth-child(2) {
+  width: clamp(90px, 14vw, 130px);
+}
+
+/* 3열: 거래일시 */
+#payment-import-modal :is(.purchase-import-table, .payment-import-table) th:nth-child(3),
+#payment-import-modal :is(.purchase-import-table, .payment-import-table) td:nth-child(3) {
+  width: clamp(110px, 16vw, 120px);
+}
+
+/* 4열: 보낸분/받는분 */
+#payment-import-modal :is(.purchase-import-table, .payment-import-table) th:nth-child(4),
+#payment-import-modal :is(.purchase-import-table, .payment-import-table) td:nth-child(4) {
+  width: clamp(160px, 26vw, 260px);
+}
+
+/* 5열: 입금액 */
+#payment-import-modal :is(.purchase-import-table, .payment-import-table) th:nth-child(5),
+#payment-import-modal :is(.purchase-import-table, .payment-import-table) td:nth-child(5) {
+  width: clamp(96px, 12vw, 130px);
+}
+
+/* 6열: 출금액 */
+#payment-import-modal :is(.purchase-import-table, .payment-import-table) th:nth-child(6),
+#payment-import-modal :is(.purchase-import-table, .payment-import-table) td:nth-child(6) {
+  width: clamp(96px, 12vw, 130px);
+}
+
+/* 7열: 잔액 - 남은 폭 자동 분배 */
+#payment-import-modal :is(.purchase-import-table, .payment-import-table) th:nth-child(7),
+#payment-import-modal :is(.purchase-import-table, .payment-import-table) td:nth-child(7) {
+  width: auto;
+}
+
+#payment-import-customer-modal .payment-import-group-box thead th {
+  text-align: center;
+}
+
+#payment-import-customer-modal .payment-import-customer-box thead th {
+  text-align: right;
+}
+
+/* 통합결제 거래처 선택 모달 상단에 현재 선택 중인 거래 정보 표시 */
+#payment-import-current-record {
+  margin: 0.4rem 0 0.2rem;
+  padding: 0.3rem 0.5rem;
+  font-size: var(--fs-text-subtle);
+  background: #f5f5f5;
+  border-radius: 3px;
+  border: 1px solid #ddd;
+  color: #333;
+}
+
+/* 통합 결제 인식 테이블은 매입 인식 테이블과 동일하게
+  푸터(tfoot) 안에서 Count/합계를 표시하므로
+  별도 .payment-import-summary 박스는 사용하지 않는다. */
+
+/* 통합 결제 거래 인식 모달도 매입 인식 모달 수준으로 넓게 사용 */
+#payment-import-modal .modal-dialog {
+  max-width: 1100px;
+  margin-top: 0.8rem;
+}
+
+/* 통합 결제 거래 인식 모달: 가로 스크롤은 숨기고 세로만 사용 */
+#payment-import-modal .table-wrapper {
+  max-height: 340px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* 매입 등록/통합결제 거래 입력 모달 안 입력 테이블: 11행 정도까지만 보이고
+  넘는 부분만 세로 스크롤, 가로 스크롤은 숨김 */
+#payment-modal .purchase-entry-box .table-wrapper {
+  max-height: 360px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* 인식하기 모달 구분/항목을 select 박스처럼 보이게
+  + 셀(td)을 가득 채우도록 폭 100% 사용 */
+:is(.purchase-import-table, .payment-import-table) .payment-import-select-customer,
+:is(.purchase-import-table, .payment-import-table) .payment-import-mode-select {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.25rem 1.6rem 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: var(--fs-text-subtle);
+  background: #fff;
+  border: 1px solid var(--bd);
+  box-shadow: none;
+  position: relative;
+  margin: 0; /* td 안에서 여백 없이 꽉 차게 */
+}
+
+:is(.purchase-import-table, .payment-import-table) .payment-import-select-customer::after {
+  content: "\25BE"; /* ▼ */
+  position: absolute;
+  right: 0.45rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--fs-icon-micro);
+  pointer-events: none;
+  color: #555;
+}
+
+:is(.purchase-import-table, .payment-import-table) .payment-import-select-customer:hover,
+:is(.purchase-import-table, .payment-import-table) .payment-import-mode-select:hover {
+  background: #f9fafb;
+}
