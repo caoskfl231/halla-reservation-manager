@@ -12,17 +12,17 @@ import {
   updateItemGroup,
   deleteItemGroup,
   renameItemGroupNameInItems,
-} from "./db.js?v=ledger-records-20261010-1";
-import { createItemGroupManager } from "./item-manage/item-group-manager.js?v=ledger-records-20261010-1";
-import { createItemListManager } from "./item-manage/item-list-manager.js?v=ledger-records-20261010-1";
-import { createItemFormManager } from "./item-manage/item-form-manager.js?v=ledger-records-20261010-1";
-import { createItemActionsManager } from "./item-manage/item-actions-manager.js?v=ledger-records-20261010-1";
-import { createModalManager } from "./common/modal-manager.js?v=ledger-records-20261010-1";
-import { bindDblClickRowEdit } from "./common/ui-helpers.js?v=ledger-records-20261010-1";
-import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=ledger-records-20261010-1";
-import { generateItemId, getNextItemGroupCode } from "./item-manage/item-utils.js?v=ledger-records-20261010-1";
-import { loadItemsFromJson } from "./item-manage/item-data-loader.js?v=ledger-records-20261010-1";
-import { installDbAutoRefresh } from "./common/app-events.js?v=ledger-records-20261010-1";
+} from "./db.js?v=ledger-backups-20261010-1";
+import { createItemGroupManager } from "./item-manage/item-group-manager.js?v=ledger-backups-20261010-1";
+import { createItemListManager } from "./item-manage/item-list-manager.js?v=ledger-backups-20261010-1";
+import { createItemFormManager } from "./item-manage/item-form-manager.js?v=ledger-backups-20261010-1";
+import { createItemActionsManager } from "./item-manage/item-actions-manager.js?v=ledger-backups-20261010-1";
+import { createModalManager } from "./common/modal-manager.js?v=ledger-backups-20261010-1";
+import { bindDblClickRowEdit } from "./common/ui-helpers.js?v=ledger-backups-20261010-1";
+import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=ledger-backups-20261010-1";
+import { generateItemId, getNextItemGroupCode } from "./item-manage/item-utils.js?v=ledger-backups-20261010-1";
+import { loadItemsFromJson } from "./item-manage/item-data-loader.js?v=ledger-backups-20261010-1";
+import { installDbAutoRefresh } from "./common/app-events.js?v=ledger-backups-20261010-1";
 
 bootstrapPageCommon({
   page: "item",

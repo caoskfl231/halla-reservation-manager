@@ -1,4 +1,4 @@
-import { request, keepSession, clearSession, rpc, nextPage, friendlyError } from './cloud-session.js?v=ledger-records-20261010-1';
+import { request, keepSession, clearSession, rpc, nextPage, friendlyError } from './cloud-session.js?v=ledger-backups-20261010-1';
 const errorEl = document.getElementById('error');
 const form = document.getElementById('login-form');
 const mfaForm = document.getElementById('mfa-form');
@@ -32,7 +32,7 @@ mfaForm.addEventListener('submit', async event => {
   const button = document.getElementById('mfa-button');
   button.disabled = true; errorEl.textContent = '';
   try {
-    const { accessToken } = await import('./cloud-session.js?v=ledger-records-20261010-1');
+    const { accessToken } = await import('./cloud-session.js?v=ledger-backups-20261010-1');
     const token = await accessToken();
     const challenge = await request('/auth/v1/factors/' + factor.id + '/challenge', {}, token);
     const result = await request('/auth/v1/factors/' + factor.id + '/verify', {
