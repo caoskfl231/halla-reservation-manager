@@ -1,7 +1,9 @@
-import { rpc, friendlyError } from './cloud-session.js?v=ledger-backups-20261010-1';
+import { rpc, friendlyError } from './cloud-session.js?v=ledger-history-20261010-1';
+import { installHistoryPanel } from './ledger-history.js?v=ledger-history-20261010-1';
 
 export function installBackupPanel(restore, owner) {
   if (document.body.dataset.mode !== 'home') return;
+  installHistoryPanel(owner);
   const open = document.createElement('button');
   open.type = 'button'; open.textContent = '자동백업';
   document.getElementById('ledger-cloud-bar').append(open);

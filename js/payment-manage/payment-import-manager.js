@@ -1,4 +1,4 @@
-import { confirmDialog, showToast, warningDialog } from "../common/dialogs.js?v=ledger-backups-20261010-1";
+import { confirmDialog, showToast, warningDialog } from "../common/dialogs.js?v=ledger-history-20261010-1";
 
 export function bindPaymentImportManager(options = {}) {
   const {

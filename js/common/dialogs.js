@@ -2,7 +2,7 @@ import {
   openModalOverlay,
   closeModalOverlay,
   registerModalEscClose,
-} from "./ui-helpers.js?v=ledger-backups-20261010-1";
+} from "./ui-helpers.js?v=ledger-history-20261010-1";
 
 let __toastStack = null;
 
