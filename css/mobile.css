@@ -52,6 +52,17 @@
     flex-wrap:wrap; gap:8px;
   }
   .trn-filter-right { width:100%; margin-left:0; }
+  body :is(.purchase-type-switch,.sales-type-switch) {
+    display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px;
+  }
+  body[data-mode="report"] .purchase-type-switch {
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  body :is(.purchase-type-switch,.sales-type-switch) .type-switch-btn {
+    flex:none; width:100%; height:auto; min-height:44px; padding:10px 8px;
+    line-height:1.4; white-space:normal; word-break:keep-all; overflow-wrap:normal;
+    border-radius:10px;
+  }
   .table-action-right :is(.purchase-date-filter,.sales-date-filter,.payment-date-filter),
   .page-home .home-dashboard-header .purchase-date-filter { margin-left:0; }
   :is(.purchase-date-input,.sales-date-input,.payment-date-input) {
