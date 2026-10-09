@@ -1,6 +1,9 @@
 # 할라 장부 관리
 
-브라우저에서 실행되는 정적(빌드 없음) HTML + ES 모듈 기반 장부 관리 웹앱입니다.
+로그인 후 Supabase에 저장된 공용 장부를 조회·수정하는 HTML + ES 모듈 웹앱입니다.
+
+처음 로그인하면 기존 PC 자료 또는 전체백업 JSON 파일을 옮깁니다. 기존 PC 자료는 삭제하지 않습니다.
+설정과 운영 제한은 [공용 장부 안내](docs/ledger-cloud.md)를 참고하세요.
 
 ## 폴더 구조
 
@@ -21,7 +24,13 @@
 
 ## 데이터 저장소
 
-- 데이터는 브라우저 **IndexedDB**에 저장됩니다.
+현재 공용 장부의 원본은 Supabase의 비공개 `halla_ledger_private` 스키마에 저장됩니다.
+로그인과 장부 사용 권한을 모두 확인하며, 기존 2단계 인증도 유지합니다.
+다른 기기의 변경은 상단 안내 후 `최신 불러오기`로 반영됩니다.
+
+아래 IndexedDB 설명은 이전 PC 자료 및 로그인 후 임시 계산용 저장소에 해당합니다.
+
+- 이전 PC 자료는 브라우저 **IndexedDB**에 저장되어 있습니다.
   - DB 이름: `hallapa_db`
   - 버전: `DB_VERSION` (코드는 [hallapa/js/db.js](hallapa/js/db.js) 참고)
 - 결제/입출금 원장(ledger)은 같은 DB의 `ledger_tx` object store를 사용합니다.
@@ -71,3 +80,4 @@ IndexedDB는 iOS Safari 환경 영향을 받을 수 있습니다.
 
 배포/업로드용 ZIP에는 `.history/`를 포함하지 않는 것을 권장합니다.
 이 저장소는 `.gitignore`에서 `.history/`를 제외하도록 설정되어 있습니다.
+
