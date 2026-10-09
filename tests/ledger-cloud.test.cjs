@@ -32,7 +32,7 @@ async function client(){
  }};
  function moduleOf(values){return new vm.SyntheticModule(Object.keys(values),function(){for(const [key,value]of Object.entries(values))this.setExport(key,value);},{context});}
  const modules={'./db-cloud-cache.js':moduleOf(cacheFns),'./cloud-session.js':moduleOf(sessionFns),'./common/app-events.js':moduleOf({emitAppEvent(){}})};
- const m=new vm.SourceTextModule(source,{context});await m.link(name=>modules[name]);await m.evaluate();return m.namespace;
+ const m=new vm.SourceTextModule(source,{context});await m.link(name=>modules[name.split('?')[0]]);await m.evaluate();return m.namespace;
 }
 (async()=>{
  const a=await client(),b=await client();

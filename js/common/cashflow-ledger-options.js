@@ -1,4 +1,4 @@
-import { getCashflowItems, getCashflowTypes } from '../db.js';
+import { getCashflowItems, getCashflowTypes } from '../db.js?v=ledger-cloud-20261009-1';
 
 let inflightCashflowOptionListPromise = null;
 

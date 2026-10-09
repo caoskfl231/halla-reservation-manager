@@ -1,6 +1,6 @@
-import * as cache from './db-cloud-cache.js';
-import { rpc, requireLedgerSession, friendlyError, signOut } from './cloud-session.js';
-import { emitAppEvent } from './common/app-events.js';
+import * as cache from './db-cloud-cache.js?v=ledger-cloud-20261009-1';
+import { rpc, requireLedgerSession, friendlyError, signOut } from './cloud-session.js?v=ledger-cloud-20261009-1';
+import { emitAppEvent } from './common/app-events.js?v=ledger-cloud-20261009-1';
 let state = await requireLedgerSession();
 await cache.restoreHallapaDbSnapshot(state.snapshot);
 let queue = Promise.resolve(), uncertain = false, observedRevision = state.revision;
@@ -98,7 +98,7 @@ if (state.revision === 0 && state.role === 'owner') {
     try {
       if (!indexedDB.databases) throw new Error('이 브라우저에서는 전체백업 파일을 선택해 주세요.');
       if (!(await indexedDB.databases()).some(db => db.name === 'hallapa_db')) throw new Error('이 기기에 기존 장부자료가 없습니다. 전체백업 파일을 선택해 주세요.');
-      const local = await import('./db-local.js'); await upload(await local.exportHallapaDbSnapshot());
+      const local = await import('./db-local.js?v=ledger-cloud-20261009-1'); await upload(await local.exportHallapaDbSnapshot());
     } catch (error) { window.alert(friendlyError(error)); }
   };
 }

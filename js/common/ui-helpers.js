@@ -1,5 +1,5 @@
 // 공통 UI 헬퍼 모음
-import { formatMoney } from './util.js';
+import { formatMoney } from './util.js?v=ledger-cloud-20261009-1';
 
 function parseSignedNumberFromText(text) {
   let t = String(text || '').trim();

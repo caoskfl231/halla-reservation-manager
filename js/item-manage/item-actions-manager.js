@@ -1,4 +1,4 @@
-import { confirmDialog, warningDialog } from "../common/dialogs.js";
+import { confirmDialog, warningDialog } from "../common/dialogs.js?v=ledger-cloud-20261009-1";
 
 export function createItemActionsManager(options = {}) {
   const {

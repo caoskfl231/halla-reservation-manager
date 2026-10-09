@@ -1,4 +1,4 @@
-import { warningDialog } from "../common/dialogs.js";
+import { warningDialog } from "../common/dialogs.js?v=ledger-cloud-20261009-1";
 
 export function applyPaymentLedgerSelection(options = {}) {
   const {

@@ -1,4 +1,4 @@
-import { bindClickRowSelect } from "../common/ui-helpers.js";
+import { bindClickRowSelect } from "../common/ui-helpers.js?v=ledger-cloud-20261009-1";
 
 let currentCashflowSummarySelectRef = null;
 

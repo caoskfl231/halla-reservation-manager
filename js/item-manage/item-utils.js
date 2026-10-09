@@ -1,6 +1,6 @@
-import { sortByKey } from "../common/sortTable.js";
-import { parseNumber } from "../common/util.js";
-import { calcShrinkPrice, getCostBase } from "./price-utils.js";
+import { sortByKey } from "../common/sortTable.js?v=ledger-cloud-20261009-1";
+import { parseNumber } from "../common/util.js?v=ledger-cloud-20261009-1";
+import { calcShrinkPrice, getCostBase } from "./price-utils.js?v=ledger-cloud-20261009-1";
 
 export function generateItemId(existing) {
   const nums = (existing || [])

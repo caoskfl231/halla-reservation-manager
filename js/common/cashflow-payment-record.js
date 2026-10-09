@@ -1,8 +1,8 @@
-import { addTransaction, putLedgerTx } from "../db.js";
-import { ensureLedgerTxKeys } from "./ledger-tx-normalizer.js";
-import { resolveCashflowItemSelectionOrThrow } from "./cashflow-item-helpers.js";
-import { inferLedgerPaymentMethod } from "./payment-ledger-helpers.js";
-import { buildLedgerMemoFields, stripCodePrefix } from "./util.js";
+import { addTransaction, putLedgerTx } from "../db.js?v=ledger-cloud-20261009-1";
+import { ensureLedgerTxKeys } from "./ledger-tx-normalizer.js?v=ledger-cloud-20261009-1";
+import { resolveCashflowItemSelectionOrThrow } from "./cashflow-item-helpers.js?v=ledger-cloud-20261009-1";
+import { inferLedgerPaymentMethod } from "./payment-ledger-helpers.js?v=ledger-cloud-20261009-1";
+import { buildLedgerMemoFields, stripCodePrefix } from "./util.js?v=ledger-cloud-20261009-1";
 
 /**
  * Ledger DB(ledger_tx) + hallapa_db.transactions 를 동시에 기록하는 공통 결제 저장 함수.

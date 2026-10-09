@@ -1,5 +1,5 @@
-import { getAllLedgerTx, getTransactions } from "../db.js";
-import { confirmDialog } from "./dialogs.js";
+import { getAllLedgerTx, getTransactions } from "../db.js?v=ledger-cloud-20261009-1";
+import { confirmDialog } from "./dialogs.js?v=ledger-cloud-20261009-1";
 
 export function getActiveCustomersByType(allCustomers, typeLabel) {
   const isActiveStatus = (v) => String(v || "active") === "active";

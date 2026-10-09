@@ -1,7 +1,7 @@
-import { ensureCommonPickerModals } from "./picker-modals.js";
-import { initDateWeekdayAuto } from "./date-weekday-box.js";
-import { bindModalCloseX, bindModalHeaderDrag } from "./ui-helpers.js";
-import { installGlobalDialogs } from "./dialogs.js";
+import { ensureCommonPickerModals } from "./picker-modals.js?v=ledger-cloud-20261009-1";
+import { initDateWeekdayAuto } from "./date-weekday-box.js?v=ledger-cloud-20261009-1";
+import { bindModalCloseX, bindModalHeaderDrag } from "./ui-helpers.js?v=ledger-cloud-20261009-1";
+import { installGlobalDialogs } from "./dialogs.js?v=ledger-cloud-20261009-1";
 
 export function bootstrapPageCommon({
   page,

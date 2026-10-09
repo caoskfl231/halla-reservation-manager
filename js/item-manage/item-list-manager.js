@@ -1,10 +1,10 @@
-import { formatMoney } from "../common/util.js";
-import { sortItems, getItemProfitValues } from "./item-utils.js";
+import { formatMoney } from "../common/util.js?v=ledger-cloud-20261009-1";
+import { sortItems, getItemProfitValues } from "./item-utils.js?v=ledger-cloud-20261009-1";
 import {
   attachSearchInput,
   enableTableArrowNavigation,
   bindClickRowSelect,
-} from "../common/ui-helpers.js";
+} from "../common/ui-helpers.js?v=ledger-cloud-20261009-1";
 
 export function createItemListManager(options) {
   const {

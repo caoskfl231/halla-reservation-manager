@@ -1,10 +1,10 @@
-import { getQuickRange } from './util.js';
+import { getQuickRange } from './util.js?v=ledger-cloud-20261009-1';
 import {
   openModalOverlay,
   closeModalOverlay,
   registerModalEscClose,
   positionModalBelowElement,
-} from './ui-helpers.js';
+} from './ui-helpers.js?v=ledger-cloud-20261009-1';
 
 // 공통 날짜 범위 필터(시작/끝 + 📅 빠른선택 모달 + 조회 버튼)
 //

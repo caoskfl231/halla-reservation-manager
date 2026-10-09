@@ -1,11 +1,11 @@
-import { generateItemId } from "./item-utils.js";
+import { generateItemId } from "./item-utils.js?v=ledger-cloud-20261009-1";
 import {
   formatPercent,
   calcShrinkPrice,
   calcPriceFromMargin,
   calcMarginFromPrice,
-} from "./price-utils.js";
-import { warningDialog } from "../common/dialogs.js";
+} from "./price-utils.js?v=ledger-cloud-20261009-1";
+import { warningDialog } from "../common/dialogs.js?v=ledger-cloud-20261009-1";
 
 export function createItemFormManager(options) {
   const DEFAULT_SHRINK_PERCENT = 10;

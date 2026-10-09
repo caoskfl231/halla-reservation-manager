@@ -2,7 +2,7 @@ import {
   openModalOverlay,
   closeModalOverlay,
   registerModalEscClose,
-} from "./ui-helpers.js";
+} from "./ui-helpers.js?v=ledger-cloud-20261009-1";
 
 let __toastStack = null;
 

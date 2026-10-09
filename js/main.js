@@ -1,10 +1,10 @@
-import { getTransactions, updateTransaction, getAllLedgerTx, getCashflowTypes, getCashflowItems, getCustomers, exportHallapaDbSnapshot, restoreHallapaDbSnapshot } from './db.js';
-import { initDateFilter } from './common/date-filter.js';
-import { applyAmountColoring, openModalOverlay, closeModalOverlay, registerModalEscClose, attachSearchInput } from './common/ui-helpers.js';
-import { formatWeekdayLabel, getQuickRange, includesIgnoreCase } from './common/util.js';
-import { initDateWeekdayAuto } from './common/date-weekday-box.js';
-import { installDbAutoRefresh } from './common/app-events.js';
-import { bootstrapPageCommon } from './common/page-bootstrap.js';
+import { getTransactions, updateTransaction, getAllLedgerTx, getCashflowTypes, getCashflowItems, getCustomers, exportHallapaDbSnapshot, restoreHallapaDbSnapshot } from './db.js?v=ledger-cloud-20261009-1';
+import { initDateFilter } from './common/date-filter.js?v=ledger-cloud-20261009-1';
+import { applyAmountColoring, openModalOverlay, closeModalOverlay, registerModalEscClose, attachSearchInput } from './common/ui-helpers.js?v=ledger-cloud-20261009-1';
+import { formatWeekdayLabel, getQuickRange, includesIgnoreCase } from './common/util.js?v=ledger-cloud-20261009-1';
+import { initDateWeekdayAuto } from './common/date-weekday-box.js?v=ledger-cloud-20261009-1';
+import { installDbAutoRefresh } from './common/app-events.js?v=ledger-cloud-20261009-1';
+import { bootstrapPageCommon } from './common/page-bootstrap.js?v=ledger-cloud-20261009-1';
 
 const btnDbBackup = document.getElementById('btn-home-db-backup');
 const btnDbRestore = document.getElementById('btn-home-db-restore');

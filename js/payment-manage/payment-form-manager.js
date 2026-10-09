@@ -1,5 +1,5 @@
-import { showToast, warningDialog } from "../common/dialogs.js";
-import { resolveDefaultCashflowNameByCode } from "../common/util.js";
+import { showToast, warningDialog } from "../common/dialogs.js?v=ledger-cloud-20261009-1";
+import { resolveDefaultCashflowNameByCode } from "../common/util.js?v=ledger-cloud-20261009-1";
 
 export function bindPaymentForm(options = {}) {
   const {

@@ -1,11 +1,11 @@
 import {
   bindClickRowSelect,
   createScrollToBottomOnce,
-} from "../common/ui-helpers.js";
+} from "../common/ui-helpers.js?v=ledger-cloud-20261009-1";
 
 // 목록이 갱신될 때 최신 거래가 보이도록 스크롤(결제관리 패턴 공통화)
 const paymentMainAutoScroll = createScrollToBottomOnce();
-import { resolveDefaultCashflowNameByCode } from "../common/util.js";
+import { resolveDefaultCashflowNameByCode } from "../common/util.js?v=ledger-cloud-20261009-1";
 
 function normalizeDateKey(tx) {
   const raw = String(tx?.dateTime || tx?.date || "").trim();

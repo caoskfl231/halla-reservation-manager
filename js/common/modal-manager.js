@@ -4,7 +4,7 @@ import {
   registerModalEscClose,
   createFormDirtyTracker,
   wrapDirtyClose,
-} from "./ui-helpers.js";
+} from "./ui-helpers.js?v=ledger-cloud-20261009-1";
 
 export function createModalManager({
   modalEl,

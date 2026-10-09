@@ -1,12 +1,12 @@
-import { getCashflowItems, getCashflowTypes, getAllLedgerTx } from '../db.js';
+import { getCashflowItems, getCashflowTypes, getAllLedgerTx } from '../db.js?v=ledger-cloud-20261009-1';
 import {
   applyAmountColoring,
   closeModalOverlay,
   enableTableArrowNavigation,
   openModalOverlay,
   registerModalEscClose,
-} from './ui-helpers.js';
-import { formatMoney } from './util.js';
+} from './ui-helpers.js?v=ledger-cloud-20261009-1';
+import { formatMoney } from './util.js?v=ledger-cloud-20261009-1';
 
 const MODAL_ID = 'ledger-picker-modal';
 
