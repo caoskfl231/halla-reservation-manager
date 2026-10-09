@@ -1,0 +1,128 @@
+/* Loaded after page styles. Desktop layout stays unchanged. */
+@media screen and (max-width: 900px) {
+  :root { --ctl-h:44px; --row-h:44px; --icon-btn-w:44px; }
+  html { -webkit-text-size-adjust:100%; }
+  body { min-width:0; }
+  .page, body[data-mode="home"] main.page.page-home {
+    margin:0; padding:12px 10px 24px;
+    padding-bottom:max(24px, env(safe-area-inset-bottom));
+  }
+  .page *, .modal-dialog * { min-width:0; }
+  .top-bar { flex-wrap:wrap; gap:12px; padding:14px 12px; }
+  .top-bar h1 { width:100%; font-size:19px; overflow-wrap:anywhere; }
+  .global-search-container { order:1; flex-basis:100%; }
+  .global-search-wrapper { width:100%; }
+  .top-bar nav {
+    order:2; display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
+    width:100%; gap:6px;
+  }
+  .top-bar nav a {
+    display:flex; align-items:center; justify-content:center;
+    margin:0; min-height:44px; padding:8px 4px; font-size:14px;
+    border:1px solid #ffffff38; border-radius:6px;
+  }
+  .top-bar nav a[aria-current="page"] { background:#ffffff20; border-color:#f1c40f; }
+  .page-layout, .purchase-layout, .sales-layout, .payment-layout, .customer-layout {
+    flex-direction:column; gap:12px;
+  }
+  .page-left-column, .page-main-column, .purchase-left-column, .purchase-card,
+  .sales-left-column, .sales-card, .payment-left-column, .payment-card,
+  .customer-left-column, .customer-main-card {
+    flex:0 1 auto; width:100%; max-width:100%;
+  }
+  .card, .page-home .home-dashboard .card { padding:14px 10px; }
+  .card h2 { flex-wrap:wrap; gap:10px; }
+  .card h2 .search-wrapper { width:100%; }
+  .customer-search-input { width:100%; margin-left:0; }
+  body input:not([type="checkbox"]):not([type="radio"]),
+  body select, body textarea {
+    font-size:16px !important; min-height:44px; max-width:100%;
+  }
+  body button, .btn, .btn-primary, .btn-secondary, .btn-row-btn {
+    min-height:44px; font-size:15px; touch-action:manipulation;
+  }
+  input[type="checkbox"], input[type="radio"] { width:22px; height:22px; }
+  .table-action-box, .table-action-right, .table-action-buttons,
+  .form-button-row, .purchase-date-filter, .sales-date-filter, .payment-date-filter,
+  .date-quick-inline, .search-box, .radio-group {
+    flex-wrap:wrap; gap:8px;
+  }
+  .table-action-right { margin-left:0; width:100%; }
+  .trn-filter-row, .trn-filter-left, .trn-filter-right, .purchase-type-switch {
+    flex-wrap:wrap; gap:8px;
+  }
+  .trn-filter-right { width:100%; margin-left:0; }
+  .table-action-right :is(.purchase-date-filter,.sales-date-filter,.payment-date-filter),
+  .page-home .home-dashboard-header .purchase-date-filter { margin-left:0; }
+  :is(.purchase-date-input,.sales-date-input,.payment-date-input) {
+    flex:1 1 130px; width:130px;
+  }
+  .table-summary { flex-wrap:wrap; gap:4px; }
+  .table-summary :is(.summary-left,.summary-center,.summary-right) {
+    width:100%; flex:1 1 100%; margin:0;
+  }
+  .table-box { max-width:100%; min-width:0; }
+  body .table-wrapper {
+    max-width:100%; overflow-x:auto !important; -webkit-overflow-scrolling:touch;
+    overscroll-behavior-x:contain;
+  }
+  .tx-table { font-size:14px; }
+  .tx-table th, .tx-table td { height:44px; }
+  .page-main-column .tx-table:not(.tx-table-small),
+  .purchase-entry-table, .sales-entry-table, .purchase-import-table,
+  .sales-import-table, .payment-import-table, .trn-table {
+    min-width:850px;
+  }
+  .home-main-table { min-width:1550px; }
+  .purchase-summary-table, .sales-summary-table { min-width:750px; }
+  .page-home .home-status-row { grid-template-columns:1fr; }
+  .page-home .home-working-status .home-summary-cards {
+    grid-template-columns:repeat(2,minmax(0,1fr)); overflow:visible;
+  }
+  .page-home .home-working-status .home-working-header { grid-template-columns:1fr; gap:10px; }
+  .page-home .home-summary-card { overflow-wrap:anywhere; }
+  .page-home .home-summary-card .amount { font-size:16px; }
+  #ledger-cloud-bar { padding:12px !important; gap:8px !important; }
+  #ledger-cloud-status { flex-basis:100% !important; order:1; overflow-wrap:anywhere; }
+  #ledger-cloud-bar button, #ledger-first-import button {
+    border:1px solid #a9bbd2; border-radius:8px; background:#fff; padding:8px 12px;
+  }
+  #ledger-first-import { padding:14px 12px !important; }
+  #ledger-first-import button { margin:4px 0; }
+  body.ledger-login-page { padding:20px 14px; align-content:start; }
+  .ledger-login-page main { margin-top:24px; padding:28px 20px; }
+  body .modal-overlay { padding:8px; overflow-y:auto; }
+  body .modal-overlay .modal-dialog {
+    width:100% !important; max-width:100% !important; min-width:0 !important;
+    margin:8px auto !important; max-height:calc(100dvh - 32px);
+    overflow:auto; transform:none !important; left:auto !important; top:auto !important;
+  }
+  body .modal-dialog .card { width:100%; min-width:0 !important; margin-bottom:0; }
+  .modal-header { touch-action:pan-y; cursor:default; }
+  body .modal-dialog .modal-form, body .modal-dialog .form-grid,
+  body .modal-dialog .purchase-payment-grid { grid-template-columns:minmax(0,1fr); }
+  body .modal-dialog .span-2, body .modal-dialog .form-section-title {
+    grid-column:1 / -1 !important; grid-row:auto !important;
+  }
+  body .modal-dialog :is(.purchase-header-3col-card,.sales-header-3col-card,
+  .purchase-header-3col-content,.sales-header-3col-content,
+  .purchase-header-3col-header,.sales-header-3col-header) {
+    grid-template-columns:minmax(0,1fr) !important; grid-column:1 / -1 !important;
+    gap:10px;
+  }
+  body .modal-dialog :is(.purchase-header-col-spacer,.sales-header-col-spacer) { display:none; }
+  body .modal-dialog .purchase-form-header,
+  body .modal-dialog .sales-form-header,
+  body .modal-dialog .purchase-payment-row { flex-wrap:wrap; }
+  .picker-actions--nowrap { flex-wrap:wrap; }
+  .picker-actions--nowrap .customer-search-input { flex-basis:100%; min-width:0; }
+  body .picker-layout { flex-wrap:wrap; }
+  body .picker-layout > .picker-left {
+    flex:1 1 130px !important; width:auto !important; max-width:100% !important;
+  }
+  body .picker-layout > .picker-right { flex:1 1 100%; width:100%; }
+}
+@media screen and (max-width: 380px) {
+  .page-home .home-working-status .home-summary-cards { grid-template-columns:1fr; }
+  .top-bar nav a { font-size:13px; }
+}

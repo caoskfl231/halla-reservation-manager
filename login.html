@@ -11,12 +11,13 @@
     input,button{width:100%;min-height:50px;border-radius:10px;font:inherit;font-size:17px}input{border:1px solid #b7c1cc;padding:12px}button{margin-top:24px;border:0;background:#153a60;color:white;font-weight:700;cursor:pointer}button:disabled{opacity:.55}
     #error{color:#af2424;min-height:24px;margin:16px 0 0;white-space:pre-line}small{display:block;color:#697586;margin-top:20px;line-height:1.6}[hidden]{display:none!important}
   </style>
+  <link rel="stylesheet" href="css/mobile.css?v=mobile-20261010-1" />
 </head>
-<body><main>
+<body class="ledger-login-page"><main>
   <h1>할라 장부 관리</h1>
   <p>로그인하면 함께 사용하는 장부를<br>조회하고 입력·수정할 수 있습니다.</p>
   <form id="login-form">
-    <label for="email">아이디 (이메일)</label><input id="email" type="email" autocomplete="username" required autofocus>
+    <label for="email">아이디 (이메일)</label><input id="email" type="email" autocomplete="username" required>
     <label for="password">비밀번호</label><input id="password" type="password" autocomplete="current-password" required>
     <button id="login-button" type="submit">로그인</button>
   </form>
