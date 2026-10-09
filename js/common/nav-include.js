@@ -42,7 +42,7 @@ async function initGlobalSearchIfEnabled() {
       : "";
   if (enabled !== "1") return;
 
-  const mod = await import("./global-search.js?v=ledger-cloud-20261009-1");
+  const mod = await import("./global-search.js?v=ledger-records-20261010-1");
   if (mod && typeof mod.initGlobalSearch === "function") {
     mod.initGlobalSearch();
   }
@@ -62,3 +62,4 @@ export async function loadGlobalNav() {
     console.error(err);
   }
 }
+

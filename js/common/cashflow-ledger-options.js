@@ -1,4 +1,4 @@
-import { getCashflowItems, getCashflowTypes } from '../db.js?v=ledger-cloud-20261009-1';
+import { getCashflowItems, getCashflowTypes } from '../db.js?v=ledger-records-20261010-1';
 
 let inflightCashflowOptionListPromise = null;
 
@@ -64,3 +64,4 @@ export async function loadCashflowLedgerOptionsIntoSelects(selectElements, { pla
     }
   }
 }
+

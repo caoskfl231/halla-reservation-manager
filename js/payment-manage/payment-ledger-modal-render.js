@@ -1,4 +1,4 @@
-import { bindClickRowSelect, bindDblClickRowConfirm } from "../common/ui-helpers.js?v=ledger-cloud-20261009-1";
+import { bindClickRowSelect, bindDblClickRowConfirm } from "../common/ui-helpers.js?v=ledger-records-20261010-1";
 
 export async function renderPaymentLedgerModalTable(options = {}) {
   const {
@@ -303,3 +303,4 @@ export function renderPaymentLedgerModalItemTable(options = {}) {
     if (firstRow) firstRow.classList.add("selected");
   }
 }
+

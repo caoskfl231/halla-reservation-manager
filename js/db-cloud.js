@@ -1,8 +1,11 @@
-import * as cache from './db-cloud-cache.js?v=ledger-cloud-20261009-1';
-import { rpc, requireLedgerSession, friendlyError, signOut } from './cloud-session.js?v=ledger-cloud-20261009-1';
-import { emitAppEvent } from './common/app-events.js?v=ledger-cloud-20261009-1';
+import * as cache from './db-cloud-cache.js?v=ledger-records-20261010-1';
+import { rpc, requireLedgerSession, friendlyError, signOut } from './cloud-session.js?v=ledger-records-20261010-1';
+import { emitAppEvent } from './common/app-events.js?v=ledger-records-20261010-1';
+import { changedRecords, recordToken, versionMap, sameRecords } from './cloud-records.js?v=ledger-records-20261010-1';
 let state = await requireLedgerSession();
 await cache.restoreHallapaDbSnapshot(state.snapshot);
+let versions = versionMap(state.row_versions);
+let pendingRemote = false;
 let queue = Promise.resolve(), uncertain = false, observedRevision = state.revision;
 const reads = new Set(Object.keys(cache).filter(name => name.startsWith('get')));
 ['exportHallapaDbSnapshot','ensureCashflowMastersIfEmpty','migrateLegacyLedgerTxIfNeeded'].forEach(name => reads.add(name));
@@ -40,18 +43,43 @@ async function cloudCall(name, args) {
       throw new Error('먼저 전체백업 파일이나 이 PC의 자료를 공용 장부로 옮겨 주세요.');
     if (name === 'restoreHallapaDbSnapshot') validate(args[0]);
     try {
+      if (name === 'addTransaction') {
+        // IDs must be unique across devices, including devices sharing one login.
+        const id = await rpc('halla_ledger_reserve_transaction_id');
+        if (!Number.isSafeInteger(id)) throw new Error('거래 번호를 발급하지 못했습니다. 다시 시도해 주세요.');
+        args[0] = { ...args[0], id };
+      }
       const result = await cache[name](...args);
       const snapshot = await cache.exportHallapaDbSnapshot();
       validate(snapshot); notice('인터넷에 저장 중…');
       const action = name === 'restoreHallapaDbSnapshot' ? (state.revision === 0 ? 'initialize' : 'restore') : 'edit';
+      const changes = changedRecords(state.snapshot, snapshot, versions);
       try {
-        state = await rpc('halla_ledger_save', { p_snapshot: snapshot, p_revision: state.revision, p_action: action });
+        if (action === 'edit') {
+          if (!changes.length) { notice('저장할 변경 내용이 없습니다.'); return result; }
+          const next = await rpc('halla_ledger_patch', { p_changes: changes });
+          const nextVersions = versionMap(next.row_versions);
+          for (const change of changes) {
+            const token = recordToken(change.store, change.key);
+            versions.set(token, nextVersions.get(token));
+          }
+          // Preserve untouched baselines. An unrelated save must not silently
+          // approve a stale edit of another record still open in the UI.
+          pendingRemote = !sameRecords(snapshot, next.snapshot);
+          state = { ...next, snapshot };
+        } else {
+          state = await rpc('halla_ledger_save', { p_snapshot: snapshot, p_revision: state.revision, p_action: action });
+          versions = versionMap(state.row_versions);
+          pendingRemote = false;
+        }
       } catch (error) {
         // A response can be lost after commit. Never replay a save automatically.
-        uncertain = true; throw error;
+        uncertain = !/LEDGER_RECORD_CONFLICT|LEDGER_CONFLICT|DUPLICATE_LEDGER_FINGERPRINT|OWNER_REQUIRED|INVALID_/.test(error.message);
+        throw error;
       }
       observedRevision = state.revision;
       notice('인터넷 저장 완료 · ' + new Date(state.updated_at).toLocaleTimeString('ko-KR'));
+      if (pendingRemote) notice('저장 완료 · 다른 기기의 새 내용은 최신 불러오기로 확인하세요.');
       document.getElementById('ledger-first-import')?.remove();
       emitAppEvent('db:changed', { stores: Object.keys(snapshot.stores) }); return result;
     } catch (error) {
@@ -98,7 +126,7 @@ if (state.revision === 0 && state.role === 'owner') {
     try {
       if (!indexedDB.databases) throw new Error('이 브라우저에서는 전체백업 파일을 선택해 주세요.');
       if (!(await indexedDB.databases()).some(db => db.name === 'hallapa_db')) throw new Error('이 기기에 기존 장부자료가 없습니다. 전체백업 파일을 선택해 주세요.');
-      const local = await import('./db-local.js?v=ledger-cloud-20261009-1'); await upload(await local.exportHallapaDbSnapshot());
+      const local = await import('./db-local.js?v=ledger-records-20261010-1'); await upload(await local.exportHallapaDbSnapshot());
     } catch (error) { window.alert(friendlyError(error)); }
   };
 }
@@ -111,7 +139,8 @@ setInterval(() => {
   serial(async () => {
     try {
       const latest = await rpc('halla_ledger_read');
-      if (latest.revision !== state.revision && latest.revision !== observedRevision) {
+      if (!sameRecords(state.snapshot, latest.snapshot) && (latest.revision !== observedRevision || pendingRemote)) {
+        pendingRemote = true;
         observedRevision = latest.revision;
         notice('다른 기기에서 변경됨 · 최신 불러오기를 눌러 주세요.', true);
       }

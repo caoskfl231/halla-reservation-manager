@@ -1,4 +1,4 @@
-import { confirmDialog, warningDialog } from "../common/dialogs.js?v=ledger-cloud-20261009-1";
+import { confirmDialog, warningDialog } from "../common/dialogs.js?v=ledger-records-20261010-1";
 
 export function createItemActionsManager(options = {}) {
   const {
@@ -95,3 +95,4 @@ export function createItemActionsManager(options = {}) {
     });
   }
 }
+

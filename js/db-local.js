@@ -1,4 +1,4 @@
-import { emitAppEvent } from "./common/app-events.js?v=ledger-cloud-20261009-1";
+import { emitAppEvent } from "./common/app-events.js?v=ledger-records-20261010-1";
 
 const DEFAULT_CASHFLOW_TYPES = [
   { code: "A01", name: "법인통장" },
@@ -1511,3 +1511,4 @@ export {
   exportHallapaDbSnapshot,
   restoreHallapaDbSnapshot,
 };
+

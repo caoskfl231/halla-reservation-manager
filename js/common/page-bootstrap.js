@@ -1,7 +1,7 @@
-import { ensureCommonPickerModals } from "./picker-modals.js?v=ledger-cloud-20261009-1";
-import { initDateWeekdayAuto } from "./date-weekday-box.js?v=ledger-cloud-20261009-1";
-import { bindModalCloseX, bindModalHeaderDrag } from "./ui-helpers.js?v=ledger-cloud-20261009-1";
-import { installGlobalDialogs } from "./dialogs.js?v=ledger-cloud-20261009-1";
+import { ensureCommonPickerModals } from "./picker-modals.js?v=ledger-records-20261010-1";
+import { initDateWeekdayAuto } from "./date-weekday-box.js?v=ledger-records-20261010-1";
+import { bindModalCloseX, bindModalHeaderDrag } from "./ui-helpers.js?v=ledger-records-20261010-1";
+import { installGlobalDialogs } from "./dialogs.js?v=ledger-records-20261010-1";
 
 export function bootstrapPageCommon({
   page,
@@ -26,3 +26,4 @@ export function bootstrapPageCommon({
     initDateWeekdayAuto({ todayYMD, formatWeekdayLabel });
   }
 }
+

@@ -1,4 +1,4 @@
-import { warningDialog } from "../common/dialogs.js?v=ledger-cloud-20261009-1";
+import { warningDialog } from "../common/dialogs.js?v=ledger-records-20261010-1";
 
 export function applyPaymentLedgerSelection(options = {}) {
   const {
@@ -261,3 +261,4 @@ export async function openPaymentLedgerModalForLedgerSelect(options = {}) {
     cashflowItemName: itemName,
   });
 }
+

@@ -11,7 +11,7 @@ import {
   putLedgerTx,
   deleteLedgerTxById,
   migrateLegacyLedgerTxIfNeeded,
-} from "./db.js?v=ledger-cloud-20261009-1";
+} from "./db.js?v=ledger-records-20261010-1";
 import {
   openModalOverlay,
   closeModalOverlay,
@@ -22,8 +22,8 @@ import {
   applyAmountColoring,
   bindDblClickRowEdit,
   bindClickRowSelect,
-} from "./common/ui-helpers.js?v=ledger-cloud-20261009-1";
-import { createModalManager } from "./common/modal-manager.js?v=ledger-cloud-20261009-1";
+} from "./common/ui-helpers.js?v=ledger-records-20261010-1";
+import { createModalManager } from "./common/modal-manager.js?v=ledger-records-20261010-1";
 import {
   todayYMD,
   formatWeekdayLabel,
@@ -33,49 +33,49 @@ import {
   parseNumber,
   isPaymentLinkedTransaction,
   stripCodePrefix,
-} from "./common/util.js?v=ledger-cloud-20261009-1";
-import { initDateFilter } from "./common/date-filter.js?v=ledger-cloud-20261009-1";
-import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=ledger-cloud-20261009-1";
-import { confirmDialog } from "./common/dialogs.js?v=ledger-cloud-20261009-1";
-import { openLedgerPicker } from "./common/ledger-picker.js?v=ledger-cloud-20261009-1";
-import { installDbAutoRefresh } from "./common/app-events.js?v=ledger-cloud-20261009-1";
+} from "./common/util.js?v=ledger-records-20261010-1";
+import { initDateFilter } from "./common/date-filter.js?v=ledger-records-20261010-1";
+import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=ledger-records-20261010-1";
+import { confirmDialog } from "./common/dialogs.js?v=ledger-records-20261010-1";
+import { openLedgerPicker } from "./common/ledger-picker.js?v=ledger-records-20261010-1";
+import { installDbAutoRefresh } from "./common/app-events.js?v=ledger-records-20261010-1";
 import {
   confirmAnyDuplicateLedgerBatchesBeforeSave,
   confirmAnyDuplicateSimplePaymentTransactionsBeforeSave,
   confirmDuplicateLedgerBatchBeforeSave,
   findAnyDuplicateLedgerBatchesBeforeSave,
   findAnyDuplicateSimplePaymentTransactionsBeforeSave,
-} from "./common/transaction-shared.js?v=ledger-cloud-20261009-1";
-import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=ledger-cloud-20261009-1";
-import { inferLedgerPaymentMethod } from "./common/payment-ledger-helpers.js?v=ledger-cloud-20261009-1";
-import { bindPaymentActions } from "./payment-manage/payment-actions-manager.js?v=ledger-cloud-20261009-1";
-import { renderPaymentMainTable } from "./payment-manage/payment-main-table.js?v=ledger-cloud-20261009-1";
-import { bindPaymentForm } from "./payment-manage/payment-form-manager.js?v=ledger-cloud-20261009-1";
-import { bindPaymentImportManager } from "./payment-manage/payment-import-manager.js?v=ledger-cloud-20261009-1";
-import { bindPaymentImportCustomerPicker } from "./payment-manage/payment-import-customer-manager.js?v=ledger-cloud-20261009-1";
-import { setPaymentFormFromTx as setPaymentFormFromTxCore } from "./payment-manage/payment-form-filler.js?v=ledger-cloud-20261009-1";
+} from "./common/transaction-shared.js?v=ledger-records-20261010-1";
+import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=ledger-records-20261010-1";
+import { inferLedgerPaymentMethod } from "./common/payment-ledger-helpers.js?v=ledger-records-20261010-1";
+import { bindPaymentActions } from "./payment-manage/payment-actions-manager.js?v=ledger-records-20261010-1";
+import { renderPaymentMainTable } from "./payment-manage/payment-main-table.js?v=ledger-records-20261010-1";
+import { bindPaymentForm } from "./payment-manage/payment-form-manager.js?v=ledger-records-20261010-1";
+import { bindPaymentImportManager } from "./payment-manage/payment-import-manager.js?v=ledger-records-20261010-1";
+import { bindPaymentImportCustomerPicker } from "./payment-manage/payment-import-customer-manager.js?v=ledger-records-20261010-1";
+import { setPaymentFormFromTx as setPaymentFormFromTxCore } from "./payment-manage/payment-form-filler.js?v=ledger-records-20261010-1";
 import {
   updateCashflowTypeButtons as updateCashflowTypeButtonsCore,
   renderCashflowSummaryTable as renderCashflowSummaryTableCore,
   rebuildCashflowSummaryOptions as rebuildCashflowSummaryOptionsCore,
   refreshCashflowSummary as refreshCashflowSummaryCore,
   bindCashflowSummaryEvents,
-} from "./payment-manage/payment-cashflow-summary.js?v=ledger-cloud-20261009-1";
-import { bindPaymentFilters } from "./payment-manage/payment-filter-manager.js?v=ledger-cloud-20261009-1";
-import { bindPaymentEntryPicker } from "./payment-manage/payment-entry-picker-manager.js?v=ledger-cloud-20261009-1";
+} from "./payment-manage/payment-cashflow-summary.js?v=ledger-records-20261010-1";
+import { bindPaymentFilters } from "./payment-manage/payment-filter-manager.js?v=ledger-records-20261010-1";
+import { bindPaymentEntryPicker } from "./payment-manage/payment-entry-picker-manager.js?v=ledger-records-20261010-1";
 import {
   resetPaymentEntryFields as resetPaymentEntryFieldsCore,
   openPaymentEntryChoiceModal as openPaymentEntryChoiceModalCore,
   closePaymentEntryChoiceModal as closePaymentEntryChoiceModalCore,
-} from "./payment-manage/payment-entry-modal-manager.js?v=ledger-cloud-20261009-1";
+} from "./payment-manage/payment-entry-modal-manager.js?v=ledger-records-20261010-1";
 import {
   applyPaymentLedgerSelection as applyPaymentLedgerSelectionCore,
   openPaymentLedgerModalForLedgerSelect as openPaymentLedgerModalForLedgerSelectCore,
-} from "./payment-manage/payment-ledger-picker-manager.js?v=ledger-cloud-20261009-1";
+} from "./payment-manage/payment-ledger-picker-manager.js?v=ledger-records-20261010-1";
 import {
   renderPaymentLedgerModalTable as renderPaymentLedgerModalTableCore,
   renderPaymentLedgerModalItemTable as renderPaymentLedgerModalItemTableCore,
-} from "./payment-manage/payment-ledger-modal-render.js?v=ledger-cloud-20261009-1";
+} from "./payment-manage/payment-ledger-modal-render.js?v=ledger-records-20261010-1";
 import {
   updatePaymentImportSelectedAccountLabel as updatePaymentImportSelectedAccountLabelCore,
   renderPaymentImportTable as renderPaymentImportTableCore,
@@ -84,7 +84,7 @@ import {
   applyImportCustomerSelection as applyImportCustomerSelectionCore,
   renderPaymentImportTypeList as renderPaymentImportTypeListCore,
   renderPaymentImportGroupList as renderPaymentImportGroupListCore,
-} from "./payment-manage/payment-import-list.js?v=ledger-cloud-20261009-1";
+} from "./payment-manage/payment-import-list.js?v=ledger-records-20261010-1";
 import {
   updatePaymentLedgerTitleByFlow as updatePaymentLedgerTitleByFlowCore,
   updateLedgerRowsByFlow as updateLedgerRowsByFlowCore,
@@ -92,7 +92,7 @@ import {
   populatePaymentLedgerSelectOptions as populatePaymentLedgerSelectOptionsCore,
   populatePaymentCounterpartySelectOptions as populatePaymentCounterpartySelectOptionsCore,
   syncCounterpartyCodeFromSelect as syncCounterpartyCodeFromSelectCore,
-} from "./payment-manage/payment-entry-ledger-helpers.js?v=ledger-cloud-20261009-1";
+} from "./payment-manage/payment-entry-ledger-helpers.js?v=ledger-records-20261010-1";
 import {
   parseMoney as parseMoneyCore,
   getSelectedOptionText as getSelectedOptionTextCore,
@@ -100,7 +100,7 @@ import {
   updatePaymentDateWeekday as updatePaymentDateWeekdayCore,
   inRange as inRangeCore,
   matchQ as matchQCore,
-} from "./payment-manage/payment-utils.js?v=ledger-cloud-20261009-1";
+} from "./payment-manage/payment-utils.js?v=ledger-records-20261010-1";
 import {
   openPaymentModal as openPaymentModalCore,
   closePaymentModal as closePaymentModalCore,
@@ -108,12 +108,12 @@ import {
   closePaymentImportModal as closePaymentImportModalCore,
   openPaymentImportCustomerModal as openPaymentImportCustomerModalCore,
   closePaymentImportCustomerModal as closePaymentImportCustomerModalCore,
-} from "./payment-manage/payment-modal-helpers.js?v=ledger-cloud-20261009-1";
+} from "./payment-manage/payment-modal-helpers.js?v=ledger-records-20261010-1";
 import {
   bindExcelDropdown,
   exportTableToXlsx,
   ymdCompact,
-} from "./common/excel-export.js?v=ledger-cloud-20261009-1";
+} from "./common/excel-export.js?v=ledger-records-20261010-1";
 
 // 공통 피커 모달(*-picker-*)은 ensureCommonPickerModals()가 동적으로 주입한다.
 
@@ -2791,3 +2791,4 @@ function bind() {
     isBusy: () => document.body.classList.contains("modal-open"),
   });
 })();
+

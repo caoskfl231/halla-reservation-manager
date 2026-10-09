@@ -7,9 +7,9 @@ import {
   enableTableArrowNavigation,
   bindDblClickRowEdit,
   bindClickRowSelect,
-} from "../common/ui-helpers.js?v=ledger-cloud-20261009-1";
-import { confirmDialog, warningDialog } from "../common/dialogs.js?v=ledger-cloud-20261009-1";
-import { getNextItemGroupCode } from "./item-utils.js?v=ledger-cloud-20261009-1";
+} from "../common/ui-helpers.js?v=ledger-records-20261010-1";
+import { confirmDialog, warningDialog } from "../common/dialogs.js?v=ledger-records-20261010-1";
+import { getNextItemGroupCode } from "./item-utils.js?v=ledger-records-20261010-1";
 
 export function createItemGroupManager(options) {
   const {
@@ -356,3 +356,4 @@ export function createItemGroupManager(options) {
     getSelectedItemGroupName: () => selectedItemGroupName,
   };
 }
+

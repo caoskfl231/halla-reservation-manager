@@ -2,7 +2,7 @@ import {
   openModalOverlay,
   closeModalOverlay,
   registerModalEscClose,
-} from "./ui-helpers.js?v=ledger-cloud-20261009-1";
+} from "./ui-helpers.js?v=ledger-records-20261010-1";
 
 let __toastStack = null;
 
@@ -422,3 +422,4 @@ export function installGlobalDialogs() {
     // ignore
   }
 }
+

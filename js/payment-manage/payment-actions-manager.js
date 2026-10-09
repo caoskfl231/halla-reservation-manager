@@ -1,4 +1,4 @@
-import { confirmDialog, showToast, warningDialog } from "../common/dialogs.js?v=ledger-cloud-20261009-1";
+import { confirmDialog, showToast, warningDialog } from "../common/dialogs.js?v=ledger-records-20261010-1";
 
 export function bindPaymentActions(options = {}) {
   const {
@@ -231,3 +231,4 @@ export function bindPaymentActions(options = {}) {
     };
   }
 }
+

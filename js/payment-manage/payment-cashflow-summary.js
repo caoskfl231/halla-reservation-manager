@@ -1,4 +1,4 @@
-import { bindClickRowSelect } from "../common/ui-helpers.js?v=ledger-cloud-20261009-1";
+import { bindClickRowSelect } from "../common/ui-helpers.js?v=ledger-records-20261010-1";
 
 let currentCashflowSummarySelectRef = null;
 
@@ -393,3 +393,4 @@ export function bindCashflowSummaryEvents(options = {}) {
     });
   }
 }
+
