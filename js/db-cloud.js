@@ -1,9 +1,9 @@
-import * as cache from './db-cloud-cache.js?v=ledger-atomic-20261010-1';
-import { rpc, requireLedgerSession, friendlyError, signOut } from './cloud-session.js?v=ledger-atomic-20261010-1';
-import { emitAppEvent } from './common/app-events.js?v=ledger-atomic-20261010-1';
-import { changedRecords, recordToken, versionMap } from './cloud-records.js?v=ledger-atomic-20261010-1';
-import { installBackupPanel } from './ledger-backups.js?v=ledger-atomic-20261010-1';
-import { uploadSnapshot } from './cloud-import.js?v=ledger-atomic-20261010-1';
+import * as cache from './db-cloud-cache.js?v=ledger-fast-20261010-1';
+import { rpc, requireLedgerSession, friendlyError, signOut } from './cloud-session.js?v=ledger-fast-20261010-1';
+import { emitAppEvent } from './common/app-events.js?v=ledger-fast-20261010-1';
+import { changedRecords, recordToken, versionMap } from './cloud-records.js?v=ledger-fast-20261010-1';
+import { installBackupPanel } from './ledger-backups.js?v=ledger-fast-20261010-1';
+import { uploadSnapshot } from './cloud-import.js?v=ledger-fast-20261010-1';
 let state = await requireLedgerSession();
 await cache.restoreHallapaDbSnapshot(state.snapshot);
 let versions = versionMap(state.row_versions);
@@ -57,18 +57,40 @@ async function cloudCall(name, args) {
       }
       if (name === 'saveTransactionBatch') {
         const batch = args[0] || {}, rows = [];
-        for (const row of batch.add || []) {
-          const id = await rpc('halla_ledger_reserve_transaction_id');
-          if (!Number.isSafeInteger(id)) throw new Error('거래 번호를 발급하지 못했습니다.');
-          rows.push({ ...row, id });
+        const additions = batch.add || [];
+        const ids = additions.length ? await rpc('halla_ledger_reserve_transaction_ids', { p_count: additions.length }) : [];
+        if (!Array.isArray(ids) || ids.length !== additions.length || !ids.every(Number.isSafeInteger))
+          throw new Error('거래 번호를 발급하지 못했습니다.');
+        for (let i = 0; i < additions.length; i++) {
+          rows.push({ ...additions[i], id: ids[i] });
         }
         args[0] = { ...batch, add: rows };
       }
       const result = await cache[name](...args);
-      const snapshot = await cache.exportHallapaDbSnapshot();
-      validate(snapshot); notice('인터넷에 저장 중…');
+      let snapshot, changes;
+      if (['addTransaction','updateTransaction','deleteTransaction','saveTransactionBatch'].includes(name)) {
+        const normalizeId = id => typeof id === 'string' && /^\d+$/.test(id.trim()) ? Number(id) : id;
+        const ids = name === 'saveTransactionBatch'
+          ? [...(args[0].remove || []).map(normalizeId), ...(args[0].add || []).map(row => row.id)]
+          : [name === 'deleteTransaction' ? normalizeId(args[0]) : args[0].id];
+        const keys = [...new Set(ids)], touched = new Set(keys.map(id => recordToken('transactions', id)));
+        changes = [];
+        for (const key of keys) {
+          const data = await cache.getTransactionById(key);
+          changes.push({ store: 'transactions', key, data, expected_version: versions.get(recordToken('transactions', key)) || 0 });
+        }
+        // Read and compare only touched rows. Keep all untouched UI baselines intact.
+        const rows = (state.snapshot.stores.transactions || []).filter(row => !touched.has(recordToken('transactions', row.id)));
+        rows.push(...changes.filter(change => change.data !== null).map(change => change.data));
+        snapshot = { ...state.snapshot, meta: { ...state.snapshot.meta, exportedAt: new Date().toISOString() },
+          stores: { ...state.snapshot.stores, transactions: rows } };
+      } else {
+        snapshot = await cache.exportHallapaDbSnapshot();
+        validate(snapshot);
+        changes = changedRecords(state.snapshot, snapshot, versions);
+      }
+      notice('인터넷에 저장 중…');
       const action = name === 'restoreHallapaDbSnapshot' ? (state.revision === 0 ? 'initialize' : 'restore') : 'edit';
-      const changes = changedRecords(state.snapshot, snapshot, versions);
       try {
         if (action === 'edit') {
           if (!changes.length) { notice('저장할 변경 내용이 없습니다.'); return result; }
@@ -144,7 +166,7 @@ if (state.revision === 0 && state.role === 'owner') {
     try {
       if (!indexedDB.databases) throw new Error('이 브라우저에서는 전체백업 파일을 선택해 주세요.');
       if (!(await indexedDB.databases()).some(db => db.name === 'hallapa_db')) throw new Error('이 기기에 기존 장부자료가 없습니다. 전체백업 파일을 선택해 주세요.');
-      const local = await import('./db-local.js?v=ledger-atomic-20261010-1'); await upload(await local.exportHallapaDbSnapshot());
+      const local = await import('./db-local.js?v=ledger-fast-20261010-1'); await upload(await local.exportHallapaDbSnapshot());
     } catch (error) { window.alert(friendlyError(error)); }
   };
 }
@@ -166,6 +188,7 @@ setInterval(() => {
   });
 }, 15000);
 export const getTransactions = (...args) => cloudCall('getTransactions', args);
+export const getTransactionById = (...args) => cloudCall('getTransactionById', args);
 export const addTransaction = (...args) => cloudCall('addTransaction', args);
 export const saveTransactionBatch = (...args) => cloudCall('saveTransactionBatch', args);
 export const updateTransaction = (...args) => cloudCall('updateTransaction', args);

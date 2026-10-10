@@ -495,6 +495,16 @@ async function getTransactions() {
   return getAll(STORE_TRANSACTIONS);
 }
 
+async function getTransactionById(id) {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORE_TRANSACTIONS, 'readonly');
+    const request = transaction.objectStore(STORE_TRANSACTIONS).get(id);
+    request.onsuccess = () => resolve(request.result || null);
+    request.onerror = () => reject(request.error);
+  });
+}
+
 async function getCustomerById(id) {
   if (!id) return null;
   const db = await openDb();
@@ -1468,6 +1478,7 @@ async function restoreHallapaDbSnapshot(snapshot, options = {}) {
 
 export {
   getTransactions,
+  getTransactionById,
   addTransaction,
   saveTransactionBatch,
   updateTransaction,

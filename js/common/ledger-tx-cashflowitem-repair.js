@@ -3,9 +3,9 @@ import {
   getCashflowItems,
   getCashflowTypes,
   putLedgerTx,
-} from "../db.js?v=ledger-atomic-20261010-1";
-import { ensureLedgerTxKeys } from "./ledger-tx-normalizer.js?v=ledger-atomic-20261010-1";
-import { stripCodePrefix } from "./util.js?v=ledger-atomic-20261010-1";
+} from "../db.js?v=ledger-fast-20261010-1";
+import { ensureLedgerTxKeys } from "./ledger-tx-normalizer.js?v=ledger-fast-20261010-1";
+import { stripCodePrefix } from "./util.js?v=ledger-fast-20261010-1";
 
 // 결제관리에서 사용하던 백필과 동일 키/버전으로 맞춰, 어느 페이지에서든 1회만 수행되게 한다.
 const BACKFILL_CASHFLOW_ITEM_VERSION = "2026-03-14-cashflowItem-repair-v1";

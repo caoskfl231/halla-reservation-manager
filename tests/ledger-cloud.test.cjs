@@ -7,6 +7,7 @@ const snapshot = () => ({meta:{dbName:'hallapa_db',dbVersion:13,exportedAt:new D
 const copy = x=>structuredClone(x);
 let remote={snapshot:snapshot(),revision:1,role:'owner',updated_at:new Date().toISOString()}, loseResponse=false;
 let nextId=1000000000000, nextVersion=1, recordVersions=new Map();
+let fullExports=0, batchReservations=0;
 function withVersions(){return copy({...remote,row_versions:[...recordVersions].map(([token,version])=>{const [store,key]=JSON.parse(token);return {store,key,version};})});}
 async function client(){
  let local;
@@ -15,8 +16,9 @@ async function client(){
  const context=vm.createContext({console,Set,Map,Date,JSON,Promise,Error,Object,Array,String,Number,setInterval(){},document:{visibilityState:'visible',body:el(),createElement:el,getElementById(id){if(!elements.has(id))elements.set(id,el());return elements.get(id);}},window:{confirm(){return true;}},location:{reload(){}},indexedDB:{},structuredClone});
  const cacheFns=Object.fromEntries(exportedNames.map(name=>[name,async(...args)=>{
   if(name==='restoreHallapaDbSnapshot'){local=copy(args[0]);return;}
-  if(name==='exportHallapaDbSnapshot')return copy(local);
+  if(name==='exportHallapaDbSnapshot'){fullExports++;return copy(local);}
   if(name==='getTransactions')return copy(local.stores.transactions||[]);
+  if(name==='getTransactionById')return copy(local.stores.transactions.find(row=>row.id===args[0])||null);
   if(name==='getItems')return copy(local.stores.items||[]);
   if(name==='getCustomers')return copy(local.stores.customers||[]);
   if(name==='addTransaction'){let row=copy(args[0]);row.id=row.id||local.stores.transactions.length+1;local.stores.transactions.push(row);return;}
@@ -29,6 +31,7 @@ async function client(){
  const sessionFns={requireLedgerSession:async()=>withVersions(),friendlyError:e=>e.message,signOut:async()=>{},rpc:async(name,body)=>{
   if(name==='halla_ledger_read')return withVersions();
   if(name==='halla_ledger_reserve_transaction_id')return nextId++;
+  if(name==='halla_ledger_reserve_transaction_ids'){batchReservations++;return Array.from({length:body.p_count},()=>nextId++);}
   const previousRevision=remote.revision;
   if(name==='halla_ledger_patch_compact'){
    for(const change of body.p_changes){const token=JSON.stringify([change.store,change.key]);if((recordVersions.get(token)||0)!==change.expected_version)throw Error('LEDGER_RECORD_CONFLICT');}
@@ -66,6 +69,8 @@ async function client(){
  await batchClient.saveTransactionBatch({add:[{amount:307580},{amount:127325},{amount:42960},{amount:46920}]});
  assert.equal(remote.revision,oldRevision+1,'four rows commit once');
  assert.equal(remote.snapshot.stores.transactions.slice(-4).reduce((n,r)=>n+r.amount,0),524785,'four amounts all retained');
+ assert.equal(batchReservations,1,'one ID reservation request for all invoice rows');
+ assert.equal(fullExports,0,'transaction save never exports or diffs the full ledger');
  const batchIds=remote.snapshot.stores.transactions.slice(-4).map(r=>r.id);
  await batchClient.saveTransactionBatch({remove:batchIds});
  assert.equal(remote.snapshot.stores.transactions.length,2,'batch cleanup atomic');
@@ -90,6 +95,13 @@ async function client(){
  assert.equal(remote.snapshot.stores.transactions.length,2,'response lost after committed insert');
  await assert.rejects(e.addTransaction({totalAmount:3000}),/최신/);
  assert.equal(remote.snapshot.stores.transactions.length,2,'no automatic duplicate retry');
+ assert.equal(fullExports,0,'insert/edit/delete and conflicts all avoid full exports');
+ const g=await client(),countBeforeBatch=remote.snapshot.stores.transactions.length;
+ loseResponse=true;
+ await assert.rejects(g.saveTransactionBatch({add:[{amount:1},{amount:2},{amount:3},{amount:4}]}),/network/);
+ assert.equal(remote.snapshot.stores.transactions.length,countBeforeBatch+4,'lost batch response still leaves all four or none');
+ await assert.rejects(g.saveTransactionBatch({add:[{amount:1}]}),/최신/);
+ assert.equal(remote.snapshot.stores.transactions.length,countBeforeBatch+4,'uncertain batch cannot be replayed');
  remote={snapshot:snapshot(),revision:0,role:'owner',updated_at:new Date().toISOString()};recordVersions.clear();
  const f=await client();await assert.rejects(f.addTransaction({totalAmount:1}),/먼저/);
  const bad=snapshot();bad.stores.transactions=[{id:1},{id:1}];

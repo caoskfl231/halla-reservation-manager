@@ -1,5 +1,5 @@
 // 공통 UI 헬퍼 모음
-import { formatMoney } from './util.js?v=ledger-atomic-20261010-1';
+import { formatMoney } from './util.js?v=ledger-fast-20261010-1';
 
 function parseSignedNumberFromText(text) {
   let t = String(text || '').trim();

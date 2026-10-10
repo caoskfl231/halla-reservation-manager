@@ -56,7 +56,7 @@ export async function accessToken() {
   return refreshing;
 }
 export async function rpc(name, body = {}) {
-  return request('/rest/v1/rpc/' + name, body, await accessToken(), ['halla_ledger_save','halla_ledger_import_finish','halla_ledger_patch_compact'].includes(name) ? 120000 : 30000);
+  return request('/rest/v1/rpc/' + name, body, await accessToken(), ['halla_ledger_save','halla_ledger_import_finish','halla_ledger_patch_compact','halla_ledger_read'].includes(name) ? 120000 : 30000);
 }
 export async function signOut() {
   const current = session();
