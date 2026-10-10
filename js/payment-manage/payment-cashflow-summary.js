@@ -1,4 +1,4 @@
-import { bindClickRowSelect } from "../common/ui-helpers.js?v=app-20261010-11";
+import { bindClickRowSelect } from "../common/ui-helpers.js?v=app-20261010-12";
 
 let currentCashflowSummarySelectRef = null;
 
@@ -101,6 +101,8 @@ export async function renderCashflowSummaryTable(options = {}) {
     setSelectedCashflowCurrentBalance,
     setMainTxFilterCode,
     getAllLedgerTx,
+    ledgerTransactions,
+    balancesLoaded = true,
     render,
   } = options;
 
@@ -168,7 +170,9 @@ export async function renderCashflowSummaryTable(options = {}) {
     openingByType.set(typeCode, prev + opening);
   });
 
-  const txAll = await getAllLedgerTx();
+  const txAll = Array.isArray(ledgerTransactions)
+    ? ledgerTransactions
+    : await getAllLedgerTx();
   const sumByType = new Map();
   const cutoff = String(cutoffDate || "").trim();
   const cutoffYmd = normalizeYmd(cutoff);
@@ -256,7 +260,7 @@ export async function renderCashflowSummaryTable(options = {}) {
     tr.innerHTML = `
         <td>${t.code || ""}</td>
         <td>${t.name || ""}</td>
-        <td class="right${isMinus ? " minus" : ""}">${bal.toLocaleString()}</td>
+        <td class="right${isMinus ? " minus" : ""}">${balancesLoaded ? bal.toLocaleString() : "—"}</td>
       `;
 
     // 선택 상태 표시
@@ -268,7 +272,7 @@ export async function renderCashflowSummaryTable(options = {}) {
   });
 
   if (cashflowTotalSpan) {
-    cashflowTotalSpan.textContent = total.toLocaleString();
+    cashflowTotalSpan.textContent = balancesLoaded ? total.toLocaleString() : "—";
   }
 }
 
