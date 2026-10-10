@@ -245,3 +245,18 @@
   body .trn-filter-left > div { flex:1 1 100%; width:100%; }
   body .trn-filter-left > div > button { width:100%; min-height:44px; }
 }
+
+/* Four account-category actions share one full-width row on mobile. */
+@media screen and (max-width:900px) {
+  body .cashflow-type-card h2.card-header-split {
+    grid-template-columns:minmax(0,1fr); gap:8px; margin-bottom:12px;
+  }
+  body .cashflow-type-card .card-header-split .customer-header-buttons {
+    grid-column:1 / -1; grid-row:2; justify-self:stretch;
+    grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px;
+  }
+  body .cashflow-type-card .card-header-split .customer-header-buttons .btn-row-btn {
+    width:100%; min-width:0; height:44px; padding:8px 2px;
+    font-size:13px; white-space:nowrap;
+  }
+}
