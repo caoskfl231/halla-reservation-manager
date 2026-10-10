@@ -7,9 +7,9 @@ import {
   enableTableArrowNavigation,
   bindDblClickRowEdit,
   bindClickRowSelect,
-} from "../common/ui-helpers.js?v=app-20261010-15";
-import { confirmDialog, warningDialog } from "../common/dialogs.js?v=app-20261010-15";
-import { getNextItemGroupCode } from "./item-utils.js?v=app-20261010-15";
+} from "../common/ui-helpers.js?v=app-20261010-16";
+import { confirmDialog, warningDialog } from "../common/dialogs.js?v=app-20261010-16";
+import { getNextItemGroupCode } from "./item-utils.js?v=app-20261010-16";
 
 export function createItemGroupManager(options) {
   const {

@@ -1,11 +1,11 @@
-import { generateItemId } from "./item-utils.js?v=app-20261010-15";
+import { generateItemId } from "./item-utils.js?v=app-20261010-16";
 import {
   formatPercent,
   calcShrinkPrice,
   calcPriceFromMargin,
   calcMarginFromPrice,
-} from "./price-utils.js?v=app-20261010-15";
-import { warningDialog } from "../common/dialogs.js?v=app-20261010-15";
+} from "./price-utils.js?v=app-20261010-16";
+import { warningDialog } from "../common/dialogs.js?v=app-20261010-16";
 
 export function createItemFormManager(options) {
   const DEFAULT_SHRINK_PERCENT = 10;

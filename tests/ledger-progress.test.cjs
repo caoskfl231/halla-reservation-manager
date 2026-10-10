@@ -8,11 +8,13 @@ test('top progress bar uses real counts, reaches 100 only on completion, and cle
     const n = { tag, style: {}, attrs: {}, children: [], textContent: '', setAttribute(k,v) { this.attrs[k] = v; }, append(...xs) { this.children.push(...xs); }, remove() { this.removed = true; } };
     nodes.push(n); return n;
   };
-  const context = vm.createContext({ document: { createElement: element, body: { append() {} } }, addEventListener: (name, fn) => listeners.set(name, fn), removeEventListener: name => listeners.delete(name) });
+  const prepended = [];
+  const context = vm.createContext({ document: { createElement: element, body: { prepend(node) { prepended.push(node); } } }, addEventListener: (name, fn) => listeners.set(name, fn), removeEventListener: name => listeners.delete(name) });
   const source = fs.readFileSync('js/cloud-session.js', 'utf8');
   vm.runInContext(source.slice(source.indexOf('function loadingPanel()'), source.indexOf('export async function request')), context);
   const ui = context.loadingPanel();
-  assert.match(ui.panel.style.cssText, /top:0;left:0;right:0/);
+  assert.match(ui.panel.style.cssText, /position:sticky;top:0/);
+  assert.equal(prepended[0], ui.panel);
   assert(!ui.panel.style.cssText.includes('inset:0'));
   const percent = nodes.find(node => node.tag === 'span');
   assert.equal(percent.textContent, '0%');

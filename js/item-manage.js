@@ -12,17 +12,17 @@ import {
   updateItemGroup,
   deleteItemGroup,
   renameItemGroupNameInItems,
-} from "./db.js?v=app-20261010-15";
-import { createItemGroupManager } from "./item-manage/item-group-manager.js?v=app-20261010-15";
-import { createItemListManager } from "./item-manage/item-list-manager.js?v=app-20261010-15";
-import { createItemFormManager } from "./item-manage/item-form-manager.js?v=app-20261010-15";
-import { createItemActionsManager } from "./item-manage/item-actions-manager.js?v=app-20261010-15";
-import { createModalManager } from "./common/modal-manager.js?v=app-20261010-15";
-import { bindDblClickRowEdit } from "./common/ui-helpers.js?v=app-20261010-15";
-import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261010-15";
-import { generateItemId, getNextItemGroupCode } from "./item-manage/item-utils.js?v=app-20261010-15";
-import { loadItemsFromJson } from "./item-manage/item-data-loader.js?v=app-20261010-15";
-import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261010-15";
+} from "./db.js?v=app-20261010-16";
+import { createItemGroupManager } from "./item-manage/item-group-manager.js?v=app-20261010-16";
+import { createItemListManager } from "./item-manage/item-list-manager.js?v=app-20261010-16";
+import { createItemFormManager } from "./item-manage/item-form-manager.js?v=app-20261010-16";
+import { createItemActionsManager } from "./item-manage/item-actions-manager.js?v=app-20261010-16";
+import { createModalManager } from "./common/modal-manager.js?v=app-20261010-16";
+import { bindDblClickRowEdit } from "./common/ui-helpers.js?v=app-20261010-16";
+import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261010-16";
+import { generateItemId, getNextItemGroupCode } from "./item-manage/item-utils.js?v=app-20261010-16";
+import { loadItemsFromJson } from "./item-manage/item-data-loader.js?v=app-20261010-16";
+import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261010-16";
 
 bootstrapPageCommon({
   page: "item",

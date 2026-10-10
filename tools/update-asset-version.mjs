@@ -44,11 +44,20 @@ export function updateAssetVersions(root = projectRoot, check = false) {
     throw new Error('asset-version.json: version must contain only letters, numbers, _ or -');
   }
   const changed = [];
+  // 메뉴를 HTML에 포함해 DB 인증이나 별도 fetch를 기다리지 않고 화면 틀을 그린다.
+  const navPath = join(root, 'common/nav.html');
+  const nav = existsSync(navPath) ? rewriteNavigationReferences(readFileSync(navPath, 'utf8'), root, version).trim() : '';
   for (const path of sourceFiles(root)) {
     const source = readFileSync(path, 'utf8');
     let updated = rewriteAssetReferences(source, path, root, version);
     if (relative(root, path).replaceAll(sep, '/') === 'common/nav.html') {
       updated = rewriteNavigationReferences(updated, root, version);
+    }
+    if (nav && dirname(path) === root && extname(path) === '.html') {
+      const title = updated.match(/data-title="([^"]*)"/)?.[1];
+      const pageNav = title ? nav.replace('>할라장부관리</h1>', '>' + title + '</h1>') : nav;
+      updated = updated.replace(/<div id="global-nav-include">(?:\s*<!-- navigation:start -->[\s\S]*?<!-- navigation:end -->\s*)?<\/div>/,
+        '<div id="global-nav-include"><!-- navigation:start -->\n' + pageNav + '\n<!-- navigation:end --></div>');
     }
     if (updated === source) continue;
     changed.push(relative(root, path));

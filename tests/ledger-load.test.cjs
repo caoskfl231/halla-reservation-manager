@@ -4,7 +4,7 @@ const tick=()=>new Promise(r=>setImmediate(r));
  const values=new Map(),local=new Map(),redirects=[],nodes=[];
  const storage=map=>({getItem:k=>map.get(k)||null,setItem:(k,v)=>map.set(k,v),removeItem:k=>map.delete(k)});
  const createElement=tag=>{const n={tag,textContent:'',hidden:false,disabled:false,style:{},setAttribute(){},append(){},remove(){this.removed=true;}};nodes.push(n);return n;};
- const context=vm.createContext({console,Date,JSON,Error,AbortSignal,URLSearchParams,document:{createElement,body:{append(){}}},sessionStorage:storage(values),localStorage:storage(local),location:{search:'',pathname:'/sales-manage.html',replace:x=>redirects.push(x)}});
+ const context=vm.createContext({console,Date,JSON,Error,AbortSignal,URLSearchParams,document:{createElement,body:{prepend(){}}},sessionStorage:storage(values),localStorage:storage(local),location:{search:'',pathname:'/sales-manage.html',replace:x=>redirects.push(x)}});
  const mod=new vm.SourceTextModule(fs.readFileSync('js/cloud-session.js','utf8'),{context});await mod.link(()=>{});await mod.evaluate();const c=mod.namespace;
  c.keepSession({access_token:'valid',refresh_token:'r',expires_in:3600},true);
  let calls=0;context.fetch=async()=>{calls++;if(calls===1)throw Error('signal timed out');return {ok:true,json:async()=>({revision:7,snapshot:{stores:{}}})};};

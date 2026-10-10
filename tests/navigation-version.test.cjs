@@ -16,3 +16,14 @@ test('menu URLs have the current deployment version and retain the active menu i
  assert.equal(anchors[3].attrs['aria-current'],'page');
  assert.match(source,/fetch\(url, \{ cache: "no-store" \}\)/);
 });
+
+test('every ledger screen includes its menu before scripts or database requests finish',()=>{
+ const nav=fs.readFileSync('common/nav.html','utf8');
+ for(const match of nav.matchAll(/href="([^"?]+)\?v=/g)){
+  const html=fs.readFileSync(match[1],'utf8');
+  const menu=html.match(/<!-- navigation:start -->([\s\S]*?)<!-- navigation:end -->/);
+  assert(menu,match[1]);
+  assert.equal([...menu[1].matchAll(/<a href=/g)].length,9,match[1]);
+  assert(html.indexOf('navigation:start')<html.indexOf('<main'),match[1]);
+ }
+});

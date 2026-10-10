@@ -60,7 +60,7 @@ function loadingPanel() {
   const panel = document.createElement('section');
   panel.setAttribute('role', 'status');
   panel.setAttribute('aria-live', 'polite');
-  panel.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:100000;background:#f3f5f8;border-bottom:1px solid #c7d2df;padding:8px 16px;box-sizing:border-box;box-shadow:0 2px 8px #0002;color:#172231;font:14px system-ui,sans-serif';
+  panel.style.cssText = 'position:sticky;top:0;z-index:100000;background:#f3f5f8;border-bottom:1px solid #c7d2df;padding:8px 16px;box-sizing:border-box;box-shadow:0 2px 8px #0002;color:#172231;font:14px system-ui,sans-serif';
   const title = document.createElement('strong'); title.textContent = '장부 불러오기';
   const message = document.createElement('p'); message.style.cssText = 'margin:4px 0;font-size:13px';
   const skeleton = document.createElement('div');
@@ -86,7 +86,7 @@ function loadingPanel() {
   globalThis.addEventListener?.('ledger:load-progress',progress);
   const retry = document.createElement('button'); retry.textContent = '다시 불러오기'; retry.hidden = true;
   retry.style.cssText = 'min-height:40px;border:0;border-radius:6px;padding:0 16px;background:#153a60;color:white;font:inherit;font-weight:700;cursor:pointer';
-  panel.append(title, message, skeleton, retry); document.body.append(panel);
+  panel.append(title, message, skeleton, retry); document.body.prepend(panel);
   return { panel, message, retry, skeleton, setProgress, cleanup(){globalThis.removeEventListener?.('ledger:load-progress',progress);} };
 }
 let cacheProgressUI;

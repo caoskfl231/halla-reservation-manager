@@ -43,7 +43,7 @@ async function initGlobalSearchIfEnabled() {
       : "";
   if (enabled !== "1") return;
 
-  const mod = await import("./global-search.js?v=app-20261010-15");
+  const mod = await import("./global-search.js?v=app-20261010-16");
   if (mod && typeof mod.initGlobalSearch === "function") {
     mod.initGlobalSearch();
   }
@@ -54,8 +54,10 @@ export async function loadGlobalNav() {
   if (!container) return;
 
   try {
-    const html = await loadNavHtml();
-    container.innerHTML = html;
+    if (!container.querySelector('.top-bar')) {
+      const html = await loadNavHtml();
+      container.innerHTML = html;
+    }
     applyPageTitle(container);
     applyCurrentNavLink(container);
     await initGlobalSearchIfEnabled();
