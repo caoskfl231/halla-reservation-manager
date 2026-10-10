@@ -1,4 +1,4 @@
-import { bindClickRowSelect, bindDblClickRowConfirm } from "../common/ui-helpers.js?v=ledger-history-20261010-1";
+import { bindClickRowSelect, bindDblClickRowConfirm } from "../common/ui-helpers.js?v=ledger-import-20261010-1";
 
 export async function renderPaymentLedgerModalTable(options = {}) {
   const {

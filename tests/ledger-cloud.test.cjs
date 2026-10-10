@@ -83,7 +83,9 @@ async function client(){
  const f=await client();await assert.rejects(f.addTransaction({totalAmount:1}),/먼저/);
  const bad=snapshot();bad.stores.transactions=[{id:1},{id:1}];
  await assert.rejects(f.restoreHallapaDbSnapshot(bad),/중복/);assert.equal(remote.revision,0);
- const valid=snapshot();valid.stores.transactions=[{id:7,totalAmount:1234}];
+ const valid=snapshot();valid.stores.transactions=[{id:7,totalAmount:1234}];valid.stores.sales_quotes=[{id:'quote-test',name:'keep'}];
  await f.restoreHallapaDbSnapshot(valid);assert.equal(remote.revision,1);assert.equal(remote.snapshot.stores.transactions[0].id,7);
+ await f.addTransaction({totalAmount:200});
+ assert.equal(remote.snapshot.stores.sales_quotes[0].id,'quote-test','sales quotes survive import and later trade saves');
  console.log('PASS: distinct-device inserts/edits, unique IDs, same-row conflicts, stale baseline after unrelated save, tombstones, lost-response retry prevention, initial import');
 })().catch(error=>{console.error(error);process.exitCode=1;});

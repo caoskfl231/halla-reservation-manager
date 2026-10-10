@@ -42,7 +42,7 @@ async function initGlobalSearchIfEnabled() {
       : "";
   if (enabled !== "1") return;
 
-  const mod = await import("./global-search.js?v=ledger-history-20261010-1");
+  const mod = await import("./global-search.js?v=ledger-import-20261010-1");
   if (mod && typeof mod.initGlobalSearch === "function") {
     mod.initGlobalSearch();
   }

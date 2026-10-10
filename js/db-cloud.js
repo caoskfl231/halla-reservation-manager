@@ -1,8 +1,8 @@
-import * as cache from './db-cloud-cache.js?v=ledger-history-20261010-1';
-import { rpc, requireLedgerSession, friendlyError, signOut } from './cloud-session.js?v=ledger-history-20261010-1';
-import { emitAppEvent } from './common/app-events.js?v=ledger-history-20261010-1';
-import { changedRecords, recordToken, versionMap, sameRecords } from './cloud-records.js?v=ledger-history-20261010-1';
-import { installBackupPanel } from './ledger-backups.js?v=ledger-history-20261010-1';
+import * as cache from './db-cloud-cache.js?v=ledger-import-20261010-1';
+import { rpc, requireLedgerSession, friendlyError, signOut } from './cloud-session.js?v=ledger-import-20261010-1';
+import { emitAppEvent } from './common/app-events.js?v=ledger-import-20261010-1';
+import { changedRecords, recordToken, versionMap, sameRecords } from './cloud-records.js?v=ledger-import-20261010-1';
+import { installBackupPanel } from './ledger-backups.js?v=ledger-import-20261010-1';
 let state = await requireLedgerSession();
 await cache.restoreHallapaDbSnapshot(state.snapshot);
 let versions = versionMap(state.row_versions);
@@ -22,7 +22,7 @@ function validate(snapshot) {
       !snapshot.stores || typeof snapshot.stores !== 'object' || Array.isArray(snapshot.stores))
     throw new Error('할라 장부 전체백업 JSON 파일을 선택해 주세요.');
   const codes = new Set(['customer_types','customer_groups','item_groups','cashflow_items','cashflow_types','cashflow_groups']);
-  const ids = new Set(['transactions','users','customers','items','ledger_tx']);
+  const ids = new Set(['transactions','users','customers','items','ledger_tx','sales_quotes']);
   for (const [name, rows] of Object.entries(snapshot.stores)) {
     if (!codes.has(name) && !ids.has(name)) throw new Error('알 수 없는 장부 항목: ' + name);
     if (!Array.isArray(rows)) throw new Error('백업 항목 형식이 올바르지 않습니다: ' + name);
@@ -128,7 +128,7 @@ if (state.revision === 0 && state.role === 'owner') {
     try {
       if (!indexedDB.databases) throw new Error('이 브라우저에서는 전체백업 파일을 선택해 주세요.');
       if (!(await indexedDB.databases()).some(db => db.name === 'hallapa_db')) throw new Error('이 기기에 기존 장부자료가 없습니다. 전체백업 파일을 선택해 주세요.');
-      const local = await import('./db-local.js?v=ledger-history-20261010-1'); await upload(await local.exportHallapaDbSnapshot());
+      const local = await import('./db-local.js?v=ledger-import-20261010-1'); await upload(await local.exportHallapaDbSnapshot());
     } catch (error) { window.alert(friendlyError(error)); }
   };
 }
