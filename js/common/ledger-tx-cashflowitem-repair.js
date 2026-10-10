@@ -3,9 +3,9 @@ import {
   getCashflowItems,
   getCashflowTypes,
   putLedgerTx,
-} from "../db.js?v=app-20261010-4";
-import { ensureLedgerTxKeys } from "./ledger-tx-normalizer.js?v=app-20261010-4";
-import { stripCodePrefix } from "./util.js?v=app-20261010-4";
+} from "../db.js?v=app-20261010-5";
+import { ensureLedgerTxKeys } from "./ledger-tx-normalizer.js?v=app-20261010-5";
+import { stripCodePrefix } from "./util.js?v=app-20261010-5";
 
 // 결제관리에서 사용하던 백필과 동일 키/버전으로 맞춰, 어느 페이지에서든 1회만 수행되게 한다.
 const BACKFILL_CASHFLOW_ITEM_VERSION = "2026-03-14-cashflowItem-repair-v1";
@@ -15,6 +15,13 @@ let inFlight = false;
 
 export async function repairLedgerTxCashflowItemFieldsIfNeeded({ debug = false } = {}) {
   if (inFlight) return;
+
+  const cleanName = (s) => {
+    const n = stripCodePrefix(String(s || "")).trim();
+    // 코드만 덩그러니 들어온 값(A05, A0001 등)은 "이름"으로 취급하지 않는다.
+    if (/^A\d{2}$/.test(n) || /^A\d{4,}$/.test(n)) return "";
+    return n;
+  };
 
   // localStorage로 "1회 실행"을 기록해도, 이후 신규 레코드에 cashflowItemCode 누락이
   // 생길 수 있으므로(과거/레거시/외부 import 등), 필요하면 다시 실행한다.
@@ -50,7 +57,7 @@ export async function repairLedgerTxCashflowItemFieldsIfNeeded({ debug = false }
           const rawItemCode = String(tx.cashflowItemCode || "").trim();
           const rawItemName = String(tx.cashflowItemName || "").trim();
           const hasValidItemCode = rawItemCode && codeSet.has(rawItemCode);
-          const hasAnyItemName = rawItemName.length > 0;
+          const hasAnyItemName = !!cleanName(rawItemName);
           return !hasValidItemCode || !hasAnyItemName;
         });
 
@@ -109,13 +116,6 @@ export async function repairLedgerTxCashflowItemFieldsIfNeeded({ debug = false }
     const isTypeCodeLike = (s) => {
       const v = String(s || "").trim();
       return !!v && /^A\d{2}$/.test(v);
-    };
-
-    const cleanName = (s) => {
-      const n = stripCodePrefix(String(s || "")).trim();
-      // 코드만 덩그러니 들어온 값(A05, A0001 등)은 "이름"으로 취급하지 않는다.
-      if (/^A\d{2}$/.test(n) || /^A\d{4,}$/.test(n)) return "";
-      return n;
     };
 
     const findUniqueItemByName = (name) => {

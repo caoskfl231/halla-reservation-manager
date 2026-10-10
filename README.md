@@ -53,6 +53,7 @@ GitHub Pages는 화면과 프로그램 파일을 제공하고, Supabase는 로�
 | `js/db.js` | 공용 DB 진입점: 현재 `db-cloud.js`를 내보냄 |
 | `js/db-cloud.js`, `js/db-cloud-cache.js` | 서버 저장·조회와 편집용 임시 저장소 |
 | `js/db-local.js` | 이전 PC 장부자료 읽기·이전용 모듈 |
+| `js/indexeddb-adapter.js` | PC 자료·공용 장부 캐시가 공유하는 IndexedDB 구현 |
 | `js/cloud-session.js`, `js/ledger-login.js` | 로그인·권한 확인·로딩 화면 |
 | `js/cloud-records.js`, `js/cloud-import.js` | 거래별 저장·분할 자료 가져오기 |
 | `js/ledger-read-cache.js` | 사용자별 다운로드 캐시·변경분 동기화 |
@@ -65,6 +66,10 @@ GitHub Pages는 화면과 프로그램 파일을 제공하고, Supabase는 로�
 | `tests/` | 동작 검증 스크립트·SQL |
 | `asset-version.json` | CSS·JS 캐시 버전의 단일 관리 파일 |
 | `tools/update-asset-version.mjs` | CSS·JS 주소의 버전을 일괄 갱신·검사 |
+
+PC 자료와 공용 장부 임시 저장소는 `indexeddb-adapter.js`의 공통 구현을 사용하되,
+저장소 이름·연결 수명·변경 이벤트·백업 오류 정책은 각각의 래퍼에서 설정합니다.
+결제·매입·지출·입출금 화면의 원장 항목 보정은 `js/common/ledger-tx-cashflowitem-repair.js`를 사용합니다.
 
 비슷한 이름의 파일도 서로 다른 역할을 할 수 있습니다.
 특히 `db-local.js`는 이전 자료를 옮길 때 필요하므로 구버전이라는 이유만으로 삭제하지 않습니다.

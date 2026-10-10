@@ -1,3 +1,4 @@
+import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261010-5";
 import {
   getCustomers,
   getCustomerTypes,
@@ -11,7 +12,7 @@ import {
   putLedgerTx,
   deleteLedgerTxById,
   migrateLegacyLedgerTxIfNeeded,
-} from "./db.js?v=app-20261010-4";
+} from "./db.js?v=app-20261010-5";
 import {
   openModalOverlay,
   closeModalOverlay,
@@ -22,8 +23,8 @@ import {
   applyAmountColoring,
   bindDblClickRowEdit,
   bindClickRowSelect,
-} from "./common/ui-helpers.js?v=app-20261010-4";
-import { createModalManager } from "./common/modal-manager.js?v=app-20261010-4";
+} from "./common/ui-helpers.js?v=app-20261010-5";
+import { createModalManager } from "./common/modal-manager.js?v=app-20261010-5";
 import {
   todayYMD,
   formatWeekdayLabel,
@@ -33,49 +34,49 @@ import {
   parseNumber,
   isPaymentLinkedTransaction,
   stripCodePrefix,
-} from "./common/util.js?v=app-20261010-4";
-import { initDateFilter } from "./common/date-filter.js?v=app-20261010-4";
-import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261010-4";
-import { confirmDialog } from "./common/dialogs.js?v=app-20261010-4";
-import { openLedgerPicker } from "./common/ledger-picker.js?v=app-20261010-4";
-import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261010-4";
+} from "./common/util.js?v=app-20261010-5";
+import { initDateFilter } from "./common/date-filter.js?v=app-20261010-5";
+import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261010-5";
+import { confirmDialog } from "./common/dialogs.js?v=app-20261010-5";
+import { openLedgerPicker } from "./common/ledger-picker.js?v=app-20261010-5";
+import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261010-5";
 import {
   confirmAnyDuplicateLedgerBatchesBeforeSave,
   confirmAnyDuplicateSimplePaymentTransactionsBeforeSave,
   confirmDuplicateLedgerBatchBeforeSave,
   findAnyDuplicateLedgerBatchesBeforeSave,
   findAnyDuplicateSimplePaymentTransactionsBeforeSave,
-} from "./common/transaction-shared.js?v=app-20261010-4";
-import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=app-20261010-4";
-import { inferLedgerPaymentMethod } from "./common/payment-ledger-helpers.js?v=app-20261010-4";
-import { bindPaymentActions } from "./payment-manage/payment-actions-manager.js?v=app-20261010-4";
-import { renderPaymentMainTable } from "./payment-manage/payment-main-table.js?v=app-20261010-4";
-import { bindPaymentForm } from "./payment-manage/payment-form-manager.js?v=app-20261010-4";
-import { bindPaymentImportManager } from "./payment-manage/payment-import-manager.js?v=app-20261010-4";
-import { bindPaymentImportCustomerPicker } from "./payment-manage/payment-import-customer-manager.js?v=app-20261010-4";
-import { setPaymentFormFromTx as setPaymentFormFromTxCore } from "./payment-manage/payment-form-filler.js?v=app-20261010-4";
+} from "./common/transaction-shared.js?v=app-20261010-5";
+import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=app-20261010-5";
+import { inferLedgerPaymentMethod } from "./common/payment-ledger-helpers.js?v=app-20261010-5";
+import { bindPaymentActions } from "./payment-manage/payment-actions-manager.js?v=app-20261010-5";
+import { renderPaymentMainTable } from "./payment-manage/payment-main-table.js?v=app-20261010-5";
+import { bindPaymentForm } from "./payment-manage/payment-form-manager.js?v=app-20261010-5";
+import { bindPaymentImportManager } from "./payment-manage/payment-import-manager.js?v=app-20261010-5";
+import { bindPaymentImportCustomerPicker } from "./payment-manage/payment-import-customer-manager.js?v=app-20261010-5";
+import { setPaymentFormFromTx as setPaymentFormFromTxCore } from "./payment-manage/payment-form-filler.js?v=app-20261010-5";
 import {
   updateCashflowTypeButtons as updateCashflowTypeButtonsCore,
   renderCashflowSummaryTable as renderCashflowSummaryTableCore,
   rebuildCashflowSummaryOptions as rebuildCashflowSummaryOptionsCore,
   refreshCashflowSummary as refreshCashflowSummaryCore,
   bindCashflowSummaryEvents,
-} from "./payment-manage/payment-cashflow-summary.js?v=app-20261010-4";
-import { bindPaymentFilters } from "./payment-manage/payment-filter-manager.js?v=app-20261010-4";
-import { bindPaymentEntryPicker } from "./payment-manage/payment-entry-picker-manager.js?v=app-20261010-4";
+} from "./payment-manage/payment-cashflow-summary.js?v=app-20261010-5";
+import { bindPaymentFilters } from "./payment-manage/payment-filter-manager.js?v=app-20261010-5";
+import { bindPaymentEntryPicker } from "./payment-manage/payment-entry-picker-manager.js?v=app-20261010-5";
 import {
   resetPaymentEntryFields as resetPaymentEntryFieldsCore,
   openPaymentEntryChoiceModal as openPaymentEntryChoiceModalCore,
   closePaymentEntryChoiceModal as closePaymentEntryChoiceModalCore,
-} from "./payment-manage/payment-entry-modal-manager.js?v=app-20261010-4";
+} from "./payment-manage/payment-entry-modal-manager.js?v=app-20261010-5";
 import {
   applyPaymentLedgerSelection as applyPaymentLedgerSelectionCore,
   openPaymentLedgerModalForLedgerSelect as openPaymentLedgerModalForLedgerSelectCore,
-} from "./payment-manage/payment-ledger-picker-manager.js?v=app-20261010-4";
+} from "./payment-manage/payment-ledger-picker-manager.js?v=app-20261010-5";
 import {
   renderPaymentLedgerModalTable as renderPaymentLedgerModalTableCore,
   renderPaymentLedgerModalItemTable as renderPaymentLedgerModalItemTableCore,
-} from "./payment-manage/payment-ledger-modal-render.js?v=app-20261010-4";
+} from "./payment-manage/payment-ledger-modal-render.js?v=app-20261010-5";
 import {
   updatePaymentImportSelectedAccountLabel as updatePaymentImportSelectedAccountLabelCore,
   renderPaymentImportTable as renderPaymentImportTableCore,
@@ -84,7 +85,7 @@ import {
   applyImportCustomerSelection as applyImportCustomerSelectionCore,
   renderPaymentImportTypeList as renderPaymentImportTypeListCore,
   renderPaymentImportGroupList as renderPaymentImportGroupListCore,
-} from "./payment-manage/payment-import-list.js?v=app-20261010-4";
+} from "./payment-manage/payment-import-list.js?v=app-20261010-5";
 import {
   updatePaymentLedgerTitleByFlow as updatePaymentLedgerTitleByFlowCore,
   updateLedgerRowsByFlow as updateLedgerRowsByFlowCore,
@@ -92,7 +93,7 @@ import {
   populatePaymentLedgerSelectOptions as populatePaymentLedgerSelectOptionsCore,
   populatePaymentCounterpartySelectOptions as populatePaymentCounterpartySelectOptionsCore,
   syncCounterpartyCodeFromSelect as syncCounterpartyCodeFromSelectCore,
-} from "./payment-manage/payment-entry-ledger-helpers.js?v=app-20261010-4";
+} from "./payment-manage/payment-entry-ledger-helpers.js?v=app-20261010-5";
 import {
   parseMoney as parseMoneyCore,
   getSelectedOptionText as getSelectedOptionTextCore,
@@ -100,7 +101,7 @@ import {
   updatePaymentDateWeekday as updatePaymentDateWeekdayCore,
   inRange as inRangeCore,
   matchQ as matchQCore,
-} from "./payment-manage/payment-utils.js?v=app-20261010-4";
+} from "./payment-manage/payment-utils.js?v=app-20261010-5";
 import {
   openPaymentModal as openPaymentModalCore,
   closePaymentModal as closePaymentModalCore,
@@ -108,12 +109,12 @@ import {
   closePaymentImportModal as closePaymentImportModalCore,
   openPaymentImportCustomerModal as openPaymentImportCustomerModalCore,
   closePaymentImportCustomerModal as closePaymentImportCustomerModalCore,
-} from "./payment-manage/payment-modal-helpers.js?v=app-20261010-4";
+} from "./payment-manage/payment-modal-helpers.js?v=app-20261010-5";
 import {
   bindExcelDropdown,
   exportTableToXlsx,
   ymdCompact,
-} from "./common/excel-export.js?v=app-20261010-4";
+} from "./common/excel-export.js?v=app-20261010-5";
 
 // 공통 피커 모달(*-picker-*)은 ensureCommonPickerModals()가 동적으로 주입한다.
 
@@ -127,8 +128,6 @@ bootstrapPageCommon({
 // 운영 기본값: 백필 로그는 숨김(필요 시 true로 변경)
 const DEBUG_BACKFILL = false;
 
-const BACKFILL_CASHFLOW_ITEM_VERSION = "2026-03-14-cashflowItem-repair-v1";
-const BACKFILL_CASHFLOW_ITEM_KEY = "payment.backfill.cashflowItem";
 
 function buildLinkedTransactionMemo({ vendor, memo }) {
   const vendorText = String(vendor || "").trim();
@@ -1871,6 +1870,8 @@ async function refreshCashflowSummary() {
 }
 
 let _ledgerStandardBackfillInFlight = false;
+// payment 화면 전용: source="payment" 레코드의 표준 키와 메모 옵션을 보완한다.
+// 공용 ledger-tx-cashflowitem-repair.js는 마스터를 조회해 장부 코드·이름을 보정한다.
 async function backfillLedgerTxStandardKeysIfMissing() {
   if (_ledgerStandardBackfillInFlight) return;
   _ledgerStandardBackfillInFlight = true;
@@ -1948,6 +1949,8 @@ async function backfillLedgerTxStandardKeysIfMissing() {
 }
 
 let _ledgerFingerprintBackfillInFlight = false;
+// payment 화면 전용: source="payment" 레코드의 중복 저장 방지 fingerprint를 생성·갱신한다.
+// 공용 ledger-tx-cashflowitem-repair.js의 장부 코드·이름 보정과 역할이 다르다.
 async function backfillLedgerTxFingerprintsIfMissing() {
   if (_ledgerFingerprintBackfillInFlight) return;
   _ledgerFingerprintBackfillInFlight = true;
@@ -2069,242 +2072,6 @@ async function backfillLedgerTxFingerprintsIfMissing() {
   }
 }
 
-let _cashflowItemBackfillInFlight = false;
-async function backfillLedgerTxCashflowItemFieldsIfMissing() {
-  // 중복 실행 방지(렌더/필터 변경 등으로 여러 번 호출될 수 있음)
-  if (_cashflowItemBackfillInFlight) return;
-
-  if (!DEBUG_BACKFILL) {
-    try {
-      const done = localStorage.getItem(BACKFILL_CASHFLOW_ITEM_KEY);
-      if (done === BACKFILL_CASHFLOW_ITEM_VERSION) return;
-    } catch {
-      // ignore
-    }
-  }
-
-  _cashflowItemBackfillInFlight = true;
-  try {
-    // 마스터가 없으면 백필 불가
-    if (!Array.isArray(cashflowItems) || !cashflowItems.length) {
-      if (DEBUG_BACKFILL) {
-        console.log(
-          "[payment] ledger_tx cashflowItem 백필: cashflowItems 없음(스킵)",
-        );
-      }
-      return;
-    }
-
-    const byCode = new Map();
-    const byTypeCode = new Map();
-    cashflowItems.forEach((it) => {
-      if (!it || it.code == null) return;
-      const code = String(it.code).trim();
-      if (!code) return;
-      byCode.set(code, it);
-      const tCode = String(it.typeCode || "").trim();
-      if (!tCode) return;
-      const arr = byTypeCode.get(tCode) || [];
-      arr.push(it);
-      byTypeCode.set(tCode, arr);
-    });
-
-    const typeNameByCode = new Map();
-    if (Array.isArray(cashflowTypes)) {
-      cashflowTypes.forEach((t) => {
-        if (!t || t.code == null) return;
-        const c = String(t.code || "").trim();
-        if (!c) return;
-        typeNameByCode.set(c, String(t.name || "").trim() || c);
-      });
-    }
-
-    const txAll = await getAllLedgerTx();
-    if (!Array.isArray(txAll) || !txAll.length) {
-      if (DEBUG_BACKFILL) {
-        console.log(
-          "[payment] ledger_tx cashflowItem 백필: ledger_tx 없음(스킵)",
-        );
-      }
-      return;
-    }
-
-    let updated = 0;
-    let skipped = 0;
-    let missingCandidates = 0;
-    let updatedByFallback = 0;
-    let invalidCandidates = 0;
-    let updatedByRepair = 0;
-
-    const cleanName = (s) => {
-      const n = stripCodePrefix(String(s || "")).trim();
-      // 코드만 덩그러니 들어온 값(A05, A0011 등)은 "이름"으로 취급하지 않는다.
-      if (/^A\d{2}$/.test(n) || /^A\d{4,}$/.test(n)) return "";
-      return n;
-    };
-    const isTypeCodeLike = (s) => {
-      const v = String(s || "").trim();
-      return !!v && /^A\d{2}$/.test(v);
-    };
-    const findUniqueItemByName = (name) => {
-      const n = cleanName(name);
-      if (!n) return null;
-      const matches = (cashflowItems || []).filter(
-        (it) => cleanName(it?.name) === n,
-      );
-      if (matches.length === 1) return matches[0];
-      return null;
-    };
-
-    for (const tx of txAll) {
-      if (!tx) continue;
-      const rawItemCode = String(tx.cashflowItemCode || "").trim();
-      const rawItemName = String(tx.cashflowItemName || "").trim();
-      const hasValidItemCode = rawItemCode && byCode.has(rawItemCode);
-      const hasAnyItemName = !!cleanName(rawItemName);
-
-      // 1) 완전 정상: code도 유효하고 name도 있으면 스킵
-      if (hasValidItemCode && hasAnyItemName) continue;
-
-      // 2) code는 유효하지만 name이 비어있으면 name만 채운다.
-      if (hasValidItemCode && !hasAnyItemName) {
-        const it = byCode.get(rawItemCode);
-        if (it && it.name) {
-          tx.cashflowItemName = String(it.name || "").trim();
-          try {
-            await putLedgerTx(ensureLedgerTxKeys(tx));
-            updated += 1;
-          } catch {
-            skipped += 1;
-          }
-        }
-        continue;
-      }
-
-      // 3) code가 없거나(미입력) / code가 있는데 마스터에 없으면(오염) 보정 대상으로 본다.
-      const isMissingBoth = !rawItemCode && !rawItemName;
-      const isInvalid = !!rawItemCode && !hasValidItemCode;
-      if (isMissingBoth) missingCandidates += 1;
-      if (isInvalid) invalidCandidates += 1;
-
-      const txCashflowCode = String(tx.cashflowCode || "").trim();
-      const txAccountId = String(tx.accountId || "").trim();
-      const txAccountName = String(tx.accountName || "").trim();
-      const txAccountNameClean = stripCodePrefix(txAccountName);
-
-      let pickedItem = null;
-
-      // 0) 현재 cashflowItemName이 장부명과 정확히 일치하면 그걸 우선 사용
-      if (!pickedItem && rawItemName) {
-        const byName = findUniqueItemByName(rawItemName);
-        if (byName) pickedItem = byName;
-      }
-
-      // 1) cashflowCode가 분류항목 코드인 경우(수동 입력 등)
-      if (txCashflowCode && byCode.has(txCashflowCode)) {
-        // 단, cashflowCode가 accountId(장부구분 코드)와 동일한 경우는
-        // 대부분 "구분 코드"일 가능성이 높으므로 오인 매칭을 피한다.
-        const cand = byCode.get(txCashflowCode);
-        const candName = cand
-          ? stripCodePrefix(String(cand.name || "")).trim()
-          : "";
-        const canUseCashflowAsItem =
-          !txAccountId ||
-          txCashflowCode !== txAccountId ||
-          (txAccountNameClean && candName && candName === txAccountNameClean);
-        if (canUseCashflowAsItem) pickedItem = cand;
-      }
-
-      // 2) accountId 자체가 분류항목 코드인 경우(데이터 혼재 대비)
-      if (!pickedItem && txAccountId && byCode.has(txAccountId)) {
-        pickedItem = byCode.get(txAccountId);
-      }
-
-      // 3) accountId(장부구분) 아래에 분류항목이 1개뿐이면 그걸 사용
-      if (!pickedItem && txAccountId) {
-        const list = byTypeCode.get(txAccountId) || [];
-        if (list.length === 1) {
-          pickedItem = list[0];
-        } else if (list.length > 1 && txAccountNameClean) {
-          const nameMatched = list.find(
-            (it) =>
-              stripCodePrefix(String(it.name || "")).trim() ===
-              txAccountNameClean,
-          );
-          if (nameMatched) pickedItem = nameMatched;
-        }
-      }
-
-      // 4) 이름으로 직접 매칭(마지막 수단)
-      if (!pickedItem && txAccountNameClean) {
-        const nameMatched = cashflowItems.find(
-          (it) =>
-            stripCodePrefix(String(it.name || "")).trim() ===
-            txAccountNameClean,
-        );
-        if (nameMatched) pickedItem = nameMatched;
-      }
-
-      // 5) 장부구분 코드(A05 등)가 잘못 들어온 케이스: 해당 타입 아래 item이 1개면 그걸로 보정
-      if (!pickedItem && (isTypeCodeLike(rawItemCode) || isTypeCodeLike(txCashflowCode))) {
-        const tCode = isTypeCodeLike(rawItemCode) ? rawItemCode : txCashflowCode;
-        const list = byTypeCode.get(String(tCode || "").trim()) || [];
-        if (list.length === 1) pickedItem = list[0];
-      }
-
-      if (!pickedItem) {
-        // 마스터 매칭이 불가능하면, 최소한 화면 표시가 코드(A05)로 흔들리지 않게
-        // 타입명/계정명 기반으로만 name을 채우고(code는 유지) 저장한다.
-        // (애매한 케이스에서 잘못된 itemCode로 덮어쓰지 않기 위한 안전장치)
-        const fallbackTypeName = typeNameByCode.get(rawItemCode) || typeNameByCode.get(txAccountId) || "";
-        const fallbackName = cleanName(rawItemName) || cleanName(txAccountNameClean) || cleanName(tx.accountName) || cleanName(fallbackTypeName);
-        if (fallbackName && !cleanName(tx.cashflowItemName)) {
-          tx.cashflowItemName = String(fallbackName).trim();
-          try {
-            await putLedgerTx(ensureLedgerTxKeys(tx));
-            updated += 1;
-            updatedByFallback += 1;
-          } catch {
-            skipped += 1;
-          }
-        } else {
-          skipped += 1;
-        }
-        continue;
-      }
-
-      tx.cashflowItemCode = String(pickedItem.code || "").trim();
-      tx.cashflowItemName = String(pickedItem.name || "").trim();
-      try {
-        await putLedgerTx(ensureLedgerTxKeys(tx));
-        updated += 1;
-        updatedByRepair += 1;
-      } catch (e) {
-        // 저장 실패는 백필 실패로 간주(다음 로드에서 재시도 가능)
-        skipped += 1;
-      }
-    }
-
-    if (DEBUG_BACKFILL) {
-      console.log(
-        `[payment] ledger_tx cashflowItem 백필 완료: missing=${missingCandidates}, invalid=${invalidCandidates}, updated=${updated} (repair=${updatedByRepair}, fallback=${updatedByFallback}), skipped=${skipped}`,
-      );
-    }
-
-    if (!DEBUG_BACKFILL) {
-      try {
-        localStorage.setItem(
-          BACKFILL_CASHFLOW_ITEM_KEY,
-          BACKFILL_CASHFLOW_ITEM_VERSION,
-        );
-      } catch {
-        // ignore
-      }
-    }
-  } finally {
-    _cashflowItemBackfillInFlight = false;
-  }
-}
 
 /* =========================
    렌더(요약/표)
@@ -2780,7 +2547,7 @@ function bind() {
   // 마스터 로드(장부구분/장부명)를 먼저 수행한 뒤,
   // 기존 데이터의 장부명(cashflowItem) 누락분을 가능한 범위에서 자동 보정한다.
   await refreshCashflowSummary();
-  await backfillLedgerTxCashflowItemFieldsIfMissing();
+  await repairLedgerTxCashflowItemFieldsIfNeeded({ debug: DEBUG_BACKFILL });
   await render();
 
   installDbAutoRefresh({
