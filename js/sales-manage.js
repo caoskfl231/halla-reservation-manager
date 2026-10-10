@@ -1,4 +1,4 @@
-import { getSalesCustomerRemainingBalance } from './common/sales-customer-balance.js?v=app-20261010-8';
+import { getSalesCustomerRemainingBalance } from './common/sales-customer-balance.js?v=app-20261010-9';
 import {
   getTransactions,
   addTransaction,
@@ -16,16 +16,16 @@ import {
   deleteLedgerTxById,
   getCashflowItems,
   getCashflowTypes,
-} from "./db.js?v=app-20261010-8";
-import { sortByKey } from "./common/sortTable.js?v=app-20261010-8";
-import { applySupplierGroupFilter } from "./common/supplier-group-filter.js?v=app-20261010-8";
+} from "./db.js?v=app-20261010-9";
+import { sortByKey } from "./common/sortTable.js?v=app-20261010-9";
+import { applySupplierGroupFilter } from "./common/supplier-group-filter.js?v=app-20261010-9";
 import {
   getStoredJson,
   setStoredJson,
   getStoredString,
   setStoredString,
-} from "./common/storage.js?v=app-20261010-8";
-import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261010-8";
+} from "./common/storage.js?v=app-20261010-9";
+import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261010-9";
 import {
   openModalOverlay,
   closeModalOverlay,
@@ -42,8 +42,8 @@ import {
   resetFieldsAndFocus,
   applyAmountColoring,
   createScrollToBottomOnce,
-} from "./common/ui-helpers.js?v=app-20261010-8";
-import { createEntryTableManager } from "./common/entry-table-manager.js?v=app-20261010-8";
+} from "./common/ui-helpers.js?v=app-20261010-9";
+import { createEntryTableManager } from "./common/entry-table-manager.js?v=app-20261010-9";
 import {
   todayYMD,
   formatWeekdayLabel,
@@ -55,34 +55,34 @@ import {
   stripCodePrefix,
   resolveDefaultCashflowNameByCode,
   buildLedgerMemoFields,
-} from "./common/util.js?v=app-20261010-8";
-import { initDateFilter } from "./common/date-filter.js?v=app-20261010-8";
-import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261010-8";
-import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=app-20261010-8";
-import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261010-8";
-import { openLedgerPicker } from "./common/ledger-picker.js?v=app-20261010-8";
+} from "./common/util.js?v=app-20261010-9";
+import { initDateFilter } from "./common/date-filter.js?v=app-20261010-9";
+import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261010-9";
+import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=app-20261010-9";
+import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261010-9";
+import { openLedgerPicker } from "./common/ledger-picker.js?v=app-20261010-9";
 import {
   isLockedByPaymentLedger,
   hasLockedPaymentEntries,
   deleteLinkedLedgerTxIfAny,
-} from "./common/payment-ledger-helpers.js?v=app-20261010-8";
+} from "./common/payment-ledger-helpers.js?v=app-20261010-9";
 import {
   isPaymentOnlyTransaction,
   makeSummaryKeyForTransaction,
-} from "./common/transaction-summary-key.js?v=app-20261010-8";
-import { loadCashflowLedgerOptionsIntoSelects } from "./common/cashflow-ledger-options.js?v=app-20261010-8";
-import { resolveCashflowItemSelectionOrThrow } from "./common/cashflow-item-helpers.js?v=app-20261010-8";
-import { saveCashflowLedgerLinkedPaymentRecord } from "./common/cashflow-payment-record.js?v=app-20261010-8";
+} from "./common/transaction-summary-key.js?v=app-20261010-9";
+import { loadCashflowLedgerOptionsIntoSelects } from "./common/cashflow-ledger-options.js?v=app-20261010-9";
+import { resolveCashflowItemSelectionOrThrow } from "./common/cashflow-item-helpers.js?v=app-20261010-9";
+import { saveCashflowLedgerLinkedPaymentRecord } from "./common/cashflow-payment-record.js?v=app-20261010-9";
 import {
   bindExcelDropdown,
   exportTableToXlsx,
   ymdCompact,
-} from "./common/excel-export.js?v=app-20261010-8";
+} from "./common/excel-export.js?v=app-20261010-9";
 import {
   getActiveCustomersByType,
   parseNumberLike,
   confirmDuplicateBatchBeforeSave,
-} from "./common/transaction-shared.js?v=app-20261010-8";
+} from "./common/transaction-shared.js?v=app-20261010-9";
 
 bootstrapPageCommon({ page: "sales", todayYMD, formatWeekdayLabel });
 
@@ -1502,25 +1502,13 @@ function ensureDefaultSummarySelection() {
     return;
   }
 
-  // 기본 선택: 화면상 맨 위(첫 행) 전표 기준. 수금/지불 전표(PAY__)는 가능하면 제외
-  let picked = selectable.find((s) => !String(s.summaryKey).startsWith("PAY__"));
-  if (!picked) picked = selectable[0];
-  if (!picked) return;
-
+  // 상세내역은 전표를 직접 클릭한 뒤에만 선택한다.
   currentEditingId = null;
-  currentSummaryKey = picked.summaryKey || "";
-
-  if (currentSummaryKey && currentSummaryKey.startsWith("PAY__")) {
-    currentSummaryBatchKey = "";
-    currentSummaryDateForFilter = "";
-    currentSummarySupplierIdForFilter = "";
-  } else {
-    currentSummaryBatchKey = picked.batchKey || "";
-    currentSummaryDateForFilter = picked.date || "";
-    currentSummarySupplierIdForFilter = picked.supplierId || "";
-  }
-
-  isSummaryFilterActive = true;
+  currentSummaryKey = "";
+  currentSummaryBatchKey = "";
+  currentSummaryDateForFilter = "";
+  currentSummarySupplierIdForFilter = "";
+  isSummaryFilterActive = false;
 }
 
 function refreshSummaryAndDetail(keyword = "") {

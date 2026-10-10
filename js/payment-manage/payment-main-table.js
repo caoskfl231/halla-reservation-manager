@@ -1,11 +1,11 @@
 import {
   bindClickRowSelect,
   createScrollToBottomOnce,
-} from "../common/ui-helpers.js?v=app-20261010-8";
+} from "../common/ui-helpers.js?v=app-20261010-9";
 
 // 목록이 갱신될 때 최신 거래가 보이도록 스크롤(결제관리 패턴 공통화)
 const paymentMainAutoScroll = createScrollToBottomOnce();
-import { resolveDefaultCashflowNameByCode } from "../common/util.js?v=app-20261010-8";
+import { resolveDefaultCashflowNameByCode } from "../common/util.js?v=app-20261010-9";
 
 function normalizeDateKey(tx) {
   const raw = String(tx?.dateTime || tx?.date || "").trim();
