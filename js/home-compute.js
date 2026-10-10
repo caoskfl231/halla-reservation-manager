@@ -158,6 +158,7 @@ export function prepareHomeTable(displayRows, homeDashboardFilter, homeSearchQue
         type: '합계',
         group: '',
         vendor: vendorKey,
+        __supplierIds: new Set(),
         __groups: new Set(),
         __missingGroup: false,
         sales: 0,
@@ -170,6 +171,7 @@ export function prepareHomeTable(displayRows, homeDashboardFilter, homeSearchQue
       });
     }
     const acc = aggregatedByVendor.get(key);
+    if (r.__supplierId) acc.__supplierIds.add(String(r.__supplierId));
     const g = String(r.group || '').trim();
     if (g) acc.__groups.add(g);
     else acc.__missingGroup = true;
@@ -185,6 +187,7 @@ export function prepareHomeTable(displayRows, homeDashboardFilter, homeSearchQue
   // 합계행의 분류는 실제 데이터 기반으로 요약 표시
   for (const acc of aggregatedByVendor.values()) {
     const groupLabel = pickSummaryLabel(acc.__groups, acc.__missingGroup);
+    acc.__supplierIds = Array.from(acc.__supplierIds);
     acc.group = groupLabel || '(미지정)';
     delete acc.__groups;
     delete acc.__missingGroup;

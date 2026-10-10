@@ -1,3 +1,4 @@
+import { getSalesCustomerRemainingBalance } from './common/sales-customer-balance.js?v=app-20261010-7';
 import {
   getTransactions,
   addTransaction,
@@ -15,16 +16,16 @@ import {
   deleteLedgerTxById,
   getCashflowItems,
   getCashflowTypes,
-} from "./db.js?v=app-20261010-6";
-import { sortByKey } from "./common/sortTable.js?v=app-20261010-6";
-import { applySupplierGroupFilter } from "./common/supplier-group-filter.js?v=app-20261010-6";
+} from "./db.js?v=app-20261010-7";
+import { sortByKey } from "./common/sortTable.js?v=app-20261010-7";
+import { applySupplierGroupFilter } from "./common/supplier-group-filter.js?v=app-20261010-7";
 import {
   getStoredJson,
   setStoredJson,
   getStoredString,
   setStoredString,
-} from "./common/storage.js?v=app-20261010-6";
-import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261010-6";
+} from "./common/storage.js?v=app-20261010-7";
+import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261010-7";
 import {
   openModalOverlay,
   closeModalOverlay,
@@ -41,8 +42,8 @@ import {
   resetFieldsAndFocus,
   applyAmountColoring,
   createScrollToBottomOnce,
-} from "./common/ui-helpers.js?v=app-20261010-6";
-import { createEntryTableManager } from "./common/entry-table-manager.js?v=app-20261010-6";
+} from "./common/ui-helpers.js?v=app-20261010-7";
+import { createEntryTableManager } from "./common/entry-table-manager.js?v=app-20261010-7";
 import {
   todayYMD,
   formatWeekdayLabel,
@@ -54,34 +55,34 @@ import {
   stripCodePrefix,
   resolveDefaultCashflowNameByCode,
   buildLedgerMemoFields,
-} from "./common/util.js?v=app-20261010-6";
-import { initDateFilter } from "./common/date-filter.js?v=app-20261010-6";
-import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261010-6";
-import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=app-20261010-6";
-import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261010-6";
-import { openLedgerPicker } from "./common/ledger-picker.js?v=app-20261010-6";
+} from "./common/util.js?v=app-20261010-7";
+import { initDateFilter } from "./common/date-filter.js?v=app-20261010-7";
+import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261010-7";
+import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=app-20261010-7";
+import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261010-7";
+import { openLedgerPicker } from "./common/ledger-picker.js?v=app-20261010-7";
 import {
   isLockedByPaymentLedger,
   hasLockedPaymentEntries,
   deleteLinkedLedgerTxIfAny,
-} from "./common/payment-ledger-helpers.js?v=app-20261010-6";
+} from "./common/payment-ledger-helpers.js?v=app-20261010-7";
 import {
   isPaymentOnlyTransaction,
   makeSummaryKeyForTransaction,
-} from "./common/transaction-summary-key.js?v=app-20261010-6";
-import { loadCashflowLedgerOptionsIntoSelects } from "./common/cashflow-ledger-options.js?v=app-20261010-6";
-import { resolveCashflowItemSelectionOrThrow } from "./common/cashflow-item-helpers.js?v=app-20261010-6";
-import { saveCashflowLedgerLinkedPaymentRecord } from "./common/cashflow-payment-record.js?v=app-20261010-6";
+} from "./common/transaction-summary-key.js?v=app-20261010-7";
+import { loadCashflowLedgerOptionsIntoSelects } from "./common/cashflow-ledger-options.js?v=app-20261010-7";
+import { resolveCashflowItemSelectionOrThrow } from "./common/cashflow-item-helpers.js?v=app-20261010-7";
+import { saveCashflowLedgerLinkedPaymentRecord } from "./common/cashflow-payment-record.js?v=app-20261010-7";
 import {
   bindExcelDropdown,
   exportTableToXlsx,
   ymdCompact,
-} from "./common/excel-export.js?v=app-20261010-6";
+} from "./common/excel-export.js?v=app-20261010-7";
 import {
   getActiveCustomersByType,
   parseNumberLike,
   confirmDuplicateBatchBeforeSave,
-} from "./common/transaction-shared.js?v=app-20261010-6";
+} from "./common/transaction-shared.js?v=app-20261010-7";
 
 bootstrapPageCommon({ page: "sales", todayYMD, formatWeekdayLabel });
 
@@ -703,33 +704,8 @@ function getSupplierCurrentBalance(supplierId) {
   if (!supplierId) return 0;
 
   const sup = suppliers.find((s) => s.id === supplierId);
-  const opening =
-    Number(sup && sup.openingBalance != null ? sup.openingBalance : 0) || 0;
-
   const related = purchases.filter((p) => p && p.supplierId === supplierId);
-  if (!related.length) return opening;
-
-  let running = opening;
-  related
-    .filter((p) => p.date)
-    .sort((a, b) => {
-      const ad = a.date || "";
-      const bd = b.date || "";
-      if (ad < bd) return -1;
-      if (ad > bd) return 1;
-      return 0;
-    })
-    .forEach((p) => {
-      const amount = Number(p.amount) || 0;
-      const payment = Number(p.payment || 0);
-      const discount = Number(p.paymentDiscount || 0);
-      // 매출(거래)은 외상매출/미수 잔액을 증가(+),
-      // 수금(결제)은 잔액을 감소(-)시키는 규칙을 사용한다.
-      running += amount;
-      running -= payment + discount;
-    });
-
-  return running;
+  return getSalesCustomerRemainingBalance(sup, related);
 }
 
 function baseCloseModal() {

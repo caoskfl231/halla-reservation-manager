@@ -1,5 +1,5 @@
 // 공통 UI 헬퍼 모음
-import { formatMoney } from './util.js?v=app-20261010-6';
+import { formatMoney } from './util.js?v=app-20261010-7';
 
 function parseSignedNumberFromText(text) {
   let t = String(text || '').trim();

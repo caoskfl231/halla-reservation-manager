@@ -1,12 +1,13 @@
-import { runHomeJob } from './home-worker-client.js?v=app-20261010-6';
-import { createHomePager } from './home-pagination.js?v=app-20261010-6';
-import { getTransactions, updateTransaction, getAllLedgerTx, getCashflowTypes, getCashflowItems, getCustomers, exportHallapaDbSnapshot, restoreHallapaDbSnapshot } from './db.js?v=app-20261010-6';
-import { initDateFilter } from './common/date-filter.js?v=app-20261010-6';
-import { applyAmountColoring, openModalOverlay, closeModalOverlay, registerModalEscClose, attachSearchInput } from './common/ui-helpers.js?v=app-20261010-6';
-import { formatWeekdayLabel, getQuickRange, includesIgnoreCase } from './common/util.js?v=app-20261010-6';
-import { initDateWeekdayAuto } from './common/date-weekday-box.js?v=app-20261010-6';
-import { installDbAutoRefresh } from './common/app-events.js?v=app-20261010-6';
-import { bootstrapPageCommon } from './common/page-bootstrap.js?v=app-20261010-6';
+import { buildSalesCustomerBalances } from './common/sales-customer-balance.js?v=app-20261010-7';
+import { runHomeJob } from './home-worker-client.js?v=app-20261010-7';
+import { createHomePager } from './home-pagination.js?v=app-20261010-7';
+import { getTransactions, updateTransaction, getAllLedgerTx, getCashflowTypes, getCashflowItems, getCustomers, exportHallapaDbSnapshot, restoreHallapaDbSnapshot } from './db.js?v=app-20261010-7';
+import { initDateFilter } from './common/date-filter.js?v=app-20261010-7';
+import { applyAmountColoring, openModalOverlay, closeModalOverlay, registerModalEscClose, attachSearchInput } from './common/ui-helpers.js?v=app-20261010-7';
+import { formatWeekdayLabel, getQuickRange, includesIgnoreCase } from './common/util.js?v=app-20261010-7';
+import { initDateWeekdayAuto } from './common/date-weekday-box.js?v=app-20261010-7';
+import { installDbAutoRefresh } from './common/app-events.js?v=app-20261010-7';
+import { bootstrapPageCommon } from './common/page-bootstrap.js?v=app-20261010-7';
 
 const btnDbBackup = document.getElementById('btn-home-db-backup');
 const btnDbRestore = document.getElementById('btn-home-db-restore');
@@ -1336,6 +1337,7 @@ async function renderList() {
         type: getCategoryLabel(cat) || '',
         group: supplierGroup || '',
         vendor: supplier || '',
+        __supplierId: supplierId,
         sales: cat === 'sales' ? amount : 0,
         receipt: cat === 'sales' && payment > 0 ? payment : 0,
         purchase: cat === 'purchase' && amount > 0 ? amount : 0,
@@ -1389,6 +1391,28 @@ async function renderList() {
   const displayForTable = await runHomeJob({kind:'table',rows:displayRows,filter:homeDashboardFilter,query:homeSearchQuery,from:dateFrom,to:dateTo});
   if (generation !== homeRenderGeneration) return;
 
+  // 기간 합계와 별개로, 매출처 화면과 같은 원장 잔액을 가져온다.
+  const salesBalanceByCustomer = buildSalesCustomerBalances(
+    salesCustomers, (list || []).filter(tx => normalizeCategory(tx) === 'sales'), dateTo,
+  );
+  const salesIdsByName = new Map();
+  for (const customer of salesCustomers) {
+    const name = String(customer?.name || '').trim();
+    if (!name) continue;
+    if (!salesIdsByName.has(name)) salesIdsByName.set(name, []);
+    salesIdsByName.get(name).push(String(customer.id));
+  }
+  for (const row of displayForTable) {
+    let ids = (row.__supplierIds || []).filter(id => salesBalanceByCustomer.has(id));
+    if (!ids.length && !row.__supplierIds?.length) {
+      const matching = salesIdsByName.get(row.vendor) || [];
+      if (matching.length === 1) ids = matching;
+    }
+    row.remainingSalesBalance = ids.length
+      ? ids.reduce((sum, id) => sum + salesBalanceByCustomer.get(id), 0)
+      : (Number(row.sales) || 0) - (Number(row.receipt) || 0);
+  }
+
   function amountCell(value, options = {}) {
     const v = Number(value) || 0;
     if (!(v > 0)) return '<td class="right"></td>';
@@ -1408,6 +1432,7 @@ async function renderList() {
   }
 
   function rowSalesBalance(r) {
+    if (r?.remainingSalesBalance != null) return r.remainingSalesBalance;
     const sales = Number(r?.sales || 0) || 0;
     const receipt = Number(r?.receipt || 0) || 0;
     return sales - receipt;
@@ -1522,47 +1547,13 @@ async function renderList() {
 
   // 채권/미수: 거래처(매출처) 기준 잔액 합계 (기초 + 매출 - 수금) 을 양수만 합산
 
-  const txUpTo = (list || []).filter((tx) => normalizeCategory(tx) === 'sales').filter((tx) => filterUpToDate(tx, balanceCutoff));
-  const salesTxBySupplier = new Map();
-  txUpTo.forEach((tx) => {
-    const supplierId = tx && tx.supplierId != null ? String(tx.supplierId) : '';
-    if (!supplierId) return;
-    const prev = salesTxBySupplier.get(supplierId) || [];
-    prev.push(tx);
-    salesTxBySupplier.set(supplierId, prev);
-  });
-
   let receivableByCustomer = 0;
   const receivableByGroup = new Map();
   salesCustomers.forEach((c) => {
-    const supplierId = c && c.id != null ? String(c.id) : '';
+    const supplierId = String(c?.id ?? '');
     if (!supplierId) return;
-    const opening = Number(c.openingBalance ?? 0) || 0;
+    const v = clampPositive(salesBalanceByCustomer.get(supplierId) || 0);
     const groupName = String(c?.group || '').trim() || '미분류';
-    const related = salesTxBySupplier.get(supplierId) || [];
-    if (!related.length) {
-      const v = clampPositive(opening);
-      receivableByCustomer += v;
-      if (v > 0) receivableByGroup.set(groupName, sumMapValue(receivableByGroup, groupName) + v);
-      return;
-    }
-    let running = opening;
-    related
-      .filter((t) => t && t.date)
-      .sort((a, b) => {
-        const ad = String(a.date || '');
-        const bd = String(b.date || '');
-        if (ad < bd) return -1;
-        if (ad > bd) return 1;
-        return 0;
-      })
-      .forEach((t) => {
-        const a = Number(t.amount) || 0;
-        const p = Number(t.payment || 0);
-        running += a;
-        running -= p;
-      });
-    const v = clampPositive(running);
     receivableByCustomer += v;
     if (v > 0) receivableByGroup.set(groupName, sumMapValue(receivableByGroup, groupName) + v);
   });
