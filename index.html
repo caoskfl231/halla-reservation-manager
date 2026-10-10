@@ -152,7 +152,10 @@
     <div id="home-date-quick-modal" class="modal-overlay" aria-hidden="true">
       <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="home-date-quick-title">
         <section class="card date-quick-card">
-          <h2 id="home-date-quick-title">기간 빠른 선택</h2>
+          <div class="modal-header">
+            <h2 id="home-date-quick-title">기간 빠른 선택</h2>
+            <button type="button" class="modal-close-x" aria-label="닫기" data-click="#btn-home-date-quick-close">×</button>
+          </div>
           <div class="date-quick-grid">
             <button type="button" class="date-quick-btn" data-range="yesterday">어제</button>
             <button type="button" class="date-quick-btn" data-range="today">오늘</button>
