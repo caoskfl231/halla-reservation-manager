@@ -1,9 +1,9 @@
-import * as cache from './db-cloud-cache.js?v=ledger-chunks-20261010-1';
-import { rpc, requireLedgerSession, friendlyError, signOut } from './cloud-session.js?v=ledger-chunks-20261010-1';
-import { emitAppEvent } from './common/app-events.js?v=ledger-chunks-20261010-1';
-import { changedRecords, recordToken, versionMap, sameRecords } from './cloud-records.js?v=ledger-chunks-20261010-1';
-import { installBackupPanel } from './ledger-backups.js?v=ledger-chunks-20261010-1';
-import { uploadSnapshot } from './cloud-import.js?v=ledger-chunks-20261010-1';
+import * as cache from './db-cloud-cache.js?v=ledger-atomic-20261010-1';
+import { rpc, requireLedgerSession, friendlyError, signOut } from './cloud-session.js?v=ledger-atomic-20261010-1';
+import { emitAppEvent } from './common/app-events.js?v=ledger-atomic-20261010-1';
+import { changedRecords, recordToken, versionMap } from './cloud-records.js?v=ledger-atomic-20261010-1';
+import { installBackupPanel } from './ledger-backups.js?v=ledger-atomic-20261010-1';
+import { uploadSnapshot } from './cloud-import.js?v=ledger-atomic-20261010-1';
 let state = await requireLedgerSession();
 await cache.restoreHallapaDbSnapshot(state.snapshot);
 let versions = versionMap(state.row_versions);
@@ -55,6 +55,15 @@ async function cloudCall(name, args) {
         if (!Number.isSafeInteger(id)) throw new Error('거래 번호를 발급하지 못했습니다. 다시 시도해 주세요.');
         args[0] = { ...args[0], id };
       }
+      if (name === 'saveTransactionBatch') {
+        const batch = args[0] || {}, rows = [];
+        for (const row of batch.add || []) {
+          const id = await rpc('halla_ledger_reserve_transaction_id');
+          if (!Number.isSafeInteger(id)) throw new Error('거래 번호를 발급하지 못했습니다.');
+          rows.push({ ...row, id });
+        }
+        args[0] = { ...batch, add: rows };
+      }
       const result = await cache[name](...args);
       const snapshot = await cache.exportHallapaDbSnapshot();
       validate(snapshot); notice('인터넷에 저장 중…');
@@ -63,7 +72,7 @@ async function cloudCall(name, args) {
       try {
         if (action === 'edit') {
           if (!changes.length) { notice('저장할 변경 내용이 없습니다.'); return result; }
-          const next = await rpc('halla_ledger_patch', { p_changes: changes });
+          const next = await rpc('halla_ledger_patch_compact', { p_changes: changes });
           const nextVersions = versionMap(next.row_versions);
           for (const change of changes) {
             const token = recordToken(change.store, change.key);
@@ -71,8 +80,8 @@ async function cloudCall(name, args) {
           }
           // Preserve untouched baselines. An unrelated save must not silently
           // approve a stale edit of another record still open in the UI.
-          pendingRemote = !sameRecords(snapshot, next.snapshot);
-          state = { ...next, snapshot };
+          pendingRemote = pendingRemote || next.previous_revision !== state.revision;
+          state = { ...state, ...next, snapshot };
         } else {
           state = await uploadSnapshot(snapshot, state.revision, action, rpc, notice);
           versions = versionMap(state.row_versions);
@@ -135,7 +144,7 @@ if (state.revision === 0 && state.role === 'owner') {
     try {
       if (!indexedDB.databases) throw new Error('이 브라우저에서는 전체백업 파일을 선택해 주세요.');
       if (!(await indexedDB.databases()).some(db => db.name === 'hallapa_db')) throw new Error('이 기기에 기존 장부자료가 없습니다. 전체백업 파일을 선택해 주세요.');
-      const local = await import('./db-local.js?v=ledger-chunks-20261010-1'); await upload(await local.exportHallapaDbSnapshot());
+      const local = await import('./db-local.js?v=ledger-atomic-20261010-1'); await upload(await local.exportHallapaDbSnapshot());
     } catch (error) { window.alert(friendlyError(error)); }
   };
 }
@@ -158,6 +167,7 @@ setInterval(() => {
 }, 15000);
 export const getTransactions = (...args) => cloudCall('getTransactions', args);
 export const addTransaction = (...args) => cloudCall('addTransaction', args);
+export const saveTransactionBatch = (...args) => cloudCall('saveTransactionBatch', args);
 export const updateTransaction = (...args) => cloudCall('updateTransaction', args);
 export const deleteTransaction = (...args) => cloudCall('deleteTransaction', args);
 export const clearAllTransactions = (...args) => cloudCall('clearAllTransactions', args);

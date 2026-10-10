@@ -1,6 +1,7 @@
 import {
   getTransactions,
   addTransaction,
+  saveTransactionBatch,
   updateTransaction,
   deleteTransaction,
   getCustomers,
@@ -14,16 +15,16 @@ import {
   deleteLedgerTxById,
   getCashflowItems,
   getCashflowTypes,
-} from "./db.js?v=ledger-chunks-20261010-1";
-import { sortByKey } from "./common/sortTable.js?v=ledger-chunks-20261010-1";
-import { applySupplierGroupFilter } from "./common/supplier-group-filter.js?v=ledger-chunks-20261010-1";
+} from "./db.js?v=ledger-atomic-20261010-1";
+import { sortByKey } from "./common/sortTable.js?v=ledger-atomic-20261010-1";
+import { applySupplierGroupFilter } from "./common/supplier-group-filter.js?v=ledger-atomic-20261010-1";
 import {
   getStoredJson,
   setStoredJson,
   getStoredString,
   setStoredString,
-} from "./common/storage.js?v=ledger-chunks-20261010-1";
-import { installDbAutoRefresh } from "./common/app-events.js?v=ledger-chunks-20261010-1";
+} from "./common/storage.js?v=ledger-atomic-20261010-1";
+import { installDbAutoRefresh } from "./common/app-events.js?v=ledger-atomic-20261010-1";
 import {
   openModalOverlay,
   closeModalOverlay,
@@ -40,8 +41,8 @@ import {
   resetFieldsAndFocus,
   applyAmountColoring,
   createScrollToBottomOnce,
-} from "./common/ui-helpers.js?v=ledger-chunks-20261010-1";
-import { createEntryTableManager } from "./common/entry-table-manager.js?v=ledger-chunks-20261010-1";
+} from "./common/ui-helpers.js?v=ledger-atomic-20261010-1";
+import { createEntryTableManager } from "./common/entry-table-manager.js?v=ledger-atomic-20261010-1";
 import {
   todayYMD,
   formatWeekdayLabel,
@@ -53,34 +54,34 @@ import {
   stripCodePrefix,
   resolveDefaultCashflowNameByCode,
   buildLedgerMemoFields,
-} from "./common/util.js?v=ledger-chunks-20261010-1";
-import { initDateFilter } from "./common/date-filter.js?v=ledger-chunks-20261010-1";
-import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=ledger-chunks-20261010-1";
-import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=ledger-chunks-20261010-1";
-import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=ledger-chunks-20261010-1";
-import { openLedgerPicker } from "./common/ledger-picker.js?v=ledger-chunks-20261010-1";
+} from "./common/util.js?v=ledger-atomic-20261010-1";
+import { initDateFilter } from "./common/date-filter.js?v=ledger-atomic-20261010-1";
+import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=ledger-atomic-20261010-1";
+import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=ledger-atomic-20261010-1";
+import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=ledger-atomic-20261010-1";
+import { openLedgerPicker } from "./common/ledger-picker.js?v=ledger-atomic-20261010-1";
 import {
   isLockedByPaymentLedger,
   hasLockedPaymentEntries,
   deleteLinkedLedgerTxIfAny,
-} from "./common/payment-ledger-helpers.js?v=ledger-chunks-20261010-1";
+} from "./common/payment-ledger-helpers.js?v=ledger-atomic-20261010-1";
 import {
   isPaymentOnlyTransaction,
   makeSummaryKeyForTransaction,
-} from "./common/transaction-summary-key.js?v=ledger-chunks-20261010-1";
-import { loadCashflowLedgerOptionsIntoSelects } from "./common/cashflow-ledger-options.js?v=ledger-chunks-20261010-1";
-import { resolveCashflowItemSelectionOrThrow } from "./common/cashflow-item-helpers.js?v=ledger-chunks-20261010-1";
-import { saveCashflowLedgerLinkedPaymentRecord } from "./common/cashflow-payment-record.js?v=ledger-chunks-20261010-1";
+} from "./common/transaction-summary-key.js?v=ledger-atomic-20261010-1";
+import { loadCashflowLedgerOptionsIntoSelects } from "./common/cashflow-ledger-options.js?v=ledger-atomic-20261010-1";
+import { resolveCashflowItemSelectionOrThrow } from "./common/cashflow-item-helpers.js?v=ledger-atomic-20261010-1";
+import { saveCashflowLedgerLinkedPaymentRecord } from "./common/cashflow-payment-record.js?v=ledger-atomic-20261010-1";
 import {
   bindExcelDropdown,
   exportTableToXlsx,
   ymdCompact,
-} from "./common/excel-export.js?v=ledger-chunks-20261010-1";
+} from "./common/excel-export.js?v=ledger-atomic-20261010-1";
 import {
   getActiveCustomersByType,
   parseNumberLike,
   confirmDuplicateBatchBeforeSave,
-} from "./common/transaction-shared.js?v=ledger-chunks-20261010-1";
+} from "./common/transaction-shared.js?v=ledger-atomic-20261010-1";
 
 bootstrapPageCommon({ page: "sales", todayYMD, formatWeekdayLabel });
 
@@ -4473,7 +4474,26 @@ function applyItemFromModal() {
 
   closeItemSelectModal();
 }
-async function saveCurrentPurchase({ keepOpen = false } = {}) {
+let transactionSaveBusy = false;
+async function guardTransactionSave(work) {
+  if (transactionSaveBusy) return;
+  transactionSaveBusy = true;
+  const buttons = [btnSaveContinue, btnImportSave, btnImportContinue, form?.querySelector('[type="submit"]')].filter(Boolean);
+  const disabled = buttons.map(button => button.disabled);
+  buttons.forEach(button => { button.disabled = true; });
+  try { return await work(); }
+  catch (error) { alert(error.message || "저장 결과를 확인해 주세요."); }
+  finally { buttons.forEach((button, i) => { button.disabled = disabled[i]; }); transactionSaveBusy = false; }
+}
+async function saveCurrentPurchase(options) {
+  return guardTransactionSave(() => saveCurrentPurchaseImpl(options));
+}
+async function saveImportRecords(options) {
+  return guardTransactionSave(() => saveImportRecordsImpl(options));
+}
+
+async function saveCurrentPurchaseImpl({ keepOpen = false } = {}) {
+  const batchAdd = [], batchRemove = [];
   // 상단 전표 기준 여러 행 수정 모드
   if (isBatchEditMode) {
     if (!dateInput.value) {
@@ -4530,7 +4550,7 @@ async function saveCurrentPurchase({ keepOpen = false } = {}) {
 
     // 기존 전표에 속한 행 전부 삭제
     for (const id of editingBatchOriginalIds) {
-      await deleteTransaction(Number(id));
+      batchRemove.push(Number(id));
     }
 
     // 새로 입력한 행들로 다시 저장
@@ -4554,7 +4574,7 @@ async function saveCurrentPurchase({ keepOpen = false } = {}) {
         source: isSalesMode ? "sales" : "purchase",
       };
 
-      await addTransaction(purchase);
+      batchAdd.push(purchase);
       rememberLastSavedSalesUnitPriceForItem(
         purchase.itemId || purchase.itemCode,
         purchase.unitPrice,
@@ -4743,12 +4763,15 @@ async function saveCurrentPurchase({ keepOpen = false } = {}) {
         memo: row.memo || "",
         source: isSalesMode ? "sales" : "purchase",
       };
-      await addTransaction(purchase);
+      batchAdd.push(purchase);
       rememberLastSavedSalesUnitPriceForItem(
         purchase.itemId || purchase.itemCode,
         purchase.unitPrice,
       );
     }
+  }
+  if (batchAdd.length || batchRemove.length) {
+    await saveTransactionBatch({ add: batchAdd, remove: batchRemove });
   }
   // 매출 전표 저장과 동시에, 상단 인라인 수금 박스에
   // 통장/금액이 입력되어 있으면 같은 조건으로 지불 전표도 함께 저장한다.
@@ -5944,7 +5967,7 @@ if (importSupplierSelect) {
   });
 }
 
-async function saveImportRecords(options = {}) {
+async function saveImportRecordsImpl(options = {}) {
   const { keepOpen = false } = options;
 
   if (!importRecords || !importRecords.length) {
@@ -6043,7 +6066,7 @@ async function saveImportRecords(options = {}) {
     // ignore
   }
 
-  let saved = 0;
+  const batchAdd = [];
   for (const rec of importRecords) {
     const purchase = {
       type: isSalesMode ? "income" : "expense",
@@ -6069,15 +6092,16 @@ async function saveImportRecords(options = {}) {
       source: isSalesMode ? "sales" : "purchase",
     };
 
-    await addTransaction(purchase);
+    batchAdd.push(purchase);
     rememberLastSavedSalesUnitPriceForItem(
       purchase.itemId || purchase.itemCode,
       purchase.unitPrice,
     );
-    saved += 1;
+
   }
 
-  setImportStatus(`인식된 ${saved}건을 저장했습니다.`);
+  await saveTransactionBatch({ add: batchAdd });
+  setImportStatus(`인식된 ${batchAdd.length}건을 저장했습니다.`);
   await reloadPurchaseList();
 
   // 저장 완료 상태를 기준으로 dirty 스냅샷을 갱신해

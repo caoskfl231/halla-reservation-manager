@@ -6,8 +6,8 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
  c.keepSession({access_token:'one',refresh_token:'r',expires_in:3600});assert((await c.accessToken())==='one');assert(c.session().expires_at>Date.now()/1000);assert.equal(c.nextPage(),'index.html','external redirect rejected');
  c.keepSession({access_token:'expired',refresh_token:'r',expires_at:1});const tokens=await Promise.all([c.accessToken(),c.accessToken()]);assert.deepEqual(tokens,['renewed','renewed']);assert.equal(refreshes,1);assert(!JSON.stringify([...values]).includes('password'));
  const timeouts=[];context.AbortSignal={timeout:ms=>{timeouts.push(ms);return AbortSignal.timeout(ms);}};
- await c.rpc('halla_ledger_save',{});await c.rpc('halla_ledger_read');
- assert.deepEqual(timeouts,[120000,30000],'large restore receives a longer bounded timeout');
+ await c.rpc('halla_ledger_save',{});await c.rpc('halla_ledger_read');await c.rpc('halla_ledger_patch_compact',{});
+ assert.deepEqual(timeouts,[120000,30000,120000],'restore and atomic save have bounded timeouts');
  assert(c.friendlyError(new Error('signal timed out')).includes('저장 결과'),'timeout asks user to verify uncertain save');
  c.clearSession();assert.equal(c.session(),null);
  console.log('PASS: isolated token storage, REST expiry normalization, concurrent refresh, safe login redirect');

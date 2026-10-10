@@ -20,6 +20,7 @@ async function client(){
   if(name==='getItems')return copy(local.stores.items||[]);
   if(name==='getCustomers')return copy(local.stores.customers||[]);
   if(name==='addTransaction'){let row=copy(args[0]);row.id=row.id||local.stores.transactions.length+1;local.stores.transactions.push(row);return;}
+  if(name==='saveTransactionBatch'){local.stores.transactions=local.stores.transactions.filter(x=>!(args[0].remove||[]).includes(x.id));local.stores.transactions.push(...copy(args[0].add||[]));return;}
   if(name==='updateTransaction'){let row=copy(args[0]);local.stores.transactions=local.stores.transactions.map(x=>x.id===row.id?row:x);return;}
   if(name==='deleteTransaction'){local.stores.transactions=local.stores.transactions.filter(x=>x.id!==args[0]);return;}
   if(name.startsWith('get'))return [];
@@ -28,7 +29,8 @@ async function client(){
  const sessionFns={requireLedgerSession:async()=>withVersions(),friendlyError:e=>e.message,signOut:async()=>{},rpc:async(name,body)=>{
   if(name==='halla_ledger_read')return withVersions();
   if(name==='halla_ledger_reserve_transaction_id')return nextId++;
-  if(name==='halla_ledger_patch'){
+  const previousRevision=remote.revision;
+  if(name==='halla_ledger_patch_compact'){
    for(const change of body.p_changes){const token=JSON.stringify([change.store,change.key]);if((recordVersions.get(token)||0)!==change.expected_version)throw Error('LEDGER_RECORD_CONFLICT');}
    for(const change of body.p_changes){
     const keyField=['customer_types','customer_groups','item_groups','cashflow_items','cashflow_types','cashflow_groups'].includes(change.store)?'code':'id';
@@ -46,6 +48,7 @@ async function client(){
    for(const [store,rows] of Object.entries(remote.snapshot.stores)){const keyField=['customer_types','customer_groups','item_groups','cashflow_items','cashflow_types','cashflow_groups'].includes(store)?'code':'id';for(const row of rows)recordVersions.set(JSON.stringify([store,row[keyField]]),nextVersion++);}
   }
   if(loseResponse){loseResponse=false;throw Error('network response lost');}
+  if(name==='halla_ledger_patch_compact')return {...withVersions(),snapshot:undefined,previous_revision:previousRevision};
   return withVersions();
  }};
  function moduleOf(values){return new vm.SyntheticModule(Object.keys(values),function(){for(const [key,value]of Object.entries(values))this.setExport(key,value);},{context});}
@@ -59,6 +62,13 @@ async function client(){
  await b.addTransaction({date:'2026-10-10',totalAmount:2000});
  assert.equal(remote.snapshot.stores.transactions.length,2,'distinct concurrent inserts both save');
  assert.equal(new Set(remote.snapshot.stores.transactions.map(row=>row.id)).size,2,'IDs unique on shared login');
+ const batchClient=await client(),oldRevision=remote.revision;
+ await batchClient.saveTransactionBatch({add:[{amount:307580},{amount:127325},{amount:42960},{amount:46920}]});
+ assert.equal(remote.revision,oldRevision+1,'four rows commit once');
+ assert.equal(remote.snapshot.stores.transactions.slice(-4).reduce((n,r)=>n+r.amount,0),524785,'four amounts all retained');
+ const batchIds=remote.snapshot.stores.transactions.slice(-4).map(r=>r.id);
+ await batchClient.saveTransactionBatch({remove:batchIds});
+ assert.equal(remote.snapshot.stores.transactions.length,2,'batch cleanup atomic');
  let c=await client(),d=await client();
  const [first,second]=copy(remote.snapshot.stores.transactions);
  await c.updateTransaction({...first,totalAmount:1500});

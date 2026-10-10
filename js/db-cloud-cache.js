@@ -542,6 +542,11 @@ async function addTransaction(tx) {
   queueDbChanged(STORE_TRANSACTIONS);
 }
 
+async function saveTransactionBatch({ add = [], remove = [] } = {}) {
+  for (const id of remove) await deleteTransaction(id);
+  for (const row of add) await addTransaction(row);
+}
+
 async function updateTransaction(tx) {
   await normalizeTransactionSupplierName(tx);
   if (tx && tx.id != null) {
@@ -1464,6 +1469,7 @@ async function restoreHallapaDbSnapshot(snapshot, options = {}) {
 export {
   getTransactions,
   addTransaction,
+  saveTransactionBatch,
   updateTransaction,
   deleteTransaction,
   clearAllTransactions,

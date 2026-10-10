@@ -2,7 +2,7 @@ import {
   openModalOverlay,
   closeModalOverlay,
   registerModalEscClose,
-} from "./ui-helpers.js?v=ledger-chunks-20261010-1";
+} from "./ui-helpers.js?v=ledger-atomic-20261010-1";
 
 let __toastStack = null;
 

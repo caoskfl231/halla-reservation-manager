@@ -42,7 +42,7 @@ async function initGlobalSearchIfEnabled() {
       : "";
   if (enabled !== "1") return;
 
-  const mod = await import("./global-search.js?v=ledger-chunks-20261010-1");
+  const mod = await import("./global-search.js?v=ledger-atomic-20261010-1");
   if (mod && typeof mod.initGlobalSearch === "function") {
     mod.initGlobalSearch();
   }
