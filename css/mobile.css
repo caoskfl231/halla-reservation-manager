@@ -181,40 +181,67 @@
   body :is(.table-action-buttons,.form-button-row,.modal-actions) > button { flex-basis:calc(50% - 4px); }
 }
 
-/* Sales toolbar: fixed mobile rows instead of content-sized wrapping. */
+
+/* Shared mobile controls across all nine ledger pages. */
 @media screen and (max-width:900px) {
-  body[data-mode="sales"] .sales-card > .table-action-box {
+  body .table-action-box {
     display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
     gap:8px; padding:10px; align-items:stretch;
   }
-  body[data-mode="sales"] .sales-card > .table-action-box > button {
-    width:100%; min-width:0; margin:0; padding:10px 4px;
+  body .table-action-box:has(> button:nth-of-type(2)):not(:has(> button:nth-of-type(3))) {
+    grid-template-columns:repeat(2,minmax(0,1fr));
   }
-  body[data-mode="sales"] .sales-card > .table-action-box > .table-action-right {
+  body .table-action-box > button {
+    width:100%; min-width:0; height:44px; margin:0; padding:8px 4px;
+  }
+  body .table-action-box > button:only-of-type { grid-column:1 / -1; }
+  body .table-action-box > .table-action-right {
     grid-column:1 / -1; display:grid; grid-template-columns:minmax(0,1fr);
     width:100%; margin:0; gap:8px;
   }
-  body[data-mode="sales"] .sales-card .table-action-buttons {
-    display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+  body .table-action-text { margin:0; line-height:1.5; }
+  body :is(.table-action-buttons,.form-button-row,.modal-actions,.date-quick-footer) {
+    display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; width:100%;
   }
-  body[data-mode="sales"] .sales-card .table-action-buttons > button {
-    width:100%; min-width:0; margin:0;
+  body :is(.table-action-buttons,.form-button-row,.modal-actions,.date-quick-footer) > button {
+    width:100%; min-width:0; min-height:44px; margin:0; padding:8px 6px;
   }
-  body[data-mode="sales"] .sales-card .sales-date-filter {
+  body .customer-header-buttons {
+    display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
+    width:100%; margin:0; gap:8px;
+  }
+  body .customer-header-buttons:has(> button:nth-of-type(4)) {
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  body .customer-header-buttons > button {
+    width:100%; min-width:0; height:44px; margin:0; padding:8px 4px;
+  }
+  body :is(.purchase-date-filter,.sales-date-filter,.payment-date-filter) {
     display:grid; grid-template-columns:repeat(6,minmax(0,1fr));
     width:100%; margin:0; gap:8px; align-items:stretch;
   }
-  body[data-mode="sales"] .sales-card .sales-date-input {
+  body :is(.purchase-date-filter,.sales-date-filter,.payment-date-filter) > input[type="date"] {
     grid-column:span 3; grid-row:1; width:100%; min-width:0;
     padding:0 6px; height:44px; box-sizing:border-box;
   }
-  body[data-mode="sales"] .sales-card .sales-date-separator { display:none; }
-  body[data-mode="sales"] .sales-card .sales-date-quick-btn,
-  body[data-mode="sales"] .sales-card .sales-date-search-btn,
-  body[data-mode="sales"] .sales-card .excel-dropdown {
-    grid-column:span 2; grid-row:2; width:100%; min-width:0; margin:0;
+  body :is(.purchase-date-separator,.sales-date-separator,.payment-date-separator) { display:none; }
+  body :is(.purchase-date-filter,.sales-date-filter,.payment-date-filter) > :is(button,.excel-dropdown) {
+    grid-column:span 2; width:100%; min-width:0; height:44px; margin:0; padding:8px 4px;
   }
-  body[data-mode="sales"] .sales-card .excel-dropdown > button {
-    width:100%; min-width:0; margin:0;
+  body :is(.purchase-date-filter,.sales-date-filter,.payment-date-filter) > .excel-dropdown { padding:0; }
+  body .excel-dropdown > button { width:100%; min-width:0; height:44px; margin:0; }
+  body :is(.purchase-date-filter,.sales-date-filter,.payment-date-filter):not(:has(.excel-dropdown)) > button {
+    grid-column:span 3;
   }
+  body .page-home .home-dashboard-header { display:grid; grid-template-columns:minmax(0,1fr); gap:10px; }
+  body .page-home .purchase-date-filter > .mini { grid-column:1 / -1; grid-row:1; }
+  body .page-home .purchase-date-filter > input[type="date"] { grid-row:2; }
+  body .page-home .purchase-date-filter > button { grid-column:span 2; }
+  body .page-home .purchase-date-filter > :is(#btn-home-db-backup,#btn-home-db-restore) { grid-column:span 3; }
+  body .date-quick-inline { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); width:100%; gap:8px; }
+  body .date-quick-inline > button { width:100%; min-width:0; height:44px; margin:0; padding:8px 4px; }
+  body .trn-filter-row { display:grid; grid-template-columns:minmax(0,1fr); width:100%; gap:8px; }
+  body :is(.trn-filter-left,.trn-filter-right) { width:100%; min-width:0; margin:0; }
+  body .trn-filter-left > div { flex:1 1 100%; width:100%; }
+  body .trn-filter-left > div > button { width:100%; min-height:44px; }
 }
