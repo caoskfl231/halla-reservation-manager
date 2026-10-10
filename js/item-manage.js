@@ -12,17 +12,17 @@ import {
   updateItemGroup,
   deleteItemGroup,
   renameItemGroupNameInItems,
-} from "./db.js?v=home-performance-20261010-1";
-import { createItemGroupManager } from "./item-manage/item-group-manager.js?v=home-performance-20261010-1";
-import { createItemListManager } from "./item-manage/item-list-manager.js?v=home-performance-20261010-1";
-import { createItemFormManager } from "./item-manage/item-form-manager.js?v=home-performance-20261010-1";
-import { createItemActionsManager } from "./item-manage/item-actions-manager.js?v=home-performance-20261010-1";
-import { createModalManager } from "./common/modal-manager.js?v=home-performance-20261010-1";
-import { bindDblClickRowEdit } from "./common/ui-helpers.js?v=home-performance-20261010-1";
-import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=home-performance-20261010-1";
-import { generateItemId, getNextItemGroupCode } from "./item-manage/item-utils.js?v=home-performance-20261010-1";
-import { loadItemsFromJson } from "./item-manage/item-data-loader.js?v=home-performance-20261010-1";
-import { installDbAutoRefresh } from "./common/app-events.js?v=home-performance-20261010-1";
+} from "./db.js?v=app-20261010-3";
+import { createItemGroupManager } from "./item-manage/item-group-manager.js?v=app-20261010-3";
+import { createItemListManager } from "./item-manage/item-list-manager.js?v=app-20261010-3";
+import { createItemFormManager } from "./item-manage/item-form-manager.js?v=app-20261010-3";
+import { createItemActionsManager } from "./item-manage/item-actions-manager.js?v=app-20261010-3";
+import { createModalManager } from "./common/modal-manager.js?v=app-20261010-3";
+import { bindDblClickRowEdit } from "./common/ui-helpers.js?v=app-20261010-3";
+import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261010-3";
+import { generateItemId, getNextItemGroupCode } from "./item-manage/item-utils.js?v=app-20261010-3";
+import { loadItemsFromJson } from "./item-manage/item-data-loader.js?v=app-20261010-3";
+import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261010-3";
 
 bootstrapPageCommon({
   page: "item",

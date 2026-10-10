@@ -63,6 +63,8 @@ GitHub Pages는 화면과 프로그램 파일을 제공하고, Supabase는 로�
 | `data/` | 기본 코드·마스터 JSON 및 장부 형식 정의 |
 | `docs/` | 운영 안내·DB 설정 SQL·화면별 설명 |
 | `tests/` | 동작 검증 스크립트·SQL |
+| `asset-version.json` | CSS·JS 캐시 버전의 단일 관리 파일 |
+| `tools/update-asset-version.mjs` | CSS·JS 주소의 버전을 일괄 갱신·검사 |
 
 비슷한 이름의 파일도 서로 다른 역할을 할 수 있습니다.
 특히 `db-local.js`는 이전 자료를 옮길 때 필요하므로 구버전이라는 이유만으로 삭제하지 않습니다.
@@ -107,12 +109,27 @@ HTML + JavaScript ES 모듈 방식이며 파일을 직접 더블클릭하는 대
 2. Windows에서는 최상위의 `start-dev-server.cmd`를 실행하거나 Live Server로 `index.html`을 엽니다.
 3. 로그인·서버 저장 기능은 인터넷 연결과 승인된 장부 계정이 필요합니다.
 
-현재 저장소에는 `tools/` 폴더가 없습니다. 검증 코드는 `tests/`에 있습니다.
+검증 코드는 `tests/`, 배포 전 버전 갱신 스크립트는 `tools/`에 있습니다.
 예를 들어 Node.js에서 홈 성능 점검을 실행할 수 있습니다.
 
 ```sh
 node --test tests/home-performance.test.cjs
 ```
+
+### CSS·JS 캐시 버전 갱신
+
+1. CSS 또는 JavaScript를 변경한 배포에서는 `asset-version.json`의 `version`을 새로운 값으로 바꿉니다.
+2. 아래 명령으로 각 HTML의 CSS·JS, 모듈 import, 동적 import와 Worker 주소를 일괄 갱신합니다.
+3. 변경된 파일들을 함께 커밋·배포합니다. GitHub Pages는 이 스크립트를 자동 실행하지 않습니다.
+
+```sh
+node tools/update-asset-version.mjs
+node tools/update-asset-version.mjs --check
+```
+
+`--check`는 파일을 수정하지 않고 누락된 참조가 있으면 종료 코드 1로 알려줍니다.
+버전이 없던 공통 CSS에도 버전을 붙입니다. 외부 URL·존재하지 않는 경로·다른 쿼리·해시·라이선스 및 vendor 원본은 변경하지 않습니다.
+페이지의 `?v=`를 직접 고치지 말고 이 절차를 사용하세요. 데이터베이스나 로그인 정보를 초기화하지 않습니다.
 
 휴대폰에서도 HTTPS 장부 주소로 접속하세요. 개인 브라우징이나 브라우저 데이터 정리는
 로그인과 임시 자료 유지에 영향을 줄 수 있으므로 중요한 입력 뒤에는 서버 저장 완료를 확인하세요.

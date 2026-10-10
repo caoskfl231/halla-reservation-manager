@@ -1,12 +1,12 @@
-import { runHomeJob } from './home-worker-client.js?v=home-performance-20261010-1';
-import { createHomePager } from './home-pagination.js?v=home-performance-20261010-1';
-import { getTransactions, updateTransaction, getAllLedgerTx, getCashflowTypes, getCashflowItems, getCustomers, exportHallapaDbSnapshot, restoreHallapaDbSnapshot } from './db.js?v=home-performance-20261010-1';
-import { initDateFilter } from './common/date-filter.js?v=home-performance-20261010-1';
-import { applyAmountColoring, openModalOverlay, closeModalOverlay, registerModalEscClose, attachSearchInput } from './common/ui-helpers.js?v=home-performance-20261010-1';
-import { formatWeekdayLabel, getQuickRange, includesIgnoreCase } from './common/util.js?v=home-performance-20261010-1';
-import { initDateWeekdayAuto } from './common/date-weekday-box.js?v=home-performance-20261010-1';
-import { installDbAutoRefresh } from './common/app-events.js?v=home-performance-20261010-1';
-import { bootstrapPageCommon } from './common/page-bootstrap.js?v=home-performance-20261010-1';
+import { runHomeJob } from './home-worker-client.js?v=app-20261010-3';
+import { createHomePager } from './home-pagination.js?v=app-20261010-3';
+import { getTransactions, updateTransaction, getAllLedgerTx, getCashflowTypes, getCashflowItems, getCustomers, exportHallapaDbSnapshot, restoreHallapaDbSnapshot } from './db.js?v=app-20261010-3';
+import { initDateFilter } from './common/date-filter.js?v=app-20261010-3';
+import { applyAmountColoring, openModalOverlay, closeModalOverlay, registerModalEscClose, attachSearchInput } from './common/ui-helpers.js?v=app-20261010-3';
+import { formatWeekdayLabel, getQuickRange, includesIgnoreCase } from './common/util.js?v=app-20261010-3';
+import { initDateWeekdayAuto } from './common/date-weekday-box.js?v=app-20261010-3';
+import { installDbAutoRefresh } from './common/app-events.js?v=app-20261010-3';
+import { bootstrapPageCommon } from './common/page-bootstrap.js?v=app-20261010-3';
 
 const btnDbBackup = document.getElementById('btn-home-db-backup');
 const btnDbRestore = document.getElementById('btn-home-db-restore');

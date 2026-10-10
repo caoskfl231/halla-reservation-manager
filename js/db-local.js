@@ -1,4 +1,4 @@
-import { emitAppEvent } from "./common/app-events.js?v=home-performance-20261010-1";
+import { emitAppEvent } from "./common/app-events.js?v=app-20261010-3";
 
 const DEFAULT_CASHFLOW_TYPES = [
   { code: "A01", name: "법인통장" },

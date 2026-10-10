@@ -1,1 +1,1 @@
-export * from './db-cloud.js?v=home-performance-20261010-1';
+export * from './db-cloud.js?v=app-20261010-3';
