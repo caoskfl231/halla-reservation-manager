@@ -1,11 +1,11 @@
-import { generateItemId } from "./item-utils.js?v=app-20261010-3";
+import { generateItemId } from "./item-utils.js?v=app-20261010-4";
 import {
   formatPercent,
   calcShrinkPrice,
   calcPriceFromMargin,
   calcMarginFromPrice,
-} from "./price-utils.js?v=app-20261010-3";
-import { warningDialog } from "../common/dialogs.js?v=app-20261010-3";
+} from "./price-utils.js?v=app-20261010-4";
+import { warningDialog } from "../common/dialogs.js?v=app-20261010-4";
 
 export function createItemFormManager(options) {
   const DEFAULT_SHRINK_PERCENT = 10;
@@ -63,7 +63,7 @@ export function createItemFormManager(options) {
       );
       groupSelect.value = hasOption ? value : "";
     }
-    if (groupInputRow) groupInputRow.classList.add("is-hidden");
+    if (groupInputRow) groupInputRow.hidden = true;
 
     if (nameInput) nameInput.value = item.name || "";
     if (specInput) specInput.value = item.spec || "";
@@ -116,7 +116,7 @@ export function createItemFormManager(options) {
     if (statusInput) statusInput.value = "active";
     if (groupSelect) groupSelect.value = "";
     if (groupInput) groupInput.value = "";
-    if (groupInputRow) groupInputRow.classList.add("is-hidden");
+    if (groupInputRow) groupInputRow.hidden = true;
     if (priceInput) priceInput.value = 0;
     if (shrinkPercentInput)
       shrinkPercentInput.value = formatPercent(DEFAULT_SHRINK_PERCENT);
@@ -152,7 +152,7 @@ export function createItemFormManager(options) {
       );
       groupSelect.value = hasOption ? group : "";
     }
-    if (groupInputRow) groupInputRow.classList.add("is-hidden");
+    if (groupInputRow) groupInputRow.hidden = true;
 
     if (specInput) specInput.value = spec;
     if (unitInput) unitInput.value = unit;
@@ -414,7 +414,7 @@ export function createItemFormManager(options) {
   if (groupSelect) {
     groupSelect.addEventListener("change", () => {
       if (groupInput) groupInput.value = groupSelect.value || "";
-      if (groupInputRow) groupInputRow.classList.add("is-hidden");
+      if (groupInputRow) groupInputRow.hidden = true;
       if (typeof onPreviewNextId === "function") {
         onPreviewNextId();
       }

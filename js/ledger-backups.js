@@ -1,5 +1,5 @@
-import { rpc, friendlyError } from './cloud-session.js?v=app-20261010-3';
-import { installHistoryPanel } from './ledger-history.js?v=app-20261010-3';
+import { rpc, friendlyError } from './cloud-session.js?v=app-20261010-4';
+import { installHistoryPanel } from './ledger-history.js?v=app-20261010-4';
 
 export function installBackupPanel(restore, owner) {
   if (document.body.dataset.mode !== 'home') return;

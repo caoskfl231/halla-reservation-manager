@@ -1,4 +1,4 @@
-import { getCashflowItems, getCashflowTypes } from '../db.js?v=app-20261010-3';
+import { getCashflowItems, getCashflowTypes } from '../db.js?v=app-20261010-4';
 
 let inflightCashflowOptionListPromise = null;
 

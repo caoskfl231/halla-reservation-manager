@@ -3768,3 +3768,8 @@ body[data-mode="home"] .page-home .home-tx-card .table-wrapper {
 .is-hidden {
   display: none !important;
 }
+
+/* Keep hidden attributes effective when component styles set display. */
+[hidden] {
+  display: none !important;
+}

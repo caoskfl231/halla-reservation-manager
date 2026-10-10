@@ -1,10 +1,10 @@
-import { getCustomers, getTransactions, addCustomer, updateCustomer, deleteCustomer, bulkInsertCustomers, bulkReplaceCustomerTypes, bulkReplaceCustomerGroups, getCustomerTypes, addCustomerType, updateCustomerType, deleteCustomerType, getCustomerGroups, addCustomerGroup, updateCustomerGroup, deleteCustomerGroup, renameCustomerTypeNameEverywhere, renameCustomerGroupNameEverywhere } from './db.js?v=app-20261010-3';
-import { installDbAutoRefresh } from './common/app-events.js?v=app-20261010-3';
-import { sortByKey } from './common/sortTable.js?v=app-20261010-3';
-import { getStoredJson, setStoredJson } from './common/storage.js?v=app-20261010-3';
-import { openModalOverlay, closeModalOverlay, registerModalEscClose, createFormDirtyTracker, wrapDirtyClose, enableTableArrowNavigation, bindDblClickRowEdit, bindClickRowSelect, attachSearchInput } from './common/ui-helpers.js?v=app-20261010-3';
-import { bootstrapPageCommon } from './common/page-bootstrap.js?v=app-20261010-3';
-import { escapeHtml } from './common/util.js?v=app-20261010-3';
+import { getCustomers, getTransactions, addCustomer, updateCustomer, deleteCustomer, bulkInsertCustomers, bulkReplaceCustomerTypes, bulkReplaceCustomerGroups, getCustomerTypes, addCustomerType, updateCustomerType, deleteCustomerType, getCustomerGroups, addCustomerGroup, updateCustomerGroup, deleteCustomerGroup, renameCustomerTypeNameEverywhere, renameCustomerGroupNameEverywhere } from './db.js?v=app-20261010-4';
+import { installDbAutoRefresh } from './common/app-events.js?v=app-20261010-4';
+import { sortByKey } from './common/sortTable.js?v=app-20261010-4';
+import { getStoredJson, setStoredJson } from './common/storage.js?v=app-20261010-4';
+import { openModalOverlay, closeModalOverlay, registerModalEscClose, createFormDirtyTracker, wrapDirtyClose, enableTableArrowNavigation, bindDblClickRowEdit, bindClickRowSelect, attachSearchInput } from './common/ui-helpers.js?v=app-20261010-4';
+import { bootstrapPageCommon } from './common/page-bootstrap.js?v=app-20261010-4';
+import { escapeHtml } from './common/util.js?v=app-20261010-4';
 
 bootstrapPageCommon({
   page: 'customer',

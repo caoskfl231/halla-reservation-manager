@@ -7,13 +7,13 @@ import {
   getCashflowTypes,
   getCashflowItems,
   getAllLedgerTx,
-} from './db.js?v=app-20261010-3';
-import { formatMoney, includesIgnoreCase, todayYMD, formatWeekdayLabel } from './common/util.js?v=app-20261010-3';
-import { initDateFilter } from './common/date-filter.js?v=app-20261010-3';
-import { openModalOverlay, closeModalOverlay, registerModalEscClose, applyAmountColoring, bindDblClickRowConfirm } from './common/ui-helpers.js?v=app-20261010-3';
-import { bootstrapPageCommon } from './common/page-bootstrap.js?v=app-20261010-3';
-import { getStoredJson, setStoredJson } from './common/storage.js?v=app-20261010-3';
-import { installDbAutoRefresh } from './common/app-events.js?v=app-20261010-3';
+} from './db.js?v=app-20261010-4';
+import { formatMoney, includesIgnoreCase, todayYMD, formatWeekdayLabel } from './common/util.js?v=app-20261010-4';
+import { initDateFilter } from './common/date-filter.js?v=app-20261010-4';
+import { openModalOverlay, closeModalOverlay, registerModalEscClose, applyAmountColoring, bindDblClickRowConfirm } from './common/ui-helpers.js?v=app-20261010-4';
+import { bootstrapPageCommon } from './common/page-bootstrap.js?v=app-20261010-4';
+import { getStoredJson, setStoredJson } from './common/storage.js?v=app-20261010-4';
+import { installDbAutoRefresh } from './common/app-events.js?v=app-20261010-4';
 
 bootstrapPageCommon({ page: 'transaction-report', todayYMD, formatWeekdayLabel });
 

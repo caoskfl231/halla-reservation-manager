@@ -7,9 +7,9 @@ import {
   enableTableArrowNavigation,
   bindDblClickRowEdit,
   bindClickRowSelect,
-} from "../common/ui-helpers.js?v=app-20261010-3";
-import { confirmDialog, warningDialog } from "../common/dialogs.js?v=app-20261010-3";
-import { getNextItemGroupCode } from "./item-utils.js?v=app-20261010-3";
+} from "../common/ui-helpers.js?v=app-20261010-4";
+import { confirmDialog, warningDialog } from "../common/dialogs.js?v=app-20261010-4";
+import { getNextItemGroupCode } from "./item-utils.js?v=app-20261010-4";
 
 export function createItemGroupManager(options) {
   const {
@@ -137,7 +137,7 @@ export function createItemGroupManager(options) {
         opt.textContent = g.name;
         groupSelect.appendChild(opt);
       });
-      if (groupInputRow) groupInputRow.classList.add("is-hidden");
+      if (groupInputRow) groupInputRow.hidden = true;
     }
   }
 
