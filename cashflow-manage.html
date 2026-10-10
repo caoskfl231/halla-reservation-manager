@@ -197,58 +197,7 @@
     </div>
   </div>
 
-  <!-- 입출금 분류 코드 추가/수정용 모달 -->
-  <div id="cashflow-group-modal" class="modal-overlay" aria-hidden="true">
-    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="cashflow-group-modal-title">
-      <section class="card">
-        <div class="modal-header">
-          <h2 id="cashflow-group-modal-title">분류 추가</h2>
-          <button type="button" class="modal-close-x" aria-label="닫기" data-click="#btn-cashflow-group-close">×</button>
-        </div>
-        <form id="cashflow-group-form" class="modal-form">
-          <div class="form-section-title">기본정보</div>
-          <label>
-            <span class="label-text">상태</span>
-            <select id="cashflow-group-status" class="field-status">
-              <option value="active">사용</option>
-              <option value="inactive">미사용</option>
-            </select>
-          </label>
-          <label>
-            <span class="label-text">코드</span>
-            <div class="code-input-row">
-              <select id="cashflow-group-id-mode" class="field-code-mode">
-                <option value="auto">자동생성</option>
-                <option value="manual">직접입력</option>
-              </select>
-              <input type="text" id="cashflow-group-code" class="field-code-input" />
-            </div>
-          </label>
-          <label data-req="1">
-            <span class="label-text">구분</span>
-            <select id="cashflow-group-direction" class="field-status">
-              <option value="">(선택)</option>
-            </select>
-          </label>
-
-          <label class="span-2" data-req="1">
-            <span class="label-text">구분 항목</span>
-            <select id="cashflow-group-item" class="field-status">
-              <option value="">(선택)</option>
-            </select>
-          </label>
-
-          <div class="modal-actions">
-            <button type="button" id="btn-cashflow-group-save-continue" class="btn-secondary">연속</button>
-            <button type="submit" class="btn-secondary">저장</button>
-            <button type="button" id="btn-cashflow-group-close" class="btn-secondary">닫기</button>
-          </div>
-        </form>
-      </section>
-    </div>
-  </div>
-
-  <script type="module" src="js/cashflow-manage.js?v=home-performance-20261010-1"></script>
+  <script type="module" src="js/cashflow-manage.js?v=cashflow-cleanup-20261010-1"></script>
 </body>
 </html>
 

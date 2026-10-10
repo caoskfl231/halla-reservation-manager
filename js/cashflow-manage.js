@@ -10,9 +10,7 @@ import {
   deleteCashflowItem,
   bulkReplaceCashflowItems,
   getCashflowGroups,
-  addCashflowGroup,
   updateCashflowGroup,
-  deleteCashflowGroup,
   bulkReplaceCashflowGroups,
   getAllLedgerTx,
   putLedgerTx,
@@ -187,30 +185,6 @@ const btnTypeSaveContinue = document.getElementById(
 const btnTypeEdit = document.getElementById("btn-cashflow-type-edit");
 const btnTypeDelete = document.getElementById("btn-cashflow-type-delete");
 
-// 입출금 분류 코드 관련 요소 (왼쪽 카드 박스는 삭제됨, 모달만 사용)
-// (deprecated) cashflow-group-list는 현재 HTML에 없음(좌측 카드 삭제)
-const groupList = null;
-const groupModal = document.getElementById("cashflow-group-modal");
-const groupForm = document.getElementById("cashflow-group-form");
-const groupCodeInput = document.getElementById("cashflow-group-code");
-const groupStatusSelect = document.getElementById("cashflow-group-status");
-const groupDirectionSelect = document.getElementById(
-  "cashflow-group-direction",
-);
-const groupItemSelect = document.getElementById("cashflow-group-item");
-const groupIdModeSelect = document.getElementById("cashflow-group-id-mode");
-// (deprecated) 그룹 모달 open/edit/delete 버튼은 현재 HTML에 없음
-const btnGroupOpen = null;
-const btnGroupClose = document.getElementById("btn-cashflow-group-close");
-const btnGroupSaveContinue = document.getElementById(
-  "btn-cashflow-group-save-continue",
-);
-const btnGroupEdit = null;
-const btnGroupDelete = null;
-const btnGroupImportItems = document.getElementById(
-  "btn-cashflow-group-import-items",
-);
-
 let currentEditingCode = null;
 let currentSort = { key: null, direction: "asc" };
 let cachedItems = [];
@@ -237,12 +211,9 @@ function updateCashflowInitDefaultsButtonVisibility() {
   // 기본코드 불러오기는 초기 세팅용(데이터 0건)일 때만 노출
   btnInitDefaults.hidden = hasAnyMasterData;
 }
-let selectedGroupCode = null;
 let editingTypeCode = null;
-let editingGroupCode = null;
 let cashflowItemSubmitMode = "close";
 let cashflowTypeSubmitMode = "close";
-let cashflowGroupSubmitMode = "close";
 
 function normalizeCode(v) {
   return String(v ?? "").trim();
@@ -338,7 +309,6 @@ let lastAuditSignature = "";
 let cashflowItemCodeByName = new Map();
 let mainModalEscOff = null;
 let typeModalEscOff = null;
-let groupModalEscOff = null;
 const cashflowModalDirty = createFormDirtyTracker(() => ({
   code: codeInput ? codeInput.value : "",
   typeForItem: typeSelectForItem ? typeSelectForItem.value : "",
@@ -350,11 +320,6 @@ const cashflowTypeModalDirty = createFormDirtyTracker(() => ({
   code: typeCodeInput ? typeCodeInput.value : "",
   name: typeNameInput ? typeNameInput.value : "",
 }));
-const cashflowGroupModalDirty = createFormDirtyTracker(() => ({
-  code: groupCodeInput ? groupCodeInput.value : "",
-  direction: groupDirectionSelect ? groupDirectionSelect.value : "",
-  item: groupItemSelect ? groupItemSelect.value : "",
-}));
 const closeCashflowModalWithConfirm = wrapDirtyClose(
   cashflowModalDirty,
   baseCloseModal,
@@ -362,10 +327,6 @@ const closeCashflowModalWithConfirm = wrapDirtyClose(
 const closeCashflowTypeModalWithConfirm = wrapDirtyClose(
   cashflowTypeModalDirty,
   baseCloseTypeModal,
-);
-const closeCashflowGroupModalWithConfirm = wrapDirtyClose(
-  cashflowGroupModalDirty,
-  baseCloseGroupModal,
 );
 
 function buildTypeBalances(items, types, txAll) {
@@ -577,34 +538,6 @@ function closeTypeModal() {
   closeCashflowTypeModalWithConfirm();
 }
 
-// ===== 입출금 분류 모달 제어 =====
-
-function baseCloseGroupModal() {
-  if (groupModal) {
-    closeModalOverlay(groupModal);
-    if (typeof groupModalEscOff === "function") {
-      groupModalEscOff();
-      groupModalEscOff = null;
-    }
-  }
-}
-
-function openGroupModal() {
-  if (groupModal) {
-    openModalOverlay(groupModal);
-    cashflowGroupModalDirty.markClean();
-    if (typeof groupModalEscOff === "function") groupModalEscOff();
-    groupModalEscOff = registerModalEscClose(
-      groupModal,
-      closeCashflowGroupModalWithConfirm,
-    );
-  }
-}
-
-function closeGroupModal() {
-  closeCashflowGroupModalWithConfirm();
-}
-
 function resetTypeForm() {
   editingTypeCode = null;
   if (typeModalTitle) typeModalTitle.textContent = "구분 추가";
@@ -619,22 +552,6 @@ function resetTypeForm() {
 
   // 자동 모드면 바로 코드 미리보기
   previewNextTypeCode();
-}
-
-function resetGroupForm() {
-  editingGroupCode = null;
-  if (groupIdModeSelect) groupIdModeSelect.value = "auto";
-  if (groupIdModeSelect) groupIdModeSelect.disabled = false;
-  if (groupCodeInput) {
-    groupCodeInput.readOnly = true;
-    groupCodeInput.value = "";
-  }
-  if (groupStatusSelect) groupStatusSelect.value = "active";
-  if (groupDirectionSelect) groupDirectionSelect.value = "";
-  if (groupItemSelect) groupItemSelect.value = "";
-
-  // 자동 모드면 바로 코드 미리보기
-  previewNextGroupCode();
 }
 
 function resetForm() {
@@ -681,21 +598,6 @@ function previewNextTypeCode() {
     .filter((n) => !Number.isNaN(n));
   const nextNum = (nums.length ? Math.max(...nums) : 0) + 1;
   typeCodeInput.value = "A" + String(nextNum).padStart(2, "0");
-}
-
-function previewNextGroupCode() {
-  if (!groupCodeInput) return;
-  if (editingGroupCode) return;
-  if (groupIdModeSelect && groupIdModeSelect.value === "manual") return;
-
-  const nums = (cachedGroups || [])
-    .map((g) => {
-      const m = String(g.code || "").match(/(\d+)/);
-      return m ? Number(m[1]) : NaN;
-    })
-    .filter((n) => !Number.isNaN(n));
-  const nextNum = (nums.length ? Math.max(...nums) : 0) + 1;
-  groupCodeInput.value = "A" + String(nextNum).padStart(3, "0");
 }
 
 // 코드 규칙: 001, 002 ... (3자리 숫자)
@@ -822,46 +724,6 @@ function renderTypeList(types) {
   bindDblClickRowEdit(typeList, {
     rowSelector: 'tr[data-code]',
     editButton: btnTypeEdit,
-  });
-}
-
-function renderGroupList(groups) {
-  if (!groupList) return;
-  groupList.innerHTML = "";
-
-  groups.forEach((g) => {
-    const tr = document.createElement("tr");
-    tr.dataset.code = g.code;
-    const status = String(g?.status || "active");
-    if (status && status !== "active") tr.classList.add("is-inactive");
-    const type = (cachedTypes || []).find(
-      (t) => String(t.code) === String(g.direction),
-    );
-    const typeName = type ? String(type.name || "") : "";
-    tr.innerHTML = `
-      <td>${typeName}</td>
-      <td>${g.code || ""}</td>
-      <td>${g.name || ""}</td>
-    `;
-    groupList.appendChild(tr);
-  });
-
-  bindClickRowSelect(groupList, {
-    rowSelector: 'tr[data-code]',
-    onSelect: (row) => {
-      selectedGroupCode = String(row?.dataset?.code || '');
-    },
-  });
-
-  // 그룹 리스트도 방향키/엔터로 이동 가능하게 처리
-  enableTableArrowNavigation(groupList, {
-    onSelect: (row) => row.click(),
-    enableEnter: true,
-  });
-
-  bindDblClickRowEdit(groupList, {
-    rowSelector: 'tr[data-code]',
-    editButton: btnGroupEdit,
   });
 }
 
@@ -1048,45 +910,6 @@ async function reloadGroups() {
   cachedGroups = await getCashflowGroups();
   updateCashflowJsonRestoreButtonVisibility();
   updateCashflowInitDefaultsButtonVisibility();
-  renderGroupList(cachedGroups);
-}
-
-function populateGroupTypeSelect() {
-  if (!groupDirectionSelect) return;
-  const prev = groupDirectionSelect.value;
-  groupDirectionSelect.innerHTML =
-    '<option value="">(선택)</option>' +
-    cachedTypes
-      .filter((t) => String(t?.status || "active") === "active")
-      .map((t) => `<option value="${t.code}">${t.code} ${t.name}</option>`)
-      .join("");
-  if (prev && [...groupDirectionSelect.options].some((o) => o.value === prev)) {
-    groupDirectionSelect.value = prev;
-  }
-}
-
-function populateGroupItemSelect() {
-  if (!groupItemSelect) return;
-  const currentType = groupDirectionSelect ? groupDirectionSelect.value : "";
-  const prev = groupItemSelect.value;
-
-  const available = (cachedItems || []).filter((it) => {
-    if (String(it?.status || "active") !== "active") return false;
-    if (!currentType) return true;
-    return String(it.typeCode || "") === String(currentType);
-  });
-
-  groupItemSelect.innerHTML =
-    '<option value="">(선택)</option>' +
-    available
-      .map((it) => `<option value="${it.code}">${it.code} ${it.name}</option>`)
-      .join("");
-
-  if (prev && available.some((it) => it.code === prev)) {
-    groupItemSelect.value = prev;
-  } else {
-    groupItemSelect.value = "";
-  }
 }
 
 function bindEvents() {
@@ -1292,158 +1115,6 @@ function bindEvents() {
     });
   }
 
-  // 분류 코드 모달 열기
-  if (btnGroupOpen) {
-    btnGroupOpen.addEventListener("click", () => {
-      resetGroupForm();
-      // 구분/구분 항목 셀렉트는 모달을 열 때 최신 데이터로 채운다.
-      populateGroupTypeSelect();
-      populateGroupItemSelect();
-      openGroupModal();
-    });
-  }
-
-  // 항목 목록을 분류 목록으로 한 번에 넣기 (복사)
-  if (btnGroupImportItems) {
-    btnGroupImportItems.addEventListener("click", async () => {
-      const scopeLabel = selectedTypeCode ? "선택한 구분" : "전체";
-      const ok = await confirmAsync(
-        `${scopeLabel} 항목을 분류로 넣을까요?\n(이미 있는 분류 코드는 건너뜁니다)`,
-        { title: "확인", okText: "실행", cancelText: "취소" },
-      );
-      if (!ok) return;
-
-      let allItems = [];
-      let groups = [];
-      try {
-        allItems = await getCashflowItems();
-      } catch (_) {
-        allItems = [];
-      }
-      try {
-        groups = await getCashflowGroups();
-      } catch (_) {
-        groups = [];
-      }
-
-      const existingCodes = new Set(
-        (groups || []).map((g) => String(g?.code || "")).filter(Boolean),
-      );
-      const targets = (allItems || []).filter((it) => {
-        if (!it || it.code == null) return false;
-        if (selectedTypeCode)
-          return String(it.typeCode || "") === String(selectedTypeCode);
-        return true;
-      });
-
-      let added = 0;
-      let skipped = 0;
-      for (const it of targets) {
-        const code = String(it.code || "").trim();
-        if (!code) continue;
-        if (existingCodes.has(code)) {
-          skipped += 1;
-          continue;
-        }
-        const group = {
-          code,
-          name: String(it.name || ""),
-          direction: String(it.typeCode || ""),
-          itemCode: code,
-        };
-        try {
-          await updateCashflowGroup(group);
-          existingCodes.add(code);
-          added += 1;
-        } catch (e) {
-          console.error(e);
-        }
-      }
-
-      await reloadGroups();
-      alert(`완료: ${added}건 추가, ${skipped}건 건너뜀`);
-    });
-  }
-
-  if (btnGroupClose) {
-    btnGroupClose.addEventListener("click", () => {
-      closeGroupModal();
-    });
-  }
-
-  if (btnGroupSaveContinue && groupForm) {
-    btnGroupSaveContinue.addEventListener("click", () => {
-      cashflowGroupSubmitMode = "continue";
-      if (typeof groupForm.requestSubmit === "function") groupForm.requestSubmit();
-      else groupForm.querySelector('button[type="submit"]')?.click();
-    });
-  }
-
-  if (btnGroupEdit) {
-    btnGroupEdit.addEventListener("click", () => {
-      if (!selectedGroupCode) {
-        alert("수정할 분류를 선택하세요.");
-        return;
-      }
-      const g = cachedGroups.find(
-        (x) => String(x.code) === String(selectedGroupCode),
-      );
-      if (!g) {
-        alert("선택한 분류를 찾을 수 없습니다.");
-        return;
-      }
-      (async () => {
-        editingGroupCode = g.code;
-        if (groupIdModeSelect) {
-          groupIdModeSelect.value = "manual";
-          groupIdModeSelect.disabled = true;
-        }
-        if (groupCodeInput) {
-          groupCodeInput.readOnly = false;
-          groupCodeInput.value = g.code || "";
-        }
-
-        if (groupStatusSelect) groupStatusSelect.value = g.status || "active";
-
-        // 셀렉트는 항상 최신 데이터로 채우고, 편집 대상 값으로 맞춘다.
-        try {
-          cachedItems = await getCashflowItems();
-        } catch (_) {
-          cachedItems = cachedItems || [];
-        }
-        populateGroupTypeSelect();
-        if (groupDirectionSelect)
-          groupDirectionSelect.value = g.direction || "";
-        populateGroupItemSelect();
-        if (groupItemSelect) groupItemSelect.value = g.itemCode || "";
-
-        openGroupModal();
-      })();
-    });
-  }
-
-  if (btnGroupDelete) {
-    btnGroupDelete.addEventListener("click", async () => {
-      if (!selectedGroupCode) {
-        alert("삭제할 분류를 선택하세요.");
-        return;
-      }
-
-      const codeStr = normalizeStr(selectedGroupCode);
-
-      // cashflow_groups는 현재 다른 거래 데이터에서 직접 참조되지 않으므로,
-      // 완전 삭제를 기본 허용하되, 사용자 보호를 위해 확인을 한 번 더 한다.
-      const ok = await confirmAsync(
-        "이 분류를 완전 삭제할까요?\n\n- 삭제 후 복구할 수 없습니다\n- 관련 화면에서 분류 목록에서 사라집니다",
-        { title: "삭제 확인", okText: "삭제", cancelText: "취소", tone: "danger" },
-      );
-      if (!ok) return;
-      await deleteCashflowGroup(codeStr);
-      selectedGroupCode = null;
-      await reloadGroups();
-    });
-  }
-
   if (typeForm) {
     typeForm.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -1556,20 +1227,6 @@ function bindEvents() {
         typeCodeInput.readOnly = false;
         typeCodeInput.value = "";
         typeCodeInput.focus();
-      }
-    });
-  }
-
-  if (groupIdModeSelect && groupCodeInput) {
-    groupIdModeSelect.addEventListener("change", () => {
-      if (groupIdModeSelect.value === "auto") {
-        groupCodeInput.readOnly = true;
-        groupCodeInput.value = "";
-        previewNextGroupCode();
-      } else {
-        groupCodeInput.readOnly = false;
-        groupCodeInput.value = "";
-        groupCodeInput.focus();
       }
     });
   }
@@ -1768,96 +1425,6 @@ function bindEvents() {
         console.error(err);
         alert("저장 중 오류가 발생했습니다. (코드 중복일 수 있습니다)");
       }
-    });
-  }
-
-  if (groupForm) {
-    groupForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      let code = groupCodeInput ? groupCodeInput.value.trim() : "";
-      const typeCode = groupDirectionSelect ? groupDirectionSelect.value : "";
-      const itemCode = groupItemSelect ? groupItemSelect.value : "";
-      const mode = groupIdModeSelect ? groupIdModeSelect.value : "auto";
-      const status = groupStatusSelect ? groupStatusSelect.value : "active";
-
-      if (!typeCode) {
-        alert("구분을 선택하세요.");
-        return;
-      }
-
-      if (!itemCode) {
-        alert("구분 항목을 선택하세요.");
-        return;
-      }
-
-      // 코드 자동생성 모드: A001, A002 ... (3자리 숫자 + A)
-      if (mode === "auto") {
-        const nums = cachedGroups
-          .map((g) => {
-            const m = String(g.code || "").match(/(\d+)/);
-            return m ? Number(m[1]) : NaN;
-          })
-          .filter((n) => !Number.isNaN(n));
-        const nextNum = (nums.length ? Math.max(...nums) : 0) + 1;
-        code = "A" + String(nextNum).padStart(3, "0");
-      } else if (!code) {
-        alert("코드를 입력하세요.");
-        return;
-      }
-
-      // 구분 항목 이름은 현재 항목 목록에서 찾아서 저장
-      const targetItem = (cachedItems || []).find(
-        (it) => String(it.code) === String(itemCode),
-      );
-      const name = targetItem ? targetItem.name : "";
-
-      const group = { code, name, direction: typeCode, itemCode, status };
-
-      if (editingGroupCode) {
-        await updateCashflowGroup(group);
-      } else {
-        await addCashflowGroup(group);
-      }
-
-      await reloadGroups();
-
-      if (cashflowGroupSubmitMode === "continue") {
-        cashflowGroupSubmitMode = "close";
-        const keepMode = groupIdModeSelect ? groupIdModeSelect.value : "auto";
-        const keepDirection = groupDirectionSelect
-          ? groupDirectionSelect.value
-          : "";
-        resetGroupForm();
-
-        if (groupIdModeSelect) {
-          groupIdModeSelect.value = keepMode || "auto";
-          groupIdModeSelect.disabled = false;
-        }
-        if (groupCodeInput) {
-          if (groupIdModeSelect && groupIdModeSelect.value === "manual") {
-            groupCodeInput.readOnly = false;
-            groupCodeInput.value = "";
-          } else {
-            groupCodeInput.readOnly = true;
-          }
-        }
-
-        populateGroupTypeSelect();
-        if (groupDirectionSelect && keepDirection) {
-          groupDirectionSelect.value = keepDirection;
-        }
-        populateGroupItemSelect();
-        if (groupIdModeSelect && groupIdModeSelect.value === "auto") {
-          previewNextGroupCode();
-        }
-        if (cashflowGroupModalDirty) cashflowGroupModalDirty.markClean();
-        groupItemSelect?.focus();
-        return;
-      }
-
-      cashflowGroupSubmitMode = "close";
-      closeGroupModal();
     });
   }
 
