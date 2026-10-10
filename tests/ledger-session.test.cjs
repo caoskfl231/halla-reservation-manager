@@ -1,7 +1,8 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 (async()=>{
- const values=new Map();let refreshes=0;
+ const values=new Map(),persistentValues=new Map();let refreshes=0;
  const context=vm.createContext({console,Date,JSON,Error,AbortSignal,URLSearchParams,sessionStorage:{getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,v),removeItem:k=>values.delete(k)},location:{search:'?next=https://evil.example',pathname:'/index.html',replace(){}},fetch:async(url,options)=>{assert(!options.headers.Authorization||options.headers.Authorization.startsWith('Bearer '));if(url.includes('refresh_token')){refreshes++;return {ok:true,json:async()=>({access_token:'renewed',refresh_token:'r2',expires_in:3600})};}return {ok:true,json:async()=>({snapshot:{},revision:1})};}});
+ context.localStorage={getItem:k=>persistentValues.get(k)||null,setItem:(k,v)=>persistentValues.set(k,v),removeItem:k=>persistentValues.delete(k)};
  const m=new vm.SourceTextModule(fs.readFileSync('js/cloud-session.js','utf8'),{context});await m.link(()=>{});await m.evaluate();const c=m.namespace;
  c.keepSession({access_token:'one',refresh_token:'r',expires_in:3600});assert((await c.accessToken())==='one');assert(c.session().expires_at>Date.now()/1000);assert.equal(c.nextPage(),'index.html','external redirect rejected');
  c.keepSession({access_token:'expired',refresh_token:'r',expires_at:1});const tokens=await Promise.all([c.accessToken(),c.accessToken()]);assert.deepEqual(tokens,['renewed','renewed']);assert.equal(refreshes,1);assert(!JSON.stringify([...values]).includes('password'));
@@ -9,6 +10,25 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
  await c.rpc('halla_ledger_save',{});await c.rpc('halla_ledger_read');await c.rpc('halla_ledger_patch_compact',{});
  assert.deepEqual(timeouts,[120000,120000,120000],'restore, full read and atomic save have bounded timeouts');
  assert(c.friendlyError(new Error('signal timed out')).includes('저장 결과'),'timeout asks user to verify uncertain save');
- c.clearSession();assert.equal(c.session(),null);
+ c.setAutoLogin(true);c.rememberEmail('owner@example.com',true);
+ assert.equal(values.has('hallapa_ledger_session_v1'),false);
+ assert(c.autoLoginEnabled());values.clear();
+ assert.equal(c.session().access_token,'renewed','persistent session survives a new tab/session storage');
+ c.keepSession({access_token:'old',refresh_token:'persisted-refresh',expires_at:1});
+ await c.accessToken();assert(c.autoLoginEnabled(),'refresh stays persistent');
+ context.fetch=async()=>{throw Error('network offline');};
+ c.keepSession({access_token:'expired',refresh_token:'persisted-refresh',expires_at:1});
+ await assert.rejects(c.accessToken(),/network/);assert(c.autoLoginEnabled(),'transient network error does not erase login');
+ let release;context.fetch=async()=>{await new Promise(resolve=>release=resolve);return {ok:true,json:async()=>({access_token:'late',refresh_token:'r',expires_in:3600})};};
+ const pending=c.accessToken();c.clearSession();release();await assert.rejects(pending,/LOGIN_REQUIRED/);
+ assert.equal(c.session(),null,'late refresh cannot undo logout');
+ assert.equal(c.savedEmail(),'owner@example.com','logout keeps separately selected saved ID');
+ c.rememberEmail('',false);assert.equal(c.savedEmail(),'');
+ c.keepSession({access_token:'temporary',refresh_token:'r',expires_in:3600},false);
+ assert.equal(c.autoLoginEnabled(),false);values.clear();assert.equal(c.session(),null,'unchecked login does not survive browser session');
+ c.keepSession({access_token:'logout',refresh_token:'r',expires_in:3600},true);
+ context.fetch=async()=>({ok:true,json:async()=>({})});
+ await c.signOut();assert.equal(c.session(),null);assert.equal(persistentValues.has('hallapa_ledger_session_v1'),false);
+ assert(!JSON.stringify([...values,...persistentValues]).includes('password'));
  console.log('PASS: isolated token storage, REST expiry normalization, concurrent refresh, safe login redirect');
 })().catch(e=>{console.error(e);process.exitCode=1;});
