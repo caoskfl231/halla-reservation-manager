@@ -4,13 +4,13 @@
   <meta charset="utf-8" />
   <title>매입 관리 - 할라 장부 관리</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="css/style.css?v=app-20261010-9" />
-   <link rel="stylesheet" href="css/mobile.css?v=app-20261010-9" />
+  <link rel="stylesheet" href="css/style.css?v=app-20261010-10" />
+   <link rel="stylesheet" href="css/mobile.css?v=app-20261010-10" />
 </head>
 <body data-title="매입 관리" data-mode="purchase" data-global-search="1" data-global-search-target="#purchase-search" data-global-search-action="#btn-purchase-date-search">
   <div id="global-nav-include"></div>
   <script type="module">
-    import { loadGlobalNav } from './js/common/nav-include.js?v=app-20261010-9';
+    import { loadGlobalNav } from './js/common/nav-include.js?v=app-20261010-10';
     loadGlobalNav();
   </script>
 
@@ -82,7 +82,7 @@
         </div>
       </div>
       <!-- 이 내역 요약 박스 -->
-      <div class="table-box purchase-summary-box" data-collapsible-transactions="거래내역" data-opens-transaction-detail="purchase-detail-panel" hidden>
+      <div class="table-box purchase-summary-box">
         <div class="table-wrapper">
           <table class="tx-table tx-table-small purchase-summary-table">
             <thead>
@@ -113,7 +113,8 @@
         </div>
       </div>
       <!-- 상세 내역 제목 -->
-      <div id="purchase-detail-panel" class="table-box purchase-detail-box" data-collapsible-transactions="상세내역" hidden>
+      <div class="purchase-detail-title">상세내역</div>
+      <div class="table-box purchase-detail-box">
         <div class="table-wrapper purchase-detail-wrapper">
           <table class="tx-table purchase-table">
             <thead>
@@ -557,8 +558,8 @@
     </div>
   </div>
 
-  <script src="js/vendor/xlsx.full.min.js?v=app-20261010-9"></script>
-  <script type="module" src="js/purchase-manage.js?v=app-20261010-9"></script>
+  <script src="js/vendor/xlsx.full.min.js?v=app-20261010-10"></script>
+  <script type="module" src="js/purchase-manage.js?v=app-20261010-10"></script>
 </body>
 </html>
 

@@ -10,7 +10,7 @@ import {
   getAllLedgerTx,
   getCashflowItems,
   getCashflowTypes,
-} from "./db.js?v=app-20261010-9";
+} from "./db.js?v=app-20261010-10";
 import {
   openModalOverlay,
   closeModalOverlay,
@@ -23,7 +23,7 @@ import {
   bindDblClickRowConfirm,
   bindClickRowSelect,
   createScrollToBottomOnce,
-} from "./common/ui-helpers.js?v=app-20261010-9";
+} from "./common/ui-helpers.js?v=app-20261010-10";
 import {
   todayYMD,
   formatWeekdayLabel,
@@ -32,24 +32,24 @@ import {
   stripCodePrefix,
   resolveDefaultCashflowNameByCode,
   buildLedgerMemoFields,
-} from "./common/util.js?v=app-20261010-9";
-import { applySupplierGroupFilter } from "./common/supplier-group-filter.js?v=app-20261010-9";
-import { getStoredString, setStoredString } from "./common/storage.js?v=app-20261010-9";
-import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261010-9";
-import { confirmDuplicateSimplePaymentTransactionBeforeSave } from "./common/transaction-shared.js?v=app-20261010-9";
-import { loadCashflowLedgerOptionsIntoSelects } from "./common/cashflow-ledger-options.js?v=app-20261010-9";
-import { initDateFilter } from "./common/date-filter.js?v=app-20261010-9";
-import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261010-9";
-import { openLedgerPicker } from "./common/ledger-picker.js?v=app-20261010-9";
-import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261010-9";
-import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=app-20261010-9";
-import { sortByKey } from "./common/sortTable.js?v=app-20261010-9";
+} from "./common/util.js?v=app-20261010-10";
+import { applySupplierGroupFilter } from "./common/supplier-group-filter.js?v=app-20261010-10";
+import { getStoredString, setStoredString } from "./common/storage.js?v=app-20261010-10";
+import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261010-10";
+import { confirmDuplicateSimplePaymentTransactionBeforeSave } from "./common/transaction-shared.js?v=app-20261010-10";
+import { loadCashflowLedgerOptionsIntoSelects } from "./common/cashflow-ledger-options.js?v=app-20261010-10";
+import { initDateFilter } from "./common/date-filter.js?v=app-20261010-10";
+import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261010-10";
+import { openLedgerPicker } from "./common/ledger-picker.js?v=app-20261010-10";
+import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261010-10";
+import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=app-20261010-10";
+import { sortByKey } from "./common/sortTable.js?v=app-20261010-10";
 import {
   inferLedgerPaymentMethod,
   isLockedByPaymentLedger,
-} from "./common/payment-ledger-helpers.js?v=app-20261010-9";
-import { resolveCashflowItemSelectionOrThrow } from "./common/cashflow-item-helpers.js?v=app-20261010-9";
-import { saveCashflowLedgerLinkedPaymentRecord } from "./common/cashflow-payment-record.js?v=app-20261010-9";
+} from "./common/payment-ledger-helpers.js?v=app-20261010-10";
+import { resolveCashflowItemSelectionOrThrow } from "./common/cashflow-item-helpers.js?v=app-20261010-10";
+import { saveCashflowLedgerLinkedPaymentRecord } from "./common/cashflow-payment-record.js?v=app-20261010-10";
 
 bootstrapPageCommon({ page: "expense", todayYMD, formatWeekdayLabel });
 
@@ -167,11 +167,12 @@ if (purchaseSummaryBody) {
 if (supplierListBody) {
   bindClickRowSelect(supplierListBody, {
     rowSelector: 'tr[data-id]',
-    onSelect: (row) => {
+    onSelect: async (row) => {
       const id = row.getAttribute('data-id') || '';
       if (!id) return;
 
       currentSupplierFilterId = id;
+      transactionViewRequested = true;
 
       const sup = expenseSuppliers.find((s) => s && s.id === id);
       if (supplierInput) {
@@ -187,7 +188,7 @@ if (supplierListBody) {
 
       // 거래처(항목) 클릭 시에는 최신 내역이 바로 보이도록 1회 강제 스크롤
       summaryAutoScroll.forceNext();
-      refreshExpenseView();
+      await reloadExpenseTransactions();
     },
   });
 }
@@ -307,6 +308,7 @@ let expenseSuppliers = [];
 let allTransactions = [];
 let expenseTransactions = [];
 let currentSupplierFilterId = "";
+let transactionViewRequested = false;
 
 // 왼쪽 거래처 목록 정렬(코드/거래처명)
 let supplierListSort = { key: "id", direction: "asc" };
@@ -851,6 +853,10 @@ function resolveLedgerLabelFromCode(code) {
 }
 
 async function reloadExpenseTransactions() {
+  if (!transactionViewRequested) {
+    refreshExpenseView();
+    return;
+  }
   try {
     await repairLedgerTxCashflowItemFieldsIfNeeded();
   } catch (_) {
@@ -1530,6 +1536,8 @@ if (groupSelect) {
     setStoredString(EXPENSE_GROUP_FILTER_STORAGE_KEY, selectedGroup);
     // 분류 콤보를 바꾸면 개별 거래처 필터는 해제
     currentSupplierFilterId = "";
+    transactionViewRequested = false;
+    expenseTransactions = [];
     renderSupplierList();
     rebuildSupplierSelectForCurrentKind();
 
@@ -1543,10 +1551,11 @@ if (groupSelect) {
 }
 
 if (btnGroupReset) {
-  btnGroupReset.addEventListener("click", () => {
+  btnGroupReset.addEventListener("click", async () => {
     selectedGroup = "";
     setStoredString(EXPENSE_GROUP_FILTER_STORAGE_KEY, "");
     currentSupplierFilterId = "";
+    transactionViewRequested = true;
     if (groupSelect) groupSelect.value = "";
     renderSupplierList();
 
@@ -1555,7 +1564,7 @@ if (btnGroupReset) {
 
     // 분류 초기화 시 최신 내역이 바로 보이도록 1회 강제 스크롤
     summaryAutoScroll.forceNext();
-    refreshExpenseView();
+    await reloadExpenseTransactions();
   });
 }
 

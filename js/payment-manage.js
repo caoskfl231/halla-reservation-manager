@@ -1,4 +1,8 @@
-import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261010-9";
+// 항목 또는 전체보기를 클릭한 후에만 원장을 조회한다.
+let transactionViewRequested = false;
+let transactionPreparation;
+
+import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261010-10";
 import {
   getCustomers,
   getCustomerTypes,
@@ -12,7 +16,7 @@ import {
   putLedgerTx,
   deleteLedgerTxById,
   migrateLegacyLedgerTxIfNeeded,
-} from "./db.js?v=app-20261010-9";
+} from "./db.js?v=app-20261010-10";
 import {
   openModalOverlay,
   closeModalOverlay,
@@ -23,8 +27,8 @@ import {
   applyAmountColoring,
   bindDblClickRowEdit,
   bindClickRowSelect,
-} from "./common/ui-helpers.js?v=app-20261010-9";
-import { createModalManager } from "./common/modal-manager.js?v=app-20261010-9";
+} from "./common/ui-helpers.js?v=app-20261010-10";
+import { createModalManager } from "./common/modal-manager.js?v=app-20261010-10";
 import {
   todayYMD,
   formatWeekdayLabel,
@@ -34,49 +38,49 @@ import {
   parseNumber,
   isPaymentLinkedTransaction,
   stripCodePrefix,
-} from "./common/util.js?v=app-20261010-9";
-import { initDateFilter } from "./common/date-filter.js?v=app-20261010-9";
-import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261010-9";
-import { confirmDialog } from "./common/dialogs.js?v=app-20261010-9";
-import { openLedgerPicker } from "./common/ledger-picker.js?v=app-20261010-9";
-import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261010-9";
+} from "./common/util.js?v=app-20261010-10";
+import { initDateFilter } from "./common/date-filter.js?v=app-20261010-10";
+import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261010-10";
+import { confirmDialog } from "./common/dialogs.js?v=app-20261010-10";
+import { openLedgerPicker } from "./common/ledger-picker.js?v=app-20261010-10";
+import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261010-10";
 import {
   confirmAnyDuplicateLedgerBatchesBeforeSave,
   confirmAnyDuplicateSimplePaymentTransactionsBeforeSave,
   confirmDuplicateLedgerBatchBeforeSave,
   findAnyDuplicateLedgerBatchesBeforeSave,
   findAnyDuplicateSimplePaymentTransactionsBeforeSave,
-} from "./common/transaction-shared.js?v=app-20261010-9";
-import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=app-20261010-9";
-import { inferLedgerPaymentMethod } from "./common/payment-ledger-helpers.js?v=app-20261010-9";
-import { bindPaymentActions } from "./payment-manage/payment-actions-manager.js?v=app-20261010-9";
-import { renderPaymentMainTable } from "./payment-manage/payment-main-table.js?v=app-20261010-9";
-import { bindPaymentForm } from "./payment-manage/payment-form-manager.js?v=app-20261010-9";
-import { bindPaymentImportManager } from "./payment-manage/payment-import-manager.js?v=app-20261010-9";
-import { bindPaymentImportCustomerPicker } from "./payment-manage/payment-import-customer-manager.js?v=app-20261010-9";
-import { setPaymentFormFromTx as setPaymentFormFromTxCore } from "./payment-manage/payment-form-filler.js?v=app-20261010-9";
+} from "./common/transaction-shared.js?v=app-20261010-10";
+import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=app-20261010-10";
+import { inferLedgerPaymentMethod } from "./common/payment-ledger-helpers.js?v=app-20261010-10";
+import { bindPaymentActions } from "./payment-manage/payment-actions-manager.js?v=app-20261010-10";
+import { renderPaymentMainTable } from "./payment-manage/payment-main-table.js?v=app-20261010-10";
+import { bindPaymentForm } from "./payment-manage/payment-form-manager.js?v=app-20261010-10";
+import { bindPaymentImportManager } from "./payment-manage/payment-import-manager.js?v=app-20261010-10";
+import { bindPaymentImportCustomerPicker } from "./payment-manage/payment-import-customer-manager.js?v=app-20261010-10";
+import { setPaymentFormFromTx as setPaymentFormFromTxCore } from "./payment-manage/payment-form-filler.js?v=app-20261010-10";
 import {
   updateCashflowTypeButtons as updateCashflowTypeButtonsCore,
   renderCashflowSummaryTable as renderCashflowSummaryTableCore,
   rebuildCashflowSummaryOptions as rebuildCashflowSummaryOptionsCore,
   refreshCashflowSummary as refreshCashflowSummaryCore,
   bindCashflowSummaryEvents,
-} from "./payment-manage/payment-cashflow-summary.js?v=app-20261010-9";
-import { bindPaymentFilters } from "./payment-manage/payment-filter-manager.js?v=app-20261010-9";
-import { bindPaymentEntryPicker } from "./payment-manage/payment-entry-picker-manager.js?v=app-20261010-9";
+} from "./payment-manage/payment-cashflow-summary.js?v=app-20261010-10";
+import { bindPaymentFilters } from "./payment-manage/payment-filter-manager.js?v=app-20261010-10";
+import { bindPaymentEntryPicker } from "./payment-manage/payment-entry-picker-manager.js?v=app-20261010-10";
 import {
   resetPaymentEntryFields as resetPaymentEntryFieldsCore,
   openPaymentEntryChoiceModal as openPaymentEntryChoiceModalCore,
   closePaymentEntryChoiceModal as closePaymentEntryChoiceModalCore,
-} from "./payment-manage/payment-entry-modal-manager.js?v=app-20261010-9";
+} from "./payment-manage/payment-entry-modal-manager.js?v=app-20261010-10";
 import {
   applyPaymentLedgerSelection as applyPaymentLedgerSelectionCore,
   openPaymentLedgerModalForLedgerSelect as openPaymentLedgerModalForLedgerSelectCore,
-} from "./payment-manage/payment-ledger-picker-manager.js?v=app-20261010-9";
+} from "./payment-manage/payment-ledger-picker-manager.js?v=app-20261010-10";
 import {
   renderPaymentLedgerModalTable as renderPaymentLedgerModalTableCore,
   renderPaymentLedgerModalItemTable as renderPaymentLedgerModalItemTableCore,
-} from "./payment-manage/payment-ledger-modal-render.js?v=app-20261010-9";
+} from "./payment-manage/payment-ledger-modal-render.js?v=app-20261010-10";
 import {
   updatePaymentImportSelectedAccountLabel as updatePaymentImportSelectedAccountLabelCore,
   renderPaymentImportTable as renderPaymentImportTableCore,
@@ -85,7 +89,7 @@ import {
   applyImportCustomerSelection as applyImportCustomerSelectionCore,
   renderPaymentImportTypeList as renderPaymentImportTypeListCore,
   renderPaymentImportGroupList as renderPaymentImportGroupListCore,
-} from "./payment-manage/payment-import-list.js?v=app-20261010-9";
+} from "./payment-manage/payment-import-list.js?v=app-20261010-10";
 import {
   updatePaymentLedgerTitleByFlow as updatePaymentLedgerTitleByFlowCore,
   updateLedgerRowsByFlow as updateLedgerRowsByFlowCore,
@@ -93,7 +97,7 @@ import {
   populatePaymentLedgerSelectOptions as populatePaymentLedgerSelectOptionsCore,
   populatePaymentCounterpartySelectOptions as populatePaymentCounterpartySelectOptionsCore,
   syncCounterpartyCodeFromSelect as syncCounterpartyCodeFromSelectCore,
-} from "./payment-manage/payment-entry-ledger-helpers.js?v=app-20261010-9";
+} from "./payment-manage/payment-entry-ledger-helpers.js?v=app-20261010-10";
 import {
   parseMoney as parseMoneyCore,
   getSelectedOptionText as getSelectedOptionTextCore,
@@ -101,7 +105,7 @@ import {
   updatePaymentDateWeekday as updatePaymentDateWeekdayCore,
   inRange as inRangeCore,
   matchQ as matchQCore,
-} from "./payment-manage/payment-utils.js?v=app-20261010-9";
+} from "./payment-manage/payment-utils.js?v=app-20261010-10";
 import {
   openPaymentModal as openPaymentModalCore,
   closePaymentModal as closePaymentModalCore,
@@ -109,12 +113,12 @@ import {
   closePaymentImportModal as closePaymentImportModalCore,
   openPaymentImportCustomerModal as openPaymentImportCustomerModalCore,
   closePaymentImportCustomerModal as closePaymentImportCustomerModalCore,
-} from "./payment-manage/payment-modal-helpers.js?v=app-20261010-9";
+} from "./payment-manage/payment-modal-helpers.js?v=app-20261010-10";
 import {
   bindExcelDropdown,
   exportTableToXlsx,
   ymdCompact,
-} from "./common/excel-export.js?v=app-20261010-9";
+} from "./common/excel-export.js?v=app-20261010-10";
 
 // 공통 피커 모달(*-picker-*)은 ensureCommonPickerModals()가 동적으로 주입한다.
 
@@ -788,6 +792,7 @@ function renderPaymentLedgerItemsCard() {
       selectedCashflowItemForEntry = code;
       applySelectedLedgerItemToEntryAndImport();
       window._mainTxFilterCode = code;
+      transactionViewRequested = true;
       await render();
     },
   });
@@ -1837,8 +1842,8 @@ async function renderCashflowSummaryTable() {
     setMainTxFilterCode: (value) => {
       window._mainTxFilterCode = value;
     },
-    getAllLedgerTx,
-    render,
+    getAllLedgerTx: () => transactionViewRequested ? getAllLedgerTx() : Promise.resolve([]),
+    render: async () => { transactionViewRequested = true; await render(); },
   });
 }
 
@@ -2077,6 +2082,20 @@ async function backfillLedgerTxFingerprintsIfMissing() {
    렌더(요약/표)
 ========================= */
 async function render() {
+  if (!transactionViewRequested) {
+    const tbody = $("tbody");
+    if (tbody) tbody.innerHTML = '<tr><td colspan="20">장부 항목을 선택하거나 전체보기를 누르면 내역을 조회합니다.</td></tr>';
+    return;
+  }
+  if (!transactionPreparation) {
+    transactionPreparation = (async () => {
+      await migrateLegacyLedgerTxIfNeeded();
+      await backfillLedgerTxStandardKeysIfMissing();
+      await backfillLedgerTxFingerprintsIfMissing();
+      await repairLedgerTxCashflowItemFieldsIfNeeded({ debug: DEBUG_BACKFILL });
+    })().catch((error) => { transactionPreparation = null; throw error; });
+  }
+  await transactionPreparation;
   // 거래처 목록을 미리 캐싱 (최초 1회만)
   if (!window._allCustomers) {
     try {
@@ -2504,6 +2523,8 @@ function bind() {
     },
   });
 
+  if (btnCashflowReset) btnCashflowReset.addEventListener("click", () => { transactionViewRequested = true; });
+
   bindCashflowSummaryEvents({
     cashflowTypeSwitchButtons,
     cashflowSelect,
@@ -2536,18 +2557,8 @@ function bind() {
 ========================= */
 (async function init() {
   bind();
-  // 레거시 통합결제 DB(halla_ledger_db_v1)의 tx 데이터를
-  // hallapa_db의 ledger_tx 스토어로 한 번만 옮긴다.
-  await migrateLegacyLedgerTxIfNeeded();
-  // 기본 마스터 입력은 수동 실행(관리/개발용)으로만 수행
-  // payment 화면에서 생성된 ledger_tx 들의 키 세트를 표준화한다.
-  await backfillLedgerTxStandardKeysIfMissing();
-  // 수동 입력/인식 저장 모두 fingerprint로 중복을 막기 위해, 기존 데이터에도 fingerprint를 채운다.
-  await backfillLedgerTxFingerprintsIfMissing();
-  // 마스터 로드(장부구분/장부명)를 먼저 수행한 뒤,
-  // 기존 데이터의 장부명(cashflowItem) 누락분을 가능한 범위에서 자동 보정한다.
+  // 초기에는 장부 마스터만 로드한다. 원장 보정과 조회는 항목 선택 후 실행한다.
   await refreshCashflowSummary();
-  await repairLedgerTxCashflowItemFieldsIfNeeded({ debug: DEBUG_BACKFILL });
   await render();
 
   installDbAutoRefresh({

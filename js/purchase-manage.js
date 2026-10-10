@@ -14,11 +14,11 @@ import {
   deleteLedgerTxById,
   getCashflowItems,
   getCashflowTypes,
-} from "./db.js?v=app-20261010-9";
-import { sortByKey } from "./common/sortTable.js?v=app-20261010-9";
-import { applySupplierGroupFilter } from "./common/supplier-group-filter.js?v=app-20261010-9";
-import { getStoredString, setStoredString } from "./common/storage.js?v=app-20261010-9";
-import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261010-9";
+} from "./db.js?v=app-20261010-10";
+import { sortByKey } from "./common/sortTable.js?v=app-20261010-10";
+import { applySupplierGroupFilter } from "./common/supplier-group-filter.js?v=app-20261010-10";
+import { getStoredString, setStoredString } from "./common/storage.js?v=app-20261010-10";
+import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261010-10";
 import {
   openModalOverlay,
   closeModalOverlay,
@@ -34,7 +34,7 @@ import {
   applyPickedSupplierSelectionToContext,
   resetFieldsAndFocus,
   createScrollToBottomOnce,
-} from "./common/ui-helpers.js?v=app-20261010-9";
+} from "./common/ui-helpers.js?v=app-20261010-10";
 import {
   todayYMD,
   formatWeekdayLabel,
@@ -46,36 +46,36 @@ import {
   resolveDefaultCashflowNameByCode,
   buildLedgerMemoFields,
   amountClassBySign,
-} from "./common/util.js?v=app-20261010-9";
-import { initDateFilter } from "./common/date-filter.js?v=app-20261010-9";
-import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261010-9";
-import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=app-20261010-9";
-import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261010-9";
-import { openLedgerPicker } from "./common/ledger-picker.js?v=app-20261010-9";
+} from "./common/util.js?v=app-20261010-10";
+import { initDateFilter } from "./common/date-filter.js?v=app-20261010-10";
+import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261010-10";
+import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=app-20261010-10";
+import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261010-10";
+import { openLedgerPicker } from "./common/ledger-picker.js?v=app-20261010-10";
 import {
   isLockedByPaymentLedger,
   hasLockedPaymentEntries,
   deleteLinkedLedgerTxIfAny,
-} from "./common/payment-ledger-helpers.js?v=app-20261010-9";
+} from "./common/payment-ledger-helpers.js?v=app-20261010-10";
 import {
   isPaymentOnlyTransaction,
   makeSummaryKeyForTransaction,
-} from "./common/transaction-summary-key.js?v=app-20261010-9";
-import { loadCashflowLedgerOptionsIntoSelects } from "./common/cashflow-ledger-options.js?v=app-20261010-9";
-import { resolveCashflowItemSelectionOrThrow } from "./common/cashflow-item-helpers.js?v=app-20261010-9";
-import { saveCashflowLedgerLinkedPaymentRecord } from "./common/cashflow-payment-record.js?v=app-20261010-9";
+} from "./common/transaction-summary-key.js?v=app-20261010-10";
+import { loadCashflowLedgerOptionsIntoSelects } from "./common/cashflow-ledger-options.js?v=app-20261010-10";
+import { resolveCashflowItemSelectionOrThrow } from "./common/cashflow-item-helpers.js?v=app-20261010-10";
+import { saveCashflowLedgerLinkedPaymentRecord } from "./common/cashflow-payment-record.js?v=app-20261010-10";
 import {
   bindExcelDropdown,
   requireXLSXOrAlert,
   ymdCompact,
   safeSheetName,
-} from "./common/excel-export.js?v=app-20261010-9";
+} from "./common/excel-export.js?v=app-20261010-10";
 import {
   getActiveCustomersByType,
   parseNumberLike,
   confirmDuplicateBatchBeforeSave,
-} from "./common/transaction-shared.js?v=app-20261010-9";
-import { createEntryTableManager } from "./common/entry-table-manager.js?v=app-20261010-9";
+} from "./common/transaction-shared.js?v=app-20261010-10";
+import { createEntryTableManager } from "./common/entry-table-manager.js?v=app-20261010-10";
 
 bootstrapPageCommon({ page: "purchase", todayYMD, formatWeekdayLabel });
 
@@ -460,6 +460,8 @@ let overallSummaryFinalBalanceTotal = null;
 
 // 왼쪽 거래처 선택으로 상세/요약을 필터링할 때 사용할 현재 거래처 ID
 let currentSupplierFilterId = "";
+// 거래처 또는 전체보기를 클릭하기 전에는 거래내역을 조회하지 않는다.
+let transactionViewRequested = false;
 
 // 왼쪽 거래처 목록 정렬(코드/거래처명)
 let supplierListSort = { key: "id", direction: "asc" };
@@ -3637,7 +3639,7 @@ if (supplierListBody) {
   // 클릭 선택(선택 표시 + 필터 반영) 공통 위임
   bindClickRowSelect(supplierListBody, {
     rowSelector: 'tr[data-id]',
-    onSelect: (row) => {
+    onSelect: async (row) => {
       // 키보드 방향키로도 이동할 수 있도록 tbody에 포커스를 준다.
       if (typeof supplierListBody.focus === 'function') {
         supplierListBody.focus();
@@ -3652,6 +3654,7 @@ if (supplierListBody) {
 
       // 왼쪽 거래처 선택 시, 상단/하단 모두 해당 거래처 내역만 보이도록 필터
       currentSupplierFilterId = id;
+      transactionViewRequested = true;
 
       // 결제관리처럼 최신이 아래로 보이도록 날짜 오름차순으로 고정 + 1회 강제 스크롤
       currentSort = { key: "date", direction: "asc" };
@@ -3665,7 +3668,7 @@ if (supplierListBody) {
       currentSummaryBatchKey = '';
       currentSummaryDateForFilter = '';
       currentSummarySupplierIdForFilter = '';
-      refreshSummaryAndDetail(searchInput ? searchInput.value : '');
+      await reloadPurchaseList();
     },
   });
 
@@ -3927,6 +3930,10 @@ function renderList(keyword = "") {
 }
 
 async function reloadPurchaseList() {
+  if (!transactionViewRequested) {
+    refreshSummaryAndDetail();
+    return;
+  }
   const [list, cashflowItems, cashflowTypes] = await Promise.all([
     getTransactions(),
     getCashflowItems(),
@@ -4397,6 +4404,10 @@ if (groupSelect) {
     setStoredString(PURCHASE_GROUP_FILTER_STORAGE_KEY, selectedSupplierGroup);
     // 분류 콤보를 바꾸면 개별 거래처 필터는 해제
     currentSupplierFilterId = "";
+    transactionViewRequested = false;
+    purchases = [];
+    currentSummaryKey = "";
+    isSummaryFilterActive = false;
 
     // 결제관리처럼 최신이 아래로 보이도록 날짜 오름차순으로 고정 + 1회 강제 스크롤
     currentSort = { key: "date", direction: "asc" };
@@ -6190,12 +6201,15 @@ if (typeSwitchButtons.length) {
 }
 
 if (btnGroupReset) {
-  btnGroupReset.addEventListener("click", () => {
+  btnGroupReset.addEventListener("click", async () => {
     selectedSupplierGroup = "";
     setStoredString(PURCHASE_GROUP_FILTER_STORAGE_KEY, "");
     currentSupplierFilterId = "";
+    transactionViewRequested = true;
+    currentSummaryKey = "";
+    isSummaryFilterActive = false;
     renderSupplierGroups();
-    refreshSummaryAndDetail(searchInput ? searchInput.value : "");
+    await reloadPurchaseList();
   });
 }
 
