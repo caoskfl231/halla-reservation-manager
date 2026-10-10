@@ -14,11 +14,11 @@ import {
   deleteLedgerTxById,
   getCashflowItems,
   getCashflowTypes,
-} from "./db.js?v=app-20261010-14";
-import { sortByKey } from "./common/sortTable.js?v=app-20261010-14";
-import { applySupplierGroupFilter } from "./common/supplier-group-filter.js?v=app-20261010-14";
-import { getStoredString, setStoredString } from "./common/storage.js?v=app-20261010-14";
-import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261010-14";
+} from "./db.js?v=app-20261010-15";
+import { sortByKey } from "./common/sortTable.js?v=app-20261010-15";
+import { applySupplierGroupFilter } from "./common/supplier-group-filter.js?v=app-20261010-15";
+import { getStoredString, setStoredString } from "./common/storage.js?v=app-20261010-15";
+import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261010-15";
 import {
   openModalOverlay,
   closeModalOverlay,
@@ -34,7 +34,7 @@ import {
   applyPickedSupplierSelectionToContext,
   resetFieldsAndFocus,
   createScrollToBottomOnce,
-} from "./common/ui-helpers.js?v=app-20261010-14";
+} from "./common/ui-helpers.js?v=app-20261010-15";
 import {
   todayYMD,
   formatWeekdayLabel,
@@ -46,36 +46,36 @@ import {
   resolveDefaultCashflowNameByCode,
   buildLedgerMemoFields,
   amountClassBySign,
-} from "./common/util.js?v=app-20261010-14";
-import { initDateFilter } from "./common/date-filter.js?v=app-20261010-14";
-import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261010-14";
-import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=app-20261010-14";
-import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261010-14";
-import { openLedgerPicker } from "./common/ledger-picker.js?v=app-20261010-14";
+} from "./common/util.js?v=app-20261010-15";
+import { initDateFilter } from "./common/date-filter.js?v=app-20261010-15";
+import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261010-15";
+import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=app-20261010-15";
+import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261010-15";
+import { openLedgerPicker } from "./common/ledger-picker.js?v=app-20261010-15";
 import {
   isLockedByPaymentLedger,
   hasLockedPaymentEntries,
   deleteLinkedLedgerTxIfAny,
-} from "./common/payment-ledger-helpers.js?v=app-20261010-14";
+} from "./common/payment-ledger-helpers.js?v=app-20261010-15";
 import {
   isPaymentOnlyTransaction,
   makeSummaryKeyForTransaction,
-} from "./common/transaction-summary-key.js?v=app-20261010-14";
-import { loadCashflowLedgerOptionsIntoSelects } from "./common/cashflow-ledger-options.js?v=app-20261010-14";
-import { resolveCashflowItemSelectionOrThrow } from "./common/cashflow-item-helpers.js?v=app-20261010-14";
-import { saveCashflowLedgerLinkedPaymentRecord } from "./common/cashflow-payment-record.js?v=app-20261010-14";
+} from "./common/transaction-summary-key.js?v=app-20261010-15";
+import { loadCashflowLedgerOptionsIntoSelects } from "./common/cashflow-ledger-options.js?v=app-20261010-15";
+import { resolveCashflowItemSelectionOrThrow } from "./common/cashflow-item-helpers.js?v=app-20261010-15";
+import { saveCashflowLedgerLinkedPaymentRecord } from "./common/cashflow-payment-record.js?v=app-20261010-15";
 import {
   bindExcelDropdown,
   requireXLSXOrAlert,
   ymdCompact,
   safeSheetName,
-} from "./common/excel-export.js?v=app-20261010-14";
+} from "./common/excel-export.js?v=app-20261010-15";
 import {
   getActiveCustomersByType,
   parseNumberLike,
   confirmDuplicateBatchBeforeSave,
-} from "./common/transaction-shared.js?v=app-20261010-14";
-import { createEntryTableManager } from "./common/entry-table-manager.js?v=app-20261010-14";
+} from "./common/transaction-shared.js?v=app-20261010-15";
+import { createEntryTableManager } from "./common/entry-table-manager.js?v=app-20261010-15";
 
 bootstrapPageCommon({ page: "purchase", todayYMD, formatWeekdayLabel });
 
@@ -6175,15 +6175,15 @@ if (typeSwitchButtons.length) {
       // 매출/매입/지출 전용 페이지가 따로 있으므로,
       // 현재 페이지 모드와 다른 유형을 클릭하면 해당 페이지로 이동한다.
       if (nextType === "매출처" && pageMode !== "sales") {
-        window.location.href = "sales-manage.html";
+        window.location.href = "sales-manage.html?v=" + encodeURIComponent(new URL(import.meta.url).searchParams.get("v") || "");
         return;
       }
       if (nextType === "매입처" && pageMode !== "purchase") {
-        window.location.href = "purchase-manage.html";
+        window.location.href = "purchase-manage.html?v=" + encodeURIComponent(new URL(import.meta.url).searchParams.get("v") || "");
         return;
       }
       if (nextType === "지출처") {
-        window.location.href = "expense-manage.html";
+        window.location.href = "expense-manage.html?v=" + encodeURIComponent(new URL(import.meta.url).searchParams.get("v") || "");
         return;
       }
 

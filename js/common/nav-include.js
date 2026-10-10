@@ -1,6 +1,6 @@
 async function loadNavHtml() {
   const url = new URL("../../common/nav.html", import.meta.url);
-  const response = await fetch(url);
+  const response = await fetch(url, { cache: "no-store" });
   if (!response.ok) {
     throw new Error(
       "네비 로드 실패: " + response.status + " " + response.statusText,
@@ -27,7 +27,8 @@ function applyCurrentNavLink(container) {
   const here = location.pathname.split("/").pop() || "index.html";
   const links = nav.querySelectorAll("a");
   links.forEach(function (a) {
-    if (a.getAttribute("href") === here) {
+    const target = new URL(a.getAttribute("href"), location.href);
+    if (target.pathname.split("/").pop() === here) {
       a.setAttribute("aria-current", "page");
     } else {
       a.removeAttribute("aria-current");
@@ -42,7 +43,7 @@ async function initGlobalSearchIfEnabled() {
       : "";
   if (enabled !== "1") return;
 
-  const mod = await import("./global-search.js?v=app-20261010-14");
+  const mod = await import("./global-search.js?v=app-20261010-15");
   if (mod && typeof mod.initGlobalSearch === "function") {
     mod.initGlobalSearch();
   }

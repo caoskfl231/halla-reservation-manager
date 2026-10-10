@@ -22,6 +22,13 @@ export function rewriteAssetReferences(source, sourceFile, root, version, fileEx
     });
 }
 
+// 공통 메뉴는 브라우저에서 페이지 루트 기준으로 이동한다.
+export function rewriteNavigationReferences(source, root, version) {
+  return source.replace(/href=(["'])([A-Za-z0-9_./-]+\.html)(?:\?[^"']*)?\1/g,
+    (original, quote, path) => existsSync(resolve(root, path))
+      ? 'href=' + quote + path + '?v=' + version + quote : original);
+}
+
 function sourceFiles(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
     if (entry.name.startsWith('.') || ['tools', 'tests', 'vendor'].includes(entry.name)) return [];
@@ -39,7 +46,10 @@ export function updateAssetVersions(root = projectRoot, check = false) {
   const changed = [];
   for (const path of sourceFiles(root)) {
     const source = readFileSync(path, 'utf8');
-    const updated = rewriteAssetReferences(source, path, root, version);
+    let updated = rewriteAssetReferences(source, path, root, version);
+    if (relative(root, path).replaceAll(sep, '/') === 'common/nav.html') {
+      updated = rewriteNavigationReferences(updated, root, version);
+    }
     if (updated === source) continue;
     changed.push(relative(root, path));
     if (!check) writeFileSync(path, updated);
