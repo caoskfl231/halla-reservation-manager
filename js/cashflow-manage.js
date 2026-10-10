@@ -462,7 +462,6 @@ function auditCashflowBalanceMismatches() {
 
 // cashflow_items의 기초잔액 + ledger tx의 입금/출금을 합산해 구분별 잔액을 계산
 async function rebuildTypeBalances() {
-  if (!transactionViewRequested) return;
   try {
     const items = await getCashflowItems();
     let types = cachedTypes;
@@ -703,7 +702,7 @@ function renderTypeList(types) {
     tr.innerHTML = `
       <td>${t.code || ""}</td>
       <td>${t.name || ""}</td>
-      <td class="right" data-amount-color="1" data-amount-value="${balance}">${transactionViewRequested ? fmt(balance) : "—"}</td>
+      <td class="right" data-amount-color="1" data-amount-value="${balance}">${fmt(balance)}</td>
     `;
     typeList.appendChild(tr);
   });
