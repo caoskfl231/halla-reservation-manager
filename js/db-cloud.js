@@ -1,13 +1,15 @@
-import * as cache from './db-cloud-cache.js?v=ledger-import-20261010-2';
-import { rpc, requireLedgerSession, friendlyError, signOut } from './cloud-session.js?v=ledger-import-20261010-2';
-import { emitAppEvent } from './common/app-events.js?v=ledger-import-20261010-2';
-import { changedRecords, recordToken, versionMap, sameRecords } from './cloud-records.js?v=ledger-import-20261010-2';
-import { installBackupPanel } from './ledger-backups.js?v=ledger-import-20261010-2';
+import * as cache from './db-cloud-cache.js?v=ledger-chunks-20261010-1';
+import { rpc, requireLedgerSession, friendlyError, signOut } from './cloud-session.js?v=ledger-chunks-20261010-1';
+import { emitAppEvent } from './common/app-events.js?v=ledger-chunks-20261010-1';
+import { changedRecords, recordToken, versionMap, sameRecords } from './cloud-records.js?v=ledger-chunks-20261010-1';
+import { installBackupPanel } from './ledger-backups.js?v=ledger-chunks-20261010-1';
+import { uploadSnapshot } from './cloud-import.js?v=ledger-chunks-20261010-1';
 let state = await requireLedgerSession();
 await cache.restoreHallapaDbSnapshot(state.snapshot);
 let versions = versionMap(state.row_versions);
 let pendingRemote = false;
 let queue = Promise.resolve(), uncertain = false, observedRevision = state.revision;
+let restoring = false;
 const reads = new Set(Object.keys(cache).filter(name => name.startsWith('get')));
 ['exportHallapaDbSnapshot','ensureCashflowMastersIfEmpty','migrateLegacyLedgerTxIfNeeded'].forEach(name => reads.add(name));
 function serial(work) {
@@ -37,7 +39,10 @@ function validate(snapshot) {
   }
 }
 async function cloudCall(name, args) {
-  return serial(async () => {
+  const restore = name === 'restoreHallapaDbSnapshot';
+  if (restore && restoring) throw new Error('자료 가져오기가 진행 중입니다. 완료될 때까지 기다려 주세요.');
+  if (restore) restoring = true;
+  const operation = serial(async () => {
     if (reads.has(name)) return cache[name](...args);
     if (uncertain) throw new Error('최신 불러오기를 눌러 저장 결과를 확인한 뒤 다시 시도해 주세요.');
     if (state.revision === 0 && name !== 'restoreHallapaDbSnapshot')
@@ -69,7 +74,7 @@ async function cloudCall(name, args) {
           pendingRemote = !sameRecords(snapshot, next.snapshot);
           state = { ...next, snapshot };
         } else {
-          state = await rpc('halla_ledger_save', { p_snapshot: snapshot, p_revision: state.revision, p_action: action });
+          state = await uploadSnapshot(snapshot, state.revision, action, rpc, notice);
           versions = versionMap(state.row_versions);
           pendingRemote = false;
         }
@@ -89,6 +94,8 @@ async function cloudCall(name, args) {
       throw new Error(friendlyError(error));
     }
   });
+  try { return await operation; }
+  finally { if (restore) restoring = false; }
 }
 const bar = document.createElement('div');
 bar.id = 'ledger-cloud-bar';
@@ -128,7 +135,7 @@ if (state.revision === 0 && state.role === 'owner') {
     try {
       if (!indexedDB.databases) throw new Error('이 브라우저에서는 전체백업 파일을 선택해 주세요.');
       if (!(await indexedDB.databases()).some(db => db.name === 'hallapa_db')) throw new Error('이 기기에 기존 장부자료가 없습니다. 전체백업 파일을 선택해 주세요.');
-      const local = await import('./db-local.js?v=ledger-import-20261010-2'); await upload(await local.exportHallapaDbSnapshot());
+      const local = await import('./db-local.js?v=ledger-chunks-20261010-1'); await upload(await local.exportHallapaDbSnapshot());
     } catch (error) { window.alert(friendlyError(error)); }
   };
 }
@@ -140,8 +147,8 @@ setInterval(() => {
   if (document.visibilityState !== 'visible') return;
   serial(async () => {
     try {
-      const latest = await rpc('halla_ledger_read');
-      if (!sameRecords(state.snapshot, latest.snapshot) && (latest.revision !== observedRevision || pendingRemote)) {
+      const latest = await rpc('halla_ledger_status');
+      if (latest.revision !== observedRevision) {
         pendingRemote = true;
         observedRevision = latest.revision;
         notice('다른 기기에서 변경됨 · 최신 불러오기를 눌러 주세요.', true);

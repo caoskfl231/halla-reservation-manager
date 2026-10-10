@@ -1,10 +1,10 @@
-import { getQuickRange } from './util.js?v=ledger-import-20261010-2';
+import { getQuickRange } from './util.js?v=ledger-chunks-20261010-1';
 import {
   openModalOverlay,
   closeModalOverlay,
   registerModalEscClose,
   positionModalBelowElement,
-} from './ui-helpers.js?v=ledger-import-20261010-2';
+} from './ui-helpers.js?v=ledger-chunks-20261010-1';
 
 // 공통 날짜 범위 필터(시작/끝 + 📅 빠른선택 모달 + 조회 버튼)
 //

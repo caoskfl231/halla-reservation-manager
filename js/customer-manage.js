@@ -1,10 +1,10 @@
-import { getCustomers, getTransactions, addCustomer, updateCustomer, deleteCustomer, bulkInsertCustomers, bulkReplaceCustomerTypes, bulkReplaceCustomerGroups, getCustomerTypes, addCustomerType, updateCustomerType, deleteCustomerType, getCustomerGroups, addCustomerGroup, updateCustomerGroup, deleteCustomerGroup, renameCustomerTypeNameEverywhere, renameCustomerGroupNameEverywhere } from './db.js?v=ledger-import-20261010-2';
-import { installDbAutoRefresh } from './common/app-events.js?v=ledger-import-20261010-2';
-import { sortByKey } from './common/sortTable.js?v=ledger-import-20261010-2';
-import { getStoredJson, setStoredJson } from './common/storage.js?v=ledger-import-20261010-2';
-import { openModalOverlay, closeModalOverlay, registerModalEscClose, createFormDirtyTracker, wrapDirtyClose, enableTableArrowNavigation, bindDblClickRowEdit, bindClickRowSelect, attachSearchInput } from './common/ui-helpers.js?v=ledger-import-20261010-2';
-import { bootstrapPageCommon } from './common/page-bootstrap.js?v=ledger-import-20261010-2';
-import { escapeHtml } from './common/util.js?v=ledger-import-20261010-2';
+import { getCustomers, getTransactions, addCustomer, updateCustomer, deleteCustomer, bulkInsertCustomers, bulkReplaceCustomerTypes, bulkReplaceCustomerGroups, getCustomerTypes, addCustomerType, updateCustomerType, deleteCustomerType, getCustomerGroups, addCustomerGroup, updateCustomerGroup, deleteCustomerGroup, renameCustomerTypeNameEverywhere, renameCustomerGroupNameEverywhere } from './db.js?v=ledger-chunks-20261010-1';
+import { installDbAutoRefresh } from './common/app-events.js?v=ledger-chunks-20261010-1';
+import { sortByKey } from './common/sortTable.js?v=ledger-chunks-20261010-1';
+import { getStoredJson, setStoredJson } from './common/storage.js?v=ledger-chunks-20261010-1';
+import { openModalOverlay, closeModalOverlay, registerModalEscClose, createFormDirtyTracker, wrapDirtyClose, enableTableArrowNavigation, bindDblClickRowEdit, bindClickRowSelect, attachSearchInput } from './common/ui-helpers.js?v=ledger-chunks-20261010-1';
+import { bootstrapPageCommon } from './common/page-bootstrap.js?v=ledger-chunks-20261010-1';
+import { escapeHtml } from './common/util.js?v=ledger-chunks-20261010-1';
 
 bootstrapPageCommon({
   page: 'customer',

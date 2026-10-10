@@ -1,10 +1,10 @@
-import { formatMoney } from "../common/util.js?v=ledger-import-20261010-2";
-import { sortItems, getItemProfitValues } from "./item-utils.js?v=ledger-import-20261010-2";
+import { formatMoney } from "../common/util.js?v=ledger-chunks-20261010-1";
+import { sortItems, getItemProfitValues } from "./item-utils.js?v=ledger-chunks-20261010-1";
 import {
   attachSearchInput,
   enableTableArrowNavigation,
   bindClickRowSelect,
-} from "../common/ui-helpers.js?v=ledger-import-20261010-2";
+} from "../common/ui-helpers.js?v=ledger-chunks-20261010-1";
 
 export function createItemListManager(options) {
   const {

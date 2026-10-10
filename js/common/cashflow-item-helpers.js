@@ -1,5 +1,5 @@
-import { getCashflowItems } from '../db.js?v=ledger-import-20261010-2';
-import { stripCodePrefix } from './util.js?v=ledger-import-20261010-2';
+import { getCashflowItems } from '../db.js?v=ledger-chunks-20261010-1';
+import { stripCodePrefix } from './util.js?v=ledger-chunks-20261010-1';
 
 function looksLikeCashflowTypeCode(code) {
   return /^A\d{2}$/.test(String(code || '').trim());
