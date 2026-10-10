@@ -1,85 +1,120 @@
 # 할라 장부 관리
 
-로그인 후 Supabase에 저장된 공용 장부를 조회·수정하는 HTML + ES 모듈 웹앱입니다.
+할라축산에서 사용하는 매입·매출·지출·결제 장부 웹앱입니다.
+GitHub Pages는 화면과 프로그램 파일을 제공하고, Supabase는 로그인 및 공용 장부 자료를 보관합니다.
 
-처음 로그인하면 기존 PC 자료 또는 전체백업 JSON 파일을 옮깁니다. 기존 PC 자료는 삭제하지 않습니다.
-설정과 운영 제한은 [공용 장부 안내](docs/ledger-cloud.md)를 참고하세요.
+## 바로 접속하기
 
-## 폴더 구조
+- [장부 홈 / 대시보드](https://caoskfl231.github.io/halla-reservation-manager/index.html)
+- [로그인](https://caoskfl231.github.io/halla-reservation-manager/login.html)
+- [공용 장부 설정·운영 안내](docs/ledger-cloud.md)
 
-- `hallapa/index.html` : 홈/대시보드
-- 관리 화면
-  - `hallapa/purchase-manage.html` : 매입 전표
-  - `hallapa/sales-manage.html` : 매출 전표
-  - `hallapa/expense-manage.html` : 지출 전표
-  - `hallapa/payment-manage.html` : 결제 관리
-  - `hallapa/cashflow-manage.html` : 입출금 코드(구분/분류/항목)
-  - `hallapa/customer-manage.html` : 거래처 마스터
-  - `hallapa/item-manage.html` : 품목 마스터
-- `hallapa/transaction-report.html` : 거래/전표 조회(집계)
-- `hallapa/js/db.js` : 공통 DB 모듈(IndexedDB)
-- `hallapa/js/*-manage.js` : 화면별 스크립트(ES module)
-- `hallapa/js/common/` : 공용 UI/유틸 모듈
-- `hallapa/css/style.css` : 기본 스타일
+현재 이 저장소의 `index.html`은 **장부 대시보드**입니다.
+저장소 이름이 `halla-reservation-manager`여도 이 주소를 손님 상품 주문페이지로 안내하지 마세요.
 
-## 데이터 저장소
+## 사용 순서
 
-현재 공용 장부의 원본은 Supabase의 비공개 `halla_ledger_private` 스키마에 저장됩니다.
-로그인과 장부 사용 권한을 모두 확인하며, 기존 2단계 인증도 유지합니다.
-다른 기기의 변경은 상단 안내 후 `최신 불러오기`로 반영됩니다.
-일반 수정은 거래별 버전을 확인해 변경된 기록만 저장합니다. 서로 다른 거래는 동시에
-저장할 수 있고, 같은 거래의 오래된 수정은 충돌 안내와 함께 취소됩니다.
+1. 장부 주소를 열고 장부 이용 권한이 있는 계정으로 로그인합니다.
+2. 계정에 2단계 인증이 설정되어 있으면 인증을 완료합니다.
+3. 사용할 메뉴에서 자료를 조회하고 입력·수정합니다. 서버의 저장 완료 확인을 기다립니다.
+4. 다른 기기에서 변경했다는 안내가 나오면 `최신 불러오기`를 눌러 반영합니다.
+5. 중요한 작업 뒤에는 홈의 `전체백업`으로 JSON 파일을 내려받아 보관합니다.
 
-아래 IndexedDB 설명은 이전 PC 자료 및 로그인 후 임시 계산용 저장소에 해당합니다.
+최초 자료 이전은 **아직 초기화되지 않은 공용 장부의 owner 계정**에만 표시됩니다.
+`백업 파일 선택` 또는 `이 PC의 자료 옮기기`로 진행하며, 기존 PC 자료는 지우지 않습니다.
+이미 공용 장부를 사용하는 계정은 로그인할 때마다 자료를 다시 옮길 필요가 없습니다.
 
-- 이전 PC 자료는 브라우저 **IndexedDB**에 저장되어 있습니다.
-  - DB 이름: `hallapa_db`
-  - 버전: `DB_VERSION` (코드는 [hallapa/js/db.js](hallapa/js/db.js) 참고)
-- 결제/입출금 원장(ledger)은 같은 DB의 `ledger_tx` object store를 사용합니다.
-  - 레거시 DB(`halla_ledger_db_v1`)는 더 이상 사용하지 않습니다.
-- 일부 화면의 필터/입력값 같은 UI 상태는 `localStorage`를 사용할 수 있습니다.
+## 화면별 파일
 
-## 실행 방법
+파일은 저장소 최상위에 있습니다. 경로 앞에 `hallapa/`를 붙이지 않습니다.
 
-1. VS Code에서 이 폴더를 열고
-2. 가능한 한 **로컬 서버로 실행**하세요. (브라우저 정책에 따라 파일 더블클릭(file://)은 일부 기능이 제한될 수 있습니다)
-   - `hallapa/start-dev-server.cmd` 실행 또는
-   - Live Server 확장으로 `hallapa/index.html` 실행
+| 파일 | 화면 |
+| --- | --- |
+| [index.html](index.html) | 홈 / 대시보드 |
+| [login.html](login.html) | 로그인 |
+| [purchase-manage.html](purchase-manage.html) | 매입 전표 |
+| [sales-manage.html](sales-manage.html) | 매출 전표 |
+| [expense-manage.html](expense-manage.html) | 지출 전표 |
+| [payment-manage.html](payment-manage.html) | 결제 관리 |
+| [cashflow-manage.html](cashflow-manage.html) | 입출금 코드·분류·항목 관리 |
+| [customer-manage.html](customer-manage.html) | 거래처 관리 |
+| [item-manage.html](item-manage.html) | 품목 관리 |
+| [transaction-report.html](transaction-report.html) | 거래 / 전표 조회·집계 |
 
-## 점검 스크립트(tools)
+## 폴더와 주요 모듈
 
-`tools/` 폴더에 간단한 정적 점검 PowerShell 스크립트가 있습니다.
+| 경로 | 역할 |
+| --- | --- |
+| `common/nav.html` | 공통 메뉴 |
+| `css/` | 공통·모바일·화면별 스타일 |
+| `js/*-manage.js`, `js/main.js`, `js/transaction-report.js` | 각 화면의 동작 |
+| `js/common/` | 공통 UI·날짜·검색·계산 도구 |
+| `js/item-manage/`, `js/payment-manage/` | 품목·결제 화면의 기능별 모듈 |
+| `js/db.js` | 공용 DB 진입점: 현재 `db-cloud.js`를 내보냄 |
+| `js/db-cloud.js`, `js/db-cloud-cache.js` | 서버 저장·조회와 편집용 임시 저장소 |
+| `js/db-local.js` | 이전 PC 장부자료 읽기·이전용 모듈 |
+| `js/cloud-session.js`, `js/ledger-login.js` | 로그인·권한 확인·로딩 화면 |
+| `js/cloud-records.js`, `js/cloud-import.js` | 거래별 저장·분할 자료 가져오기 |
+| `js/ledger-read-cache.js` | 사용자별 다운로드 캐시·변경분 동기화 |
+| `js/home-pagination.js` | 홈 거래내역을 100건씩 표시 |
+| `js/home-compute.js`, `js/home-worker.js`, `js/home-worker-client.js` | 홈 자료의 계산·정렬·필터 작업 |
+| `js/ledger-backups.js`, `js/ledger-history.js` | 자동백업·수정 및 삭제 기록 화면 |
+| `js/vendor/` | 외부 라이브러리와 라이선스 |
+| `data/` | 기본 코드·마스터 JSON 및 장부 형식 정의 |
+| `docs/` | 운영 안내·DB 설정 SQL·화면별 설명 |
+| `tests/` | 동작 검증 스크립트·SQL |
 
-- 예: `Audit: DOM id mismatch` 태스크(HTML의 id와 JS의 getElementById 사용처 불일치 점검)
+비슷한 이름의 파일도 서로 다른 역할을 할 수 있습니다.
+특히 `db-local.js`는 이전 자료를 옮길 때 필요하므로 구버전이라는 이유만으로 삭제하지 않습니다.
+`docs/`의 SQL은 설정·업그레이드용 파일이며, 폴더에 존재한다고 서버에 적용된 것은 아닙니다.
+`data/`의 JSON을 현재 공용 장부 전체백업으로 취급하지 않습니다.
 
-프로젝트가 확장되면서 도구/문서/구조가 어긋나지 않도록, 새 화면/공용 모듈을 추가한 경우 점검 스크립트 결과도 함께 확인하는 것을 권장합니다.
+## 자료가 저장되는 곳
 
-## 백업/복구/초기화(운영 필수)
+| 저장 위치 | 용도 |
+| --- | --- |
+| Supabase의 비공개 `halla_ledger_private` 스키마 | 공용 장부 원본 |
+| 브라우저의 편집용 IndexedDB | 서버에서 받은 자료의 임시 계산·편집 |
+| `hallapa_ledger_download_v1` IndexedDB | 메뉴 이동 시 재다운로드를 줄이는 사용자별 캐시 |
+| 이전 `hallapa_db` IndexedDB | 기존 PC에서 사용하던 장부자료 |
+| `localStorage` / `sessionStorage` | 로그인 상태·저장한 이메일·화면 설정 등 |
 
-현재 화면별로 일부 JSON 내보내기/가져오기 기능이 있습니다(예: 거래처/품목, 장부관리 등).
-운영에서는 **정기 백업**을 권장합니다.
+현재 공용 DB 연결은 [js/db.js](js/db.js), 이전 PC DB 구현은 [js/db-local.js](js/db-local.js)에 있습니다.
+브라우저 캐시는 백업이 아닙니다. 브라우저 데이터 삭제는 Supabase 공용 장부 초기화 방법이 아니며,
+아직 옮기지 않은 이전 PC 자료나 로그인 상태를 잃을 수 있습니다.
 
-- 홈 화면에 `전체백업`(JSON 다운로드), `전체복구`(덮어쓰기/추가 복구 선택) 기능이 있습니다.
+일반 저장은 변경된 기록과 버전을 서버에서 확인합니다.
+같은 기록이 다른 기기에서 먼저 바뀌면 충돌을 안내합니다.
+다른 기기의 변경 여부를 확인해도 작성 중인 화면을 자동으로 덮어쓰지 않습니다.
+오프라인 편집·자동 병합은 제공하지 않습니다.
 
-- 초기화(데이터 삭제)
-  - Chrome/Edge DevTools → Application → IndexedDB → `hallapa_db` 삭제
-  - 또는 사이트 데이터/저장공간에서 해당 사이트 데이터 삭제
+## 백업과 복구
 
-## iPhone(iOS Safari) 운영 주의
+- **전체백업**: 현재 장부의 JSON 파일을 내려받습니다. 파일을 따로 보관하세요.
+- **전체복구**: owner 권한으로 백업 자료를 반영합니다. 먼저 현재 자료를 전체백업하고 복구 방식과 날짜를 확인하세요. 덮어쓰기 복구는 백업 이후 기록을 현재 장부에서 없앨 수 있습니다.
+- **자동백업**: 관련 서버 설정 적용 시 한국 시간 매일 새벽 3시에 보관하며 최근 30일분을 확인할 수 있습니다.
+- **수정·삭제 기록**: 관련 서버 설정 적용 후 변경 직전 내용을 확인하고 owner가 기록 하나를 복구할 수 있습니다. 기능 적용 전에 사라진 자료나 서버에 저장되지 않은 입력은 이 기능으로 복원할 수 없습니다.
 
-IndexedDB는 iOS Safari 환경 영향을 받을 수 있습니다.
+자동백업과 변경 이력은 같은 데이터베이스 안에 보관되므로 내려받은 외부 백업도 유지하세요.
+서버 응답이 끊겨 저장 결과가 불확실하면 같은 작업을 바로 반복하지 말고 `최신 불러오기`로 결과를 확인하세요.
+설정·권한·운영 제한은 [공용 장부 안내](docs/ledger-cloud.md)를 참고하세요.
 
-- 개인 브라우징(시크릿)에서는 데이터가 저장되지 않거나 쉽게 초기화될 수 있습니다.
-- 저장공간 부족/웹사이트 데이터 정리로 데이터가 삭제될 수 있습니다.
+## 개발 및 점검
 
-운영 권장:
+HTML + JavaScript ES 모듈 방식이며 파일을 직접 더블클릭하는 대신 HTTP 서버로 실행합니다.
 
-- 개인 브라우징 금지
-- 정기 백업 필수
-- 가능하면 HTTPS 환경에서 사용 (사설/로컬 환경에서도 Safari 정책이 더 안정적)
+1. VS Code에서 저장소 폴더를 엽니다.
+2. Windows에서는 최상위의 `start-dev-server.cmd`를 실행하거나 Live Server로 `index.html`을 엽니다.
+3. 로그인·서버 저장 기능은 인터넷 연결과 승인된 장부 계정이 필요합니다.
 
-## 배포 ZIP 참고
+현재 저장소에는 `tools/` 폴더가 없습니다. 검증 코드는 `tests/`에 있습니다.
+예를 들어 Node.js에서 홈 성능 점검을 실행할 수 있습니다.
 
-배포/업로드용 ZIP에는 `.history/`를 포함하지 않는 것을 권장합니다.
-이 저장소는 `.gitignore`에서 `.history/`를 제외하도록 설정되어 있습니다.
+```sh
+node --test tests/home-performance.test.cjs
+```
 
+휴대폰에서도 HTTPS 장부 주소로 접속하세요. 개인 브라우징이나 브라우저 데이터 정리는
+로그인과 임시 자료 유지에 영향을 줄 수 있으므로 중요한 입력 뒤에는 서버 저장 완료를 확인하세요.
+
+배포 ZIP에는 불필요한 로컬 변경 이력 폴더 `.history/`를 포함하지 않습니다.
