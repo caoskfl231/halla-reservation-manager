@@ -1,4 +1,4 @@
-import { rpc, friendlyError } from './cloud-session.js?v=app-20261010-5';
+import { rpc, friendlyError } from './cloud-session.js?v=app-20261010-6';
 const names = {transactions:'거래',customers:'거래처',items:'품목',ledger_tx:'입출금',users:'사용자',customer_types:'거래처 구분',customer_groups:'거래처 분류',item_groups:'품목 분류',cashflow_items:'장부',cashflow_types:'장부 구분',cashflow_groups:'장부 분류'};
 export function installHistoryPanel(owner) {
   const open = document.createElement('button');

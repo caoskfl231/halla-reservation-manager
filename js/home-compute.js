@@ -1,4 +1,4 @@
-// Pure worker computation; keep home filter and aggregation semantics unchanged.
+// Pure worker computation for date filters and period totals by customer.
 function pickSummaryLabel(values, hasMissing) {
   const arr = Array.from(values || [])
     .map((v) => String(v || '').trim())
@@ -20,7 +20,11 @@ function pickSummaryLabel(values, hasMissing) {
 
 function normalizeDashboardTypeLabel(value) { return String(value || '').trim(); }
 function includesIgnoreCase(value, q) { return String(value || '').toLowerCase().includes(String(q).toLowerCase()); }
-export function prepareHomeTable(displayRows, homeDashboardFilter, homeSearchQuery) {
+export function prepareHomeTable(displayRows, homeDashboardFilter, homeSearchQuery, { from = '', to = '' } = {}) {
+  displayRows = filterDates(displayRows, from, to);
+  const periodLabel = from && to
+    ? (from === to ? from : `${from} ~ ${to}`)
+    : from ? `${from} 이후` : to ? `${to} 이전` : '전체 기간';
   displayRows.sort((a, b) => {
     const ad = String(a?.date || '');
     const bd = String(b?.date || '');
@@ -142,17 +146,15 @@ export function prepareHomeTable(displayRows, homeDashboardFilter, homeSearchQue
     });
   }
 
-  // === 대시보드 하단 표: 건별 → 날짜/거래처별 합계로 집계 ===
-  // 요청: "섞지 말고 거래처별로 분리"
-  const aggregatedByDateVendor = new Map();
+  // 선택한 조회 기간의 거래를 거래처별 한 줄로 합산한다.
+  const aggregatedByVendor = new Map();
   (displayForTable || []).forEach((r) => {
     if (!r) return;
-    const date = String(r.date || '').trim();
     const vendorKey = String(r.vendor || '').trim() || '(미지정)';
-    const key = `${date}||${vendorKey}`;
-    if (!aggregatedByDateVendor.has(key)) {
-      aggregatedByDateVendor.set(key, {
-        date,
+    const key = vendorKey;
+    if (!aggregatedByVendor.has(key)) {
+      aggregatedByVendor.set(key, {
+        date: periodLabel,
         type: '합계',
         group: '',
         vendor: vendorKey,
@@ -167,7 +169,7 @@ export function prepareHomeTable(displayRows, homeDashboardFilter, homeSearchQue
         out: 0,
       });
     }
-    const acc = aggregatedByDateVendor.get(key);
+    const acc = aggregatedByVendor.get(key);
     const g = String(r.group || '').trim();
     if (g) acc.__groups.add(g);
     else acc.__missingGroup = true;
@@ -181,24 +183,18 @@ export function prepareHomeTable(displayRows, homeDashboardFilter, homeSearchQue
   });
 
   // 합계행의 분류는 실제 데이터 기반으로 요약 표시
-  for (const acc of aggregatedByDateVendor.values()) {
+  for (const acc of aggregatedByVendor.values()) {
     const groupLabel = pickSummaryLabel(acc.__groups, acc.__missingGroup);
     acc.group = groupLabel || '(미지정)';
     delete acc.__groups;
     delete acc.__missingGroup;
   }
 
-  // 날짜 내림차순 정렬
-  displayForTable = Array.from(aggregatedByDateVendor.values()).sort((a, b) => {
-    const ad = String(a?.date || '');
-    const bd = String(b?.date || '');
-    if (ad < bd) return 1;
-    if (ad > bd) return -1;
+  // 날짜가 합산되므로 거래처 이름 순서로 표시한다.
+  displayForTable = Array.from(aggregatedByVendor.values()).sort((a, b) => {
     return String(a?.vendor || '').localeCompare(String(b?.vendor || ''), 'ko');
   });
 
-  let sales=0, purchase=0, balance=0;
-  for (const r of displayForTable) { sales += r.sales-r.receipt; purchase += r.pay-r.purchase; balance += r.inn-r.out; r.__runningSales=sales; r.__runningPurchase=purchase; r.__runningBalance=balance; }
   return displayForTable;
 }
 export function filterDates(rows, from, to, sorted=false) {
@@ -207,6 +203,6 @@ export function filterDates(rows, from, to, sorted=false) {
 }
 export function computeJob({kind, rows, from, to, sorted, filter, query}) {
  if (kind==='dates') return filterDates(rows,from,to,sorted);
- if (kind==='table') return prepareHomeTable(rows,filter,query);
+ if (kind==='table') return prepareHomeTable(rows,filter,query,{from,to});
  throw new Error('UNKNOWN_HOME_JOB');
 }

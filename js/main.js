@@ -1,12 +1,12 @@
-import { runHomeJob } from './home-worker-client.js?v=app-20261010-5';
-import { createHomePager } from './home-pagination.js?v=app-20261010-5';
-import { getTransactions, updateTransaction, getAllLedgerTx, getCashflowTypes, getCashflowItems, getCustomers, exportHallapaDbSnapshot, restoreHallapaDbSnapshot } from './db.js?v=app-20261010-5';
-import { initDateFilter } from './common/date-filter.js?v=app-20261010-5';
-import { applyAmountColoring, openModalOverlay, closeModalOverlay, registerModalEscClose, attachSearchInput } from './common/ui-helpers.js?v=app-20261010-5';
-import { formatWeekdayLabel, getQuickRange, includesIgnoreCase } from './common/util.js?v=app-20261010-5';
-import { initDateWeekdayAuto } from './common/date-weekday-box.js?v=app-20261010-5';
-import { installDbAutoRefresh } from './common/app-events.js?v=app-20261010-5';
-import { bootstrapPageCommon } from './common/page-bootstrap.js?v=app-20261010-5';
+import { runHomeJob } from './home-worker-client.js?v=app-20261010-6';
+import { createHomePager } from './home-pagination.js?v=app-20261010-6';
+import { getTransactions, updateTransaction, getAllLedgerTx, getCashflowTypes, getCashflowItems, getCustomers, exportHallapaDbSnapshot, restoreHallapaDbSnapshot } from './db.js?v=app-20261010-6';
+import { initDateFilter } from './common/date-filter.js?v=app-20261010-6';
+import { applyAmountColoring, openModalOverlay, closeModalOverlay, registerModalEscClose, attachSearchInput } from './common/ui-helpers.js?v=app-20261010-6';
+import { formatWeekdayLabel, getQuickRange, includesIgnoreCase } from './common/util.js?v=app-20261010-6';
+import { initDateWeekdayAuto } from './common/date-weekday-box.js?v=app-20261010-6';
+import { installDbAutoRefresh } from './common/app-events.js?v=app-20261010-6';
+import { bootstrapPageCommon } from './common/page-bootstrap.js?v=app-20261010-6';
 
 const btnDbBackup = document.getElementById('btn-home-db-backup');
 const btnDbRestore = document.getElementById('btn-home-db-restore');
@@ -1386,7 +1386,7 @@ async function renderList() {
     });
   });
 
-  const displayForTable = await runHomeJob({kind:'table',rows:displayRows,filter:homeDashboardFilter,query:homeSearchQuery});
+  const displayForTable = await runHomeJob({kind:'table',rows:displayRows,filter:homeDashboardFilter,query:homeSearchQuery,from:dateFrom,to:dateTo});
   if (generation !== homeRenderGeneration) return;
 
   function amountCell(value, options = {}) {
@@ -1439,15 +1439,9 @@ async function renderList() {
   if (!pageRows.length) {
     listBody.innerHTML = '<tr><td colspan="14" style="text-align:center;">거래 내역 없음</td></tr>';
   } else {
-    // 잔액(매출/매입/총)은 표 표시 순서 기준으로 누적 표시
-    let runningSalesBalance = 0;
-    let runningPurchaseBalance = 0;
-    let runningTotalBalance = 0;
+    // 각 거래처의 조회 기간 합계로 잔액을 표시한다.
     listBody.innerHTML = pageRows
       .map((r) => {
-        runningSalesBalance = r.__runningSales;
-        runningPurchaseBalance = r.__runningPurchase;
-        runningTotalBalance = r.__runningBalance;
         return `
           <tr>
             <td>${escapeHtml(r.date || '')}</td>
@@ -1456,14 +1450,14 @@ async function renderList() {
             <td>${escapeHtml(r.vendor || '')}</td>
             ${signedAmountCell(r.sales)}
             ${amountCell(r.receipt, { force: 'minus' })}
-            ${signedAmountCell(runningSalesBalance)}
+            ${signedAmountCell(rowSalesBalance(r))}
             ${amountCell(r.purchase, { force: 'minus' })}
             ${amountCell(r.pay)}
-            ${signedAmountCell(runningPurchaseBalance)}
+            ${signedAmountCell(rowPurchaseDisplayBalance(r))}
             ${amountCell(r.expense, { force: 'minus' })}
             ${amountCell(r.inn)}
             ${amountCell(r.out, { force: 'minus' })}
-            ${signedAmountCell(runningTotalBalance)}
+            ${signedAmountCell(rowTotalBalance(r))}
           </tr>
         `;
       })
