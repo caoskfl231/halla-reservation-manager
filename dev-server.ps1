@@ -6,6 +6,10 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+$rootFull = [System.IO.Path]::GetFullPath($Root)
+# Include the separator so sibling folders such as Root-backup are not allowed.
+$rootPrefix = $rootFull.TrimEnd([char[]]@([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar)) + [System.IO.Path]::DirectorySeparatorChar
+
 $prefix = "http://localhost:$Port/"
 $listener = [System.Net.HttpListener]::new()
 $listener.Prefixes.Add($prefix)
@@ -41,9 +45,10 @@ try {
       if ([string]::IsNullOrWhiteSpace($relativePath)) { $relativePath = 'index.html' }
 
       $safeRelative = $relativePath -replace '/', [System.IO.Path]::DirectorySeparatorChar
-      $localPath = Join-Path $Root $safeRelative
+      $localPath = [System.IO.Path]::GetFullPath((Join-Path $rootFull $safeRelative))
+      $isInsideRoot = $localPath.StartsWith($rootPrefix, [System.StringComparison]::OrdinalIgnoreCase)
 
-      if (Test-Path $localPath -PathType Leaf) {
+      if ($isInsideRoot -and (Test-Path -LiteralPath $localPath -PathType Leaf)) {
         $bytes = [System.IO.File]::ReadAllBytes($localPath)
         $ctx.Response.StatusCode = 200
         $ctx.Response.ContentType = Get-ContentType $localPath
