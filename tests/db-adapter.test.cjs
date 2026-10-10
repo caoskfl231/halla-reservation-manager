@@ -128,7 +128,12 @@ function mockIndexedDb() {
   const chunked = create({ databaseName: 'cloud-chunked', reuseConnection: true, strictSnapshotErrors: true, snapshotWriteBatchSize: 250 });
   const large = structuredClone(snapshot);
   large.stores.transactions = Array.from({length: 1700}, (_, id) => ({ id: id + 1, amount: id }));
-  await chunked.restoreHallapaDbSnapshot(large);
+  const progress = [];
+  await chunked.restoreHallapaDbSnapshot(large, { onProgress: detail => progress.push(detail) });
+  assert.equal(progress[0].completed, 0);
+  assert(progress.length > 7, "report actual completed batches");
+  assert.equal(progress.at(-1).completed, progress.at(-1).total);
+  assert(progress.every((p, i) => !i || p.completed >= progress[i - 1].completed));
   const chunkRows = await chunked.getTransactions();
   assert.equal(chunkRows.length, 1700, 'all restoration batches finish before ready');
   assert.equal(chunkRows[1699].amount, 1699, 'last batch is retained in the same transaction');

@@ -1423,6 +1423,12 @@ export function createIndexedDbAdapter({
       throw new Error("복구할 스토어가 없습니다.");
     }
 
+    const totalRows = storeNames.reduce((sum, name) => sum + (Array.isArray(storesData[name]) ? storesData[name].length : 0), 0);
+    let completedRows = 0;
+    const reportProgress = () => {
+      try { options.onProgress?.({ completed: completedRows, total: totalRows }); } catch (_) {}
+    };
+    reportProgress();
     const tx = db.transaction(storeNames, "readwrite");
 
     storeNames.forEach((name) => {
@@ -1442,6 +1448,7 @@ export function createIndexedDbAdapter({
           ? snapshotWriteBatchSize : rows.length || 1;
         let offset = 0;
         const enqueue = () => {
+          const batchStart = offset;
           const end = Math.min(rows.length, offset + batchSize);
           let lastRequest;
           while (offset < end) {
@@ -1451,12 +1458,14 @@ export function createIndexedDbAdapter({
               if (strictSnapshotErrors) { tx.abort(); throw error; }
             }
           }
-          if (offset < rows.length) {
-            if (lastRequest) lastRequest.onsuccess = () => {
+          if (lastRequest) lastRequest.onsuccess = () => {
+            completedRows += end - batchStart;
+            reportProgress();
+            if (offset < rows.length) {
               try { enqueue(); } catch (_) { /* abort로 완료 Promise가 거부된다. */ }
-            };
-            else enqueue();
-          }
+            }
+          };
+          else if (offset < rows.length) enqueue();
         };
         enqueue();
         return;

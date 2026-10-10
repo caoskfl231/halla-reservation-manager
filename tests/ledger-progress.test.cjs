@@ -1,0 +1,31 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+test('top progress bar uses real counts, reaches 100 only on completion, and cleans up after restoration', () => {
+  const nodes = [], listeners = new Map();
+  const element = tag => {
+    const n = { tag, style: {}, attrs: {}, children: [], textContent: '', setAttribute(k,v) { this.attrs[k] = v; }, append(...xs) { this.children.push(...xs); }, remove() { this.removed = true; } };
+    nodes.push(n); return n;
+  };
+  const context = vm.createContext({ document: { createElement: element, body: { append() {} } }, addEventListener: (name, fn) => listeners.set(name, fn), removeEventListener: name => listeners.delete(name) });
+  const source = fs.readFileSync('js/cloud-session.js', 'utf8');
+  vm.runInContext(source.slice(source.indexOf('function loadingPanel()'), source.indexOf('export async function request')), context);
+  const ui = context.loadingPanel();
+  assert.match(ui.panel.style.cssText, /top:0;left:0;right:0/);
+  assert(!ui.panel.style.cssText.includes('inset:0'));
+  const percent = nodes.find(node => node.tag === 'span');
+  assert.equal(percent.textContent, '0%');
+  listeners.get('ledger:load-progress')({ detail: { completed: 500, total: 1000 } });
+  assert.equal(percent.textContent, '50%');
+  assert.equal(ui.skeleton.attrs['aria-valuenow'], '50');
+  ui.setProgress(1000,1000); assert.equal(percent.textContent,'99%');
+  ui.setProgress(1000,1000,true); assert.equal(percent.textContent,'100%');
+  ui.cleanup(); ui.panel.remove();
+  listeners.get('ledger:cache-progress')({detail:{completed:250,total:1000}});
+  const cachePercent = nodes.filter(node=>node.tag==='span').at(-1);
+  const cachePanel = nodes.filter(node=>node.tag==='section').at(-1);
+  assert.equal(cachePercent.textContent,'25%');
+  listeners.get('ledger:cache-progress')({detail:{completed:1000,total:1000,done:true}});
+  assert.equal(cachePercent.textContent,'100%');assert(cachePanel.removed);
+});

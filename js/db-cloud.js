@@ -1,10 +1,10 @@
-import * as cache from './db-cloud-cache.js?v=app-20261010-13';
-import { rpc, requireLedgerSession, friendlyError, signOut, sessionIdentity, sessionRejected } from './cloud-session.js?v=app-20261010-13';
-import { loadSyncedLedger, clearReadCache } from './ledger-read-cache.js?v=app-20261010-13';
-import { emitAppEvent } from './common/app-events.js?v=app-20261010-13';
-import { changedRecords, recordToken, versionMap } from './cloud-records.js?v=app-20261010-13';
-import { installBackupPanel } from './ledger-backups.js?v=app-20261010-13';
-import { uploadSnapshot } from './cloud-import.js?v=app-20261010-13';
+import * as cache from './db-cloud-cache.js?v=app-20261010-14';
+import { rpc, requireLedgerSession, friendlyError, signOut, sessionIdentity, sessionRejected } from './cloud-session.js?v=app-20261010-14';
+import { loadSyncedLedger, clearReadCache } from './ledger-read-cache.js?v=app-20261010-14';
+import { emitAppEvent } from './common/app-events.js?v=app-20261010-14';
+import { changedRecords, recordToken, versionMap } from './cloud-records.js?v=app-20261010-14';
+import { installBackupPanel } from './ledger-backups.js?v=app-20261010-14';
+import { uploadSnapshot } from './cloud-import.js?v=app-20261010-14';
 let state = await requireLedgerSession(async () => {
   try { return await loadSyncedLedger(rpc, sessionIdentity()); }
   catch (error) { if (sessionRejected(error)) await clearReadCache(); throw error; }
@@ -12,7 +12,17 @@ let state = await requireLedgerSession(async () => {
 // 서버 승인 이후에만 복원하며, 페이지 모듈이 실행될 기회를 먼저 준다.
 const cacheReady = (typeof globalThis.setTimeout === 'function'
   ? new Promise(resolve => globalThis.setTimeout(resolve, 0))
-  : Promise.resolve()).then(() => cache.restoreHallapaDbSnapshot(state.snapshot));
+  : Promise.resolve()).then(async () => {
+  let progress = { completed: 0, total: 0 };
+  const report = detail => globalThis.dispatchEvent?.(new CustomEvent('ledger:cache-progress', { detail }));
+  try {
+    await cache.restoreHallapaDbSnapshot(state.snapshot, { onProgress: detail => { progress = detail; report(detail); } });
+    report({ ...progress, done: true });
+  } catch (error) {
+    report({ ...progress, error: true });
+    throw error;
+  }
+});
 // 실패를 성공으로 바꾸지 않는다. 모든 조회/저장은 아래에서 같은 Promise를 기다린다.
 cacheReady.catch(error => notice('캐시 준비 실패 · 최신 불러오기를 눌러 주세요.', true));
 let versions = versionMap(state.row_versions);
@@ -186,7 +196,7 @@ if (state.revision === 0 && state.role === 'owner') {
     try {
       if (!indexedDB.databases) throw new Error('이 브라우저에서는 전체백업 파일을 선택해 주세요.');
       if (!(await indexedDB.databases()).some(db => db.name === 'hallapa_db')) throw new Error('이 기기에 기존 장부자료가 없습니다. 전체백업 파일을 선택해 주세요.');
-      const local = await import('./db-local.js?v=app-20261010-13'); await upload(await local.exportHallapaDbSnapshot());
+      const local = await import('./db-local.js?v=app-20261010-14'); await upload(await local.exportHallapaDbSnapshot());
     } catch (error) { window.alert(friendlyError(error)); }
   };
 }

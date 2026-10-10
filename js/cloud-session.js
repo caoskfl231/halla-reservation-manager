@@ -60,27 +60,46 @@ function loadingPanel() {
   const panel = document.createElement('section');
   panel.setAttribute('role', 'status');
   panel.setAttribute('aria-live', 'polite');
-  panel.style.cssText = 'position:fixed;inset:0;z-index:100000;background:#f3f5f8;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box';
-  const card = document.createElement('div');
-  card.style.cssText = 'width:100%;max-width:420px;padding:28px;box-sizing:border-box;border-radius:18px;background:white;color:#172231;font-family:system-ui,sans-serif;line-height:1.7;text-align:center';
-  const title = document.createElement('h2'); title.textContent = '장부 불러오기';
-  const message = document.createElement('p');
+  panel.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:100000;background:#f3f5f8;border-bottom:1px solid #c7d2df;padding:8px 16px;box-sizing:border-box;box-shadow:0 2px 8px #0002;color:#172231;font:14px system-ui,sans-serif';
+  const title = document.createElement('strong'); title.textContent = '장부 불러오기';
+  const message = document.createElement('p'); message.style.cssText = 'margin:4px 0;font-size:13px';
   const skeleton = document.createElement('div');
-  skeleton.setAttribute('aria-hidden','true');
-  skeleton.className = 'ledger-skeleton';
-  const styles = document.createElement('style');
-  styles.textContent = '.ledger-skeleton{display:grid;gap:14px;margin:24px 0}.ledger-skeleton[hidden]{display:none}.ledger-skeleton div{height:18px;border-radius:6px;background:#e5e7eb;animation:ledger-pulse 1.4s ease-in-out infinite}.ledger-skeleton div:first-child{width:55%;height:28px}.ledger-skeleton div:last-child{width:75%}@keyframes ledger-pulse{50%{opacity:.4}}@media(prefers-reduced-motion:reduce){.ledger-skeleton div{animation:none}}';
-  for (let i=0;i<7;i++) skeleton.append(document.createElement('div'));
+  skeleton.style.cssText = 'position:relative;height:20px;background:#e2e8f0;border:1px solid #94a3b8;overflow:hidden';
+  skeleton.setAttribute('role','progressbar');
+  skeleton.setAttribute('aria-valuemin','0'); skeleton.setAttribute('aria-valuemax','100');
+  const fill = document.createElement('div'); fill.style.cssText = 'height:100%;width:0%;background:#9bb9d9';
+  const percent = document.createElement('span'); percent.textContent = '0%';
+  percent.style.cssText = 'position:absolute;inset:0;text-align:center;font-weight:700;line-height:20px;color:#172231';
+  skeleton.append(fill, percent);
+  const setProgress = (completed, total, done = false) => {
+    const n = total > 0 ? Math.floor(Math.max(0, completed) / total * 100) : 0;
+    const value = done ? 100 : Math.min(99, n);
+    fill.style.width = value + '%'; percent.textContent = value + '%';
+    skeleton.setAttribute('aria-valuenow', String(value));
+  };
+  setProgress(0, 0);
   const progress = event => {
     const d=event.detail;
-    message.textContent=`기간별 자료 불러오는 중 · ${d.completed.toLocaleString('ko-KR')} / ${d.total.toLocaleString('ko-KR')}건`;
+    setProgress(d.completed, d.total);
+    message.textContent=`자료 불러오는 중 · ${d.completed.toLocaleString('ko-KR')} / ${d.total.toLocaleString('ko-KR')}건`;
   };
   globalThis.addEventListener?.('ledger:load-progress',progress);
   const retry = document.createElement('button'); retry.textContent = '다시 불러오기'; retry.hidden = true;
-  retry.style.cssText = 'min-height:48px;width:100%;border:0;border-radius:10px;background:#153a60;color:white;font:inherit;font-weight:700;cursor:pointer';
-  card.append(styles, title, skeleton, message, retry); panel.append(card); document.body.append(panel);
-  return { panel, message, retry, skeleton, cleanup(){globalThis.removeEventListener?.('ledger:load-progress',progress);} };
+  retry.style.cssText = 'min-height:40px;border:0;border-radius:6px;padding:0 16px;background:#153a60;color:white;font:inherit;font-weight:700;cursor:pointer';
+  panel.append(title, message, skeleton, retry); document.body.append(panel);
+  return { panel, message, retry, skeleton, setProgress, cleanup(){globalThis.removeEventListener?.('ledger:load-progress',progress);} };
 }
+let cacheProgressUI;
+globalThis.addEventListener?.('ledger:cache-progress', event => {
+  const d = event.detail;
+  if (!cacheProgressUI) cacheProgressUI = loadingPanel();
+  cacheProgressUI.message.textContent = d.error ? '화면 준비에 실패했습니다. 최신 불러오기를 눌러 주세요.'
+    : `화면 준비 중 · ${d.completed.toLocaleString('ko-KR')} / ${d.total.toLocaleString('ko-KR')}건`;
+  cacheProgressUI.setProgress(d.completed, d.total, d.done);
+  if (d.done || d.error) {
+    cacheProgressUI.cleanup(); cacheProgressUI.panel.remove(); cacheProgressUI = null;
+  }
+});
 export async function request(path, body, token, timeoutMs = 30000) {
   const headers = { apikey: KEY, 'Content-Type': 'application/json' };
   if (token) headers.Authorization = 'Bearer ' + token;
@@ -130,11 +149,13 @@ export async function requireLedgerSession(load = () => rpc('halla_ledger_read')
   }
   const ui = loadingPanel();
   for (;;) {
-    ui.message.textContent = '선택한 메뉴의 자료를 불러오는 중입니다. 자료가 많으면 시간이 걸릴 수 있습니다.';
+    ui.message.textContent = '연결 확인 및 자료 불러오는 중…';
+    ui.setProgress(0, 0);
     ui.retry.hidden = true; ui.retry.disabled = true;
     ui.skeleton.hidden = false;
     try {
       const state = await load();
+      ui.setProgress(1, 1, true);
       ui.cleanup(); ui.panel.remove();
       return state;
     } catch (error) {

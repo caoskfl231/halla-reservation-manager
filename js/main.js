@@ -1,13 +1,13 @@
-import { buildSalesCustomerBalances } from './common/sales-customer-balance.js?v=app-20261010-13';
-import { runHomeJob } from './home-worker-client.js?v=app-20261010-13';
-import { createHomePager } from './home-pagination.js?v=app-20261010-13';
-import { getTransactions, updateTransaction, getAllLedgerTx, getCashflowTypes, getCashflowItems, getCustomers, exportHallapaDbSnapshot, restoreHallapaDbSnapshot } from './db.js?v=app-20261010-13';
-import { initDateFilter } from './common/date-filter.js?v=app-20261010-13';
-import { applyAmountColoring, openModalOverlay, closeModalOverlay, registerModalEscClose, attachSearchInput } from './common/ui-helpers.js?v=app-20261010-13';
-import { formatWeekdayLabel, getQuickRange, includesIgnoreCase } from './common/util.js?v=app-20261010-13';
-import { initDateWeekdayAuto } from './common/date-weekday-box.js?v=app-20261010-13';
-import { installDbAutoRefresh } from './common/app-events.js?v=app-20261010-13';
-import { bootstrapPageCommon } from './common/page-bootstrap.js?v=app-20261010-13';
+import { buildSalesCustomerBalances } from './common/sales-customer-balance.js?v=app-20261010-14';
+import { runHomeJob } from './home-worker-client.js?v=app-20261010-14';
+import { createHomePager } from './home-pagination.js?v=app-20261010-14';
+import { getTransactions, updateTransaction, getAllLedgerTx, getCashflowTypes, getCashflowItems, getCustomers, exportHallapaDbSnapshot, restoreHallapaDbSnapshot } from './db.js?v=app-20261010-14';
+import { initDateFilter } from './common/date-filter.js?v=app-20261010-14';
+import { applyAmountColoring, openModalOverlay, closeModalOverlay, registerModalEscClose, attachSearchInput } from './common/ui-helpers.js?v=app-20261010-14';
+import { formatWeekdayLabel, getQuickRange, includesIgnoreCase } from './common/util.js?v=app-20261010-14';
+import { initDateWeekdayAuto } from './common/date-weekday-box.js?v=app-20261010-14';
+import { installDbAutoRefresh } from './common/app-events.js?v=app-20261010-14';
+import { bootstrapPageCommon } from './common/page-bootstrap.js?v=app-20261010-14';
 
 const btnDbBackup = document.getElementById('btn-home-db-backup');
 const btnDbRestore = document.getElementById('btn-home-db-restore');
