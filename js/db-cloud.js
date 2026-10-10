@@ -1,10 +1,14 @@
-import * as cache from './db-cloud-cache.js?v=ledger-load-20261010-1';
-import { rpc, requireLedgerSession, friendlyError, signOut } from './cloud-session.js?v=ledger-load-20261010-1';
-import { emitAppEvent } from './common/app-events.js?v=ledger-load-20261010-1';
-import { changedRecords, recordToken, versionMap } from './cloud-records.js?v=ledger-load-20261010-1';
-import { installBackupPanel } from './ledger-backups.js?v=ledger-load-20261010-1';
-import { uploadSnapshot } from './cloud-import.js?v=ledger-load-20261010-1';
-let state = await requireLedgerSession();
+import * as cache from './db-cloud-cache.js?v=ledger-delta-20261010-1';
+import { rpc, requireLedgerSession, friendlyError, signOut, sessionIdentity, sessionRejected } from './cloud-session.js?v=ledger-delta-20261010-1';
+import { loadSyncedLedger, clearReadCache } from './ledger-read-cache.js?v=ledger-delta-20261010-1';
+import { emitAppEvent } from './common/app-events.js?v=ledger-delta-20261010-1';
+import { changedRecords, recordToken, versionMap } from './cloud-records.js?v=ledger-delta-20261010-1';
+import { installBackupPanel } from './ledger-backups.js?v=ledger-delta-20261010-1';
+import { uploadSnapshot } from './cloud-import.js?v=ledger-delta-20261010-1';
+let state = await requireLedgerSession(async () => {
+  try { return await loadSyncedLedger(rpc, sessionIdentity()); }
+  catch (error) { if (sessionRejected(error)) await clearReadCache(); throw error; }
+});
 await cache.restoreHallapaDbSnapshot(state.snapshot);
 let versions = versionMap(state.row_versions);
 let pendingRemote = false;
@@ -138,7 +142,7 @@ document.getElementById('ledger-cloud-reload').onclick = () => {
   if (window.confirm('입력 중인 내용은 사라질 수 있습니다. 최신 장부를 불러올까요?')) location.reload();
 };
 document.getElementById('ledger-cloud-logout').onclick = async () => {
-  if (window.confirm('로그아웃할까요?')) { cache.closeCloudCache(); await signOut(); }
+  if (window.confirm('로그아웃할까요?')) { cache.closeCloudCache(); await clearReadCache(); await signOut(); }
 };
 if (state.revision === 0 && state.role === 'owner') {
   const panel = document.createElement('section');
@@ -166,7 +170,7 @@ if (state.revision === 0 && state.role === 'owner') {
     try {
       if (!indexedDB.databases) throw new Error('이 브라우저에서는 전체백업 파일을 선택해 주세요.');
       if (!(await indexedDB.databases()).some(db => db.name === 'hallapa_db')) throw new Error('이 기기에 기존 장부자료가 없습니다. 전체백업 파일을 선택해 주세요.');
-      const local = await import('./db-local.js?v=ledger-load-20261010-1'); await upload(await local.exportHallapaDbSnapshot());
+      const local = await import('./db-local.js?v=ledger-delta-20261010-1'); await upload(await local.exportHallapaDbSnapshot());
     } catch (error) { window.alert(friendlyError(error)); }
   };
 }

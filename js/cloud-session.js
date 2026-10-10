@@ -8,6 +8,12 @@ let sessionGeneration = 0;
 export function session() {
   try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY) || 'null'); } catch { return null; }
 }
+export function sessionIdentity() {
+  const value = session();
+  if (value?.user?.id) return value.user.id;
+  try { return JSON.parse(atob(value.access_token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).sub || null; }
+  catch { return null; }
+}
 export function autoLoginEnabled() { return !!localStorage.getItem(SESSION_KEY); }
 export function savedEmail() { return localStorage.getItem(EMAIL_KEY) || ''; }
 export function rememberEmail(email, enabled) {
@@ -98,7 +104,7 @@ export async function accessToken() {
   return refreshing;
 }
 export async function rpc(name, body = {}) {
-  return request('/rest/v1/rpc/' + name, body, await accessToken(), ['halla_ledger_save','halla_ledger_import_finish','halla_ledger_patch_compact','halla_ledger_read'].includes(name) ? 120000 : 30000);
+  return request('/rest/v1/rpc/' + name, body, await accessToken(), ['halla_ledger_save','halla_ledger_import_finish','halla_ledger_patch_compact','halla_ledger_read','halla_ledger_sync'].includes(name) ? 120000 : 30000);
 }
 export async function signOut() {
   const current = session();
@@ -106,7 +112,7 @@ export async function signOut() {
   try { await request('/auth/v1/logout?scope=local', {}, current?.access_token); } catch {}
   location.replace('login.html');
 }
-export async function requireLedgerSession() {
+export async function requireLedgerSession(load = () => rpc('halla_ledger_read')) {
   if (!session()?.access_token) {
     loginRedirect();
     return new Promise(() => {});
@@ -116,7 +122,7 @@ export async function requireLedgerSession() {
     ui.message.textContent = '선택한 메뉴의 자료를 불러오는 중입니다. 자료가 많으면 시간이 걸릴 수 있습니다.';
     ui.retry.hidden = true; ui.retry.disabled = true;
     try {
-      const state = await rpc('halla_ledger_read');
+      const state = await load();
       ui.panel.remove();
       return state;
     } catch (error) {

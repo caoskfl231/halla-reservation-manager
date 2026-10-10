@@ -28,7 +28,7 @@ async function client(){
   if(name.startsWith('get'))return [];
  }]));
  cacheFns.closeCloudCache=()=>{};
- const sessionFns={requireLedgerSession:async()=>withVersions(),friendlyError:e=>e.message,signOut:async()=>{},rpc:async(name,body)=>{
+ const sessionFns={sessionIdentity:()=>null,sessionRejected:()=>false,requireLedgerSession:async()=>withVersions(),friendlyError:e=>e.message,signOut:async()=>{},rpc:async(name,body)=>{
   if(name==='halla_ledger_read')return withVersions();
   if(name==='halla_ledger_reserve_transaction_id')return nextId++;
   if(name==='halla_ledger_reserve_transaction_ids'){batchReservations++;return Array.from({length:body.p_count},()=>nextId++);}
@@ -57,6 +57,7 @@ async function client(){
  function moduleOf(values){return new vm.SyntheticModule(Object.keys(values),function(){for(const [key,value]of Object.entries(values))this.setExport(key,value);},{context});}
  const modules={'./ledger-backups.js':moduleOf({installBackupPanel(){}}),'./db-cloud-cache.js':moduleOf(cacheFns),'./cloud-session.js':moduleOf(sessionFns),'./common/app-events.js':moduleOf({emitAppEvent(){}}), './cloud-records.js':new vm.SourceTextModule(fs.readFileSync('js/cloud-records.js','utf8'),{context})};
  modules['./cloud-import.js']=moduleOf({uploadSnapshot:async(snap,revision,action,rpc)=>rpc('halla_ledger_save',{p_snapshot:snap,p_revision:revision,p_action:action})});
+ modules['./ledger-read-cache.js']=moduleOf({loadSyncedLedger:async()=>withVersions(),clearReadCache:async()=>{}});
  const m=new vm.SourceTextModule(source,{context});await m.link(name=>modules[name.split('?')[0]]);await m.evaluate();return m.namespace;
 }
 (async()=>{
