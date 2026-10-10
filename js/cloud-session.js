@@ -65,10 +65,21 @@ function loadingPanel() {
   card.style.cssText = 'width:100%;max-width:420px;padding:28px;box-sizing:border-box;border-radius:18px;background:white;color:#172231;font-family:system-ui,sans-serif;line-height:1.7;text-align:center';
   const title = document.createElement('h2'); title.textContent = '장부 불러오기';
   const message = document.createElement('p');
+  const skeleton = document.createElement('div');
+  skeleton.setAttribute('aria-hidden','true');
+  skeleton.className = 'ledger-skeleton';
+  const styles = document.createElement('style');
+  styles.textContent = '.ledger-skeleton{display:grid;gap:14px;margin:24px 0}.ledger-skeleton[hidden]{display:none}.ledger-skeleton div{height:18px;border-radius:6px;background:#e5e7eb;animation:ledger-pulse 1.4s ease-in-out infinite}.ledger-skeleton div:first-child{width:55%;height:28px}.ledger-skeleton div:last-child{width:75%}@keyframes ledger-pulse{50%{opacity:.4}}@media(prefers-reduced-motion:reduce){.ledger-skeleton div{animation:none}}';
+  for (let i=0;i<7;i++) skeleton.append(document.createElement('div'));
+  const progress = event => {
+    const d=event.detail;
+    message.textContent=`기간별 자료 불러오는 중 · ${d.completed.toLocaleString('ko-KR')} / ${d.total.toLocaleString('ko-KR')}건`;
+  };
+  globalThis.addEventListener?.('ledger:load-progress',progress);
   const retry = document.createElement('button'); retry.textContent = '다시 불러오기'; retry.hidden = true;
   retry.style.cssText = 'min-height:48px;width:100%;border:0;border-radius:10px;background:#153a60;color:white;font:inherit;font-weight:700;cursor:pointer';
-  card.append(title, message, retry); panel.append(card); document.body.append(panel);
-  return { panel, message, retry };
+  card.append(styles, title, skeleton, message, retry); panel.append(card); document.body.append(panel);
+  return { panel, message, retry, skeleton, cleanup(){globalThis.removeEventListener?.('ledger:load-progress',progress);} };
 }
 export async function request(path, body, token, timeoutMs = 30000) {
   const headers = { apikey: KEY, 'Content-Type': 'application/json' };
@@ -121,18 +132,21 @@ export async function requireLedgerSession(load = () => rpc('halla_ledger_read')
   for (;;) {
     ui.message.textContent = '선택한 메뉴의 자료를 불러오는 중입니다. 자료가 많으면 시간이 걸릴 수 있습니다.';
     ui.retry.hidden = true; ui.retry.disabled = true;
+    ui.skeleton.hidden = false;
     try {
       const state = await load();
-      ui.panel.remove();
+      ui.cleanup(); ui.panel.remove();
       return state;
     } catch (error) {
       if (sessionRejected(error)) {
+        ui.cleanup();
         clearSession();
         sessionStorage.setItem('hallapa_ledger_login_error', friendlyError(error));
         loginRedirect();
         return new Promise(() => {});
       }
       ui.message.textContent = friendlyLoadError(error);
+      ui.skeleton.hidden = true;
       ui.retry.hidden = false; ui.retry.disabled = false;
       await new Promise(resolve => ui.retry.onclick = () => {
         ui.retry.onclick = null; ui.retry.disabled = true; resolve();

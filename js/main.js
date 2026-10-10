@@ -1,10 +1,12 @@
-import { getTransactions, updateTransaction, getAllLedgerTx, getCashflowTypes, getCashflowItems, getCustomers, exportHallapaDbSnapshot, restoreHallapaDbSnapshot } from './db.js?v=ledger-delta-20261010-1';
-import { initDateFilter } from './common/date-filter.js?v=ledger-delta-20261010-1';
-import { applyAmountColoring, openModalOverlay, closeModalOverlay, registerModalEscClose, attachSearchInput } from './common/ui-helpers.js?v=ledger-delta-20261010-1';
-import { formatWeekdayLabel, getQuickRange, includesIgnoreCase } from './common/util.js?v=ledger-delta-20261010-1';
-import { initDateWeekdayAuto } from './common/date-weekday-box.js?v=ledger-delta-20261010-1';
-import { installDbAutoRefresh } from './common/app-events.js?v=ledger-delta-20261010-1';
-import { bootstrapPageCommon } from './common/page-bootstrap.js?v=ledger-delta-20261010-1';
+import { runHomeJob } from './home-worker-client.js?v=home-performance-20261010-1';
+import { createHomePager } from './home-pagination.js?v=home-performance-20261010-1';
+import { getTransactions, updateTransaction, getAllLedgerTx, getCashflowTypes, getCashflowItems, getCustomers, exportHallapaDbSnapshot, restoreHallapaDbSnapshot } from './db.js?v=home-performance-20261010-1';
+import { initDateFilter } from './common/date-filter.js?v=home-performance-20261010-1';
+import { applyAmountColoring, openModalOverlay, closeModalOverlay, registerModalEscClose, attachSearchInput } from './common/ui-helpers.js?v=home-performance-20261010-1';
+import { formatWeekdayLabel, getQuickRange, includesIgnoreCase } from './common/util.js?v=home-performance-20261010-1';
+import { initDateWeekdayAuto } from './common/date-weekday-box.js?v=home-performance-20261010-1';
+import { installDbAutoRefresh } from './common/app-events.js?v=home-performance-20261010-1';
+import { bootstrapPageCommon } from './common/page-bootstrap.js?v=home-performance-20261010-1';
 
 const btnDbBackup = document.getElementById('btn-home-db-backup');
 const btnDbRestore = document.getElementById('btn-home-db-restore');
@@ -240,6 +242,8 @@ if (restoreFileInput) {
 }
 
 const listBody = document.getElementById('tx-list');
+const homePager = createHomePager(listBody, 100);
+let homeRenderGeneration = 0;
 const homeTxCountEl = document.getElementById('home-tx-count');
 const homeTxTotalSalesEl = document.getElementById('home-tx-total-sales');
 const homeTxTotalReceiptEl = document.getElementById('home-tx-total-receipt');
@@ -1202,11 +1206,10 @@ async function openHomeBreakdownFor(section, key, label) {
 }
 
 async function renderList() {
+  const generation = ++homeRenderGeneration;
   const list = await getTransactions();
-  const filtered = (list || []).filter(filterByDate);
-  const rows = filtered
-    .slice()
-    .sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''), 'ko'));
+  const rows = await runHomeJob({kind:'dates',rows:list || [],from:dateFrom,to:dateTo,sorted:true});
+  if (generation !== homeRenderGeneration) return;
 
   let ledgerAll = [];
   try {
@@ -1214,7 +1217,8 @@ async function renderList() {
   } catch (_) {
     ledgerAll = [];
   }
-  const ledgerRows = (ledgerAll || []).filter(filterByDate);
+  const ledgerRows = await runHomeJob({kind:'dates',rows:ledgerAll || [],from:dateFrom,to:dateTo});
+  if (generation !== homeRenderGeneration) return;
 
   // 장부 타입(A01 등) 필터가 걸린 경우: cashflow_items를 로드해 itemCode->typeCode 매핑을 만든다.
   let itemTypeByItemCode = null;
@@ -1382,181 +1386,8 @@ async function renderList() {
     });
   });
 
-  displayRows.sort((a, b) => {
-    const ad = String(a?.date || '');
-    const bd = String(b?.date || '');
-    if (ad < bd) return 1;
-    if (ad > bd) return -1;
-    return String(a?.type || '').localeCompare(String(b?.type || ''), 'ko');
-  });
-
-  // 요약카드/모달 클릭으로 설정된 필터가 있으면 하단 표에만 적용
-  let displayForTable = displayRows;
-  if (homeDashboardFilter && typeof homeDashboardFilter === 'object') {
-    const mode = String(homeDashboardFilter.mode || '').trim();
-    if (mode === 'ledger') {
-      const name = String(homeDashboardFilter.ledgerName || '').trim();
-      displayForTable = (displayRows || []).filter((r) => {
-        if (String(r?.__src || '') !== 'ledger') return false;
-        if (!name) return true;
-        const g = String(r?.group || '').trim();
-        const an = String(r?.__ledgerAccountName || '').trim();
-        const iname = String(r?.__ledgerItemName || '').trim();
-        return g === name || an === name || iname === name;
-      });
-    } else if (mode === 'ledgerTypeNames') {
-      const keywords = Array.isArray(homeDashboardFilter.keywords)
-        ? homeDashboardFilter.keywords.map((t) => String(t || '').trim()).filter(Boolean)
-        : [];
-      if (!keywords.length) {
-        displayForTable = [];
-      } else {
-        displayForTable = (displayRows || []).filter((r) => {
-          if (String(r?.__src || '') !== 'ledger') return false;
-          const fields = [
-            String(r?.group || '').trim(),
-            String(r?.__ledgerAccountName || '').trim(),
-            String(r?.__ledgerItemName || '').trim(),
-          ];
-          return keywords.some((kw) => fields.some((f) => f && f.includes(kw)));
-        });
-      }
-    } else if (mode === 'ledgerTypes') {
-      const typeCodes = Array.isArray(homeDashboardFilter.typeCodes)
-        ? homeDashboardFilter.typeCodes.map((t) => String(t || '').trim()).filter(Boolean)
-        : [];
-      if (!typeCodes.length) {
-        displayForTable = [];
-      } else {
-        const set = new Set(typeCodes);
-        displayForTable = (displayRows || []).filter((r) => {
-          if (String(r?.__src || '') !== 'ledger') return false;
-          const tc = String(r?.__ledgerTypeCode || '').trim();
-          if (tc && set.has(tc)) return true;
-
-          // fallback: 데이터에 typeCode가 직접 들어있는 경우
-          const aid = String(r?.__ledgerAccountId || '').trim();
-          const cc = String(r?.__ledgerCashflowCode || '').trim();
-          const cic = String(r?.__ledgerCashflowItemCode || '').trim();
-          return set.has(aid) || set.has(cc) || set.has(cic);
-        });
-      }
-    } else if (mode === 'ledgerType') {
-      const typeCode = String(homeDashboardFilter.typeCode || '').trim();
-      const typeName = String(homeDashboardFilter.typeName || '').trim();
-      displayForTable = (displayRows || []).filter((r) => {
-        if (String(r?.__src || '') !== 'ledger') return false;
-        if (!typeCode) return true;
-        const tc = String(r?.__ledgerTypeCode || '').trim();
-        if (tc && tc === typeCode) return true;
-
-        // fallback: 데이터에 typeCode가 직접 들어있는 경우(또는 이름만 남는 경우)
-        const aid = String(r?.__ledgerAccountId || '').trim();
-        const cc = String(r?.__ledgerCashflowCode || '').trim();
-        const cic = String(r?.__ledgerCashflowItemCode || '').trim();
-        if (aid === typeCode || cc === typeCode || cic === typeCode) return true;
-
-        if (typeName) {
-          const g = String(r?.group || '').trim();
-          const an = String(r?.__ledgerAccountName || '').trim();
-          const iname = String(r?.__ledgerItemName || '').trim();
-          if (g === typeName || an === typeName || iname === typeName) return true;
-        }
-        return false;
-      });
-    } else if (mode === 'ledgerAll') {
-      displayForTable = (displayRows || []).filter((r) => String(r?.__src || '') === 'ledger');
-    } else if (mode === 'types') {
-      const types = Array.isArray(homeDashboardFilter.types) ? homeDashboardFilter.types.map((t) => String(t || '').trim()).filter(Boolean) : [];
-      if (!types.length) {
-        displayForTable = displayRows;
-      } else {
-        const set = new Set(types);
-        displayForTable = (displayRows || []).filter((r) => set.has(String(r?.type || '').trim()));
-      }
-    } else {
-      const t = normalizeDashboardTypeLabel(homeDashboardFilter.type);
-      const g = String(homeDashboardFilter.group || '').trim();
-      const col = String(homeDashboardFilter.column || '').trim();
-      displayForTable = (displayRows || []).filter((r) => {
-        if (t && String(r?.type || '').trim() !== t) return false;
-        if (g && String(r?.group || '').trim() !== g) return false;
-        if (col) {
-          const v = Number(r && r[col] != null ? r[col] : 0) || 0;
-          if (!(v > 0)) return false;
-        }
-        return true;
-      });
-    }
-  }
-
-  // 전역 검색(홈): 거래처/분류/구분/날짜 등 텍스트 기준 필터
-  const q = String(homeSearchQuery || '').trim().toLowerCase();
-  if (q) {
-    displayForTable = (displayForTable || []).filter((r) => {
-      return (
-        includesIgnoreCase(r?.vendor, q) ||
-        includesIgnoreCase(r?.group, q) ||
-        includesIgnoreCase(r?.type, q) ||
-        includesIgnoreCase(r?.date, q)
-      );
-    });
-  }
-
-  // === 대시보드 하단 표: 건별 → 날짜/거래처별 합계로 집계 ===
-  // 요청: "섞지 말고 거래처별로 분리"
-  const aggregatedByDateVendor = new Map();
-  (displayForTable || []).forEach((r) => {
-    if (!r) return;
-    const date = String(r.date || '').trim();
-    const vendorKey = String(r.vendor || '').trim() || '(미지정)';
-    const key = `${date}||${vendorKey}`;
-    if (!aggregatedByDateVendor.has(key)) {
-      aggregatedByDateVendor.set(key, {
-        date,
-        type: '합계',
-        group: '',
-        vendor: vendorKey,
-        __groups: new Set(),
-        __missingGroup: false,
-        sales: 0,
-        receipt: 0,
-        purchase: 0,
-        pay: 0,
-        expense: 0,
-        inn: 0,
-        out: 0,
-      });
-    }
-    const acc = aggregatedByDateVendor.get(key);
-    const g = String(r.group || '').trim();
-    if (g) acc.__groups.add(g);
-    else acc.__missingGroup = true;
-    acc.sales += Number(r.sales || 0) || 0;
-    acc.receipt += Number(r.receipt || 0) || 0;
-    acc.purchase += Number(r.purchase || 0) || 0;
-    acc.pay += Number(r.pay || 0) || 0;
-    acc.expense += Number(r.expense || 0) || 0;
-    acc.inn += Number(r.inn || 0) || 0;
-    acc.out += Number(r.out || 0) || 0;
-  });
-
-  // 합계행의 분류는 실제 데이터 기반으로 요약 표시
-  for (const acc of aggregatedByDateVendor.values()) {
-    const groupLabel = pickSummaryLabel(acc.__groups, acc.__missingGroup);
-    acc.group = groupLabel || '(미지정)';
-    delete acc.__groups;
-    delete acc.__missingGroup;
-  }
-
-  // 날짜 내림차순 정렬
-  displayForTable = Array.from(aggregatedByDateVendor.values()).sort((a, b) => {
-    const ad = String(a?.date || '');
-    const bd = String(b?.date || '');
-    if (ad < bd) return 1;
-    if (ad > bd) return -1;
-    return String(a?.vendor || '').localeCompare(String(b?.vendor || ''), 'ko');
-  });
+  const displayForTable = await runHomeJob({kind:'table',rows:displayRows,filter:homeDashboardFilter,query:homeSearchQuery});
+  if (generation !== homeRenderGeneration) return;
 
   function amountCell(value, options = {}) {
     const v = Number(value) || 0;
@@ -1603,19 +1434,20 @@ async function renderList() {
     return inn - out;
   }
 
+  homePager.set(displayForTable, (pageRows) => {
   listBody.innerHTML = '';
-  if (!displayForTable.length) {
+  if (!pageRows.length) {
     listBody.innerHTML = '<tr><td colspan="14" style="text-align:center;">거래 내역 없음</td></tr>';
   } else {
     // 잔액(매출/매입/총)은 표 표시 순서 기준으로 누적 표시
     let runningSalesBalance = 0;
     let runningPurchaseBalance = 0;
     let runningTotalBalance = 0;
-    listBody.innerHTML = displayForTable
+    listBody.innerHTML = pageRows
       .map((r) => {
-        runningSalesBalance += rowSalesBalance(r);
-        runningPurchaseBalance += rowPurchaseDisplayBalance(r);
-        runningTotalBalance += rowTotalBalance(r);
+        runningSalesBalance = r.__runningSales;
+        runningPurchaseBalance = r.__runningPurchase;
+        runningTotalBalance = r.__runningBalance;
         return `
           <tr>
             <td>${escapeHtml(r.date || '')}</td>
@@ -1637,6 +1469,9 @@ async function renderList() {
       })
       .join('');
   }
+
+  applyAmountColoring(listBody);
+  });
 
   // 하단 합계(tfoot): 현재 표시중인 행 기준
   const totals = {

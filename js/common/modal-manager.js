@@ -4,7 +4,7 @@ import {
   registerModalEscClose,
   createFormDirtyTracker,
   wrapDirtyClose,
-} from "./ui-helpers.js?v=ledger-delta-20261010-1";
+} from "./ui-helpers.js?v=home-performance-20261010-1";
 
 export function createModalManager({
   modalEl,

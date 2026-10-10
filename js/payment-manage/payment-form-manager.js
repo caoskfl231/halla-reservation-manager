@@ -1,5 +1,5 @@
-import { showToast, warningDialog } from "../common/dialogs.js?v=ledger-delta-20261010-1";
-import { resolveDefaultCashflowNameByCode } from "../common/util.js?v=ledger-delta-20261010-1";
+import { showToast, warningDialog } from "../common/dialogs.js?v=home-performance-20261010-1";
+import { resolveDefaultCashflowNameByCode } from "../common/util.js?v=home-performance-20261010-1";
 
 export function bindPaymentForm(options = {}) {
   const {

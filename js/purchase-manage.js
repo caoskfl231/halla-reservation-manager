@@ -14,11 +14,11 @@ import {
   deleteLedgerTxById,
   getCashflowItems,
   getCashflowTypes,
-} from "./db.js?v=ledger-delta-20261010-1";
-import { sortByKey } from "./common/sortTable.js?v=ledger-delta-20261010-1";
-import { applySupplierGroupFilter } from "./common/supplier-group-filter.js?v=ledger-delta-20261010-1";
-import { getStoredString, setStoredString } from "./common/storage.js?v=ledger-delta-20261010-1";
-import { installDbAutoRefresh } from "./common/app-events.js?v=ledger-delta-20261010-1";
+} from "./db.js?v=home-performance-20261010-1";
+import { sortByKey } from "./common/sortTable.js?v=home-performance-20261010-1";
+import { applySupplierGroupFilter } from "./common/supplier-group-filter.js?v=home-performance-20261010-1";
+import { getStoredString, setStoredString } from "./common/storage.js?v=home-performance-20261010-1";
+import { installDbAutoRefresh } from "./common/app-events.js?v=home-performance-20261010-1";
 import {
   openModalOverlay,
   closeModalOverlay,
@@ -34,7 +34,7 @@ import {
   applyPickedSupplierSelectionToContext,
   resetFieldsAndFocus,
   createScrollToBottomOnce,
-} from "./common/ui-helpers.js?v=ledger-delta-20261010-1";
+} from "./common/ui-helpers.js?v=home-performance-20261010-1";
 import {
   todayYMD,
   formatWeekdayLabel,
@@ -46,36 +46,36 @@ import {
   resolveDefaultCashflowNameByCode,
   buildLedgerMemoFields,
   amountClassBySign,
-} from "./common/util.js?v=ledger-delta-20261010-1";
-import { initDateFilter } from "./common/date-filter.js?v=ledger-delta-20261010-1";
-import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=ledger-delta-20261010-1";
-import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=ledger-delta-20261010-1";
-import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=ledger-delta-20261010-1";
-import { openLedgerPicker } from "./common/ledger-picker.js?v=ledger-delta-20261010-1";
+} from "./common/util.js?v=home-performance-20261010-1";
+import { initDateFilter } from "./common/date-filter.js?v=home-performance-20261010-1";
+import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=home-performance-20261010-1";
+import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=home-performance-20261010-1";
+import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=home-performance-20261010-1";
+import { openLedgerPicker } from "./common/ledger-picker.js?v=home-performance-20261010-1";
 import {
   isLockedByPaymentLedger,
   hasLockedPaymentEntries,
   deleteLinkedLedgerTxIfAny,
-} from "./common/payment-ledger-helpers.js?v=ledger-delta-20261010-1";
+} from "./common/payment-ledger-helpers.js?v=home-performance-20261010-1";
 import {
   isPaymentOnlyTransaction,
   makeSummaryKeyForTransaction,
-} from "./common/transaction-summary-key.js?v=ledger-delta-20261010-1";
-import { loadCashflowLedgerOptionsIntoSelects } from "./common/cashflow-ledger-options.js?v=ledger-delta-20261010-1";
-import { resolveCashflowItemSelectionOrThrow } from "./common/cashflow-item-helpers.js?v=ledger-delta-20261010-1";
-import { saveCashflowLedgerLinkedPaymentRecord } from "./common/cashflow-payment-record.js?v=ledger-delta-20261010-1";
+} from "./common/transaction-summary-key.js?v=home-performance-20261010-1";
+import { loadCashflowLedgerOptionsIntoSelects } from "./common/cashflow-ledger-options.js?v=home-performance-20261010-1";
+import { resolveCashflowItemSelectionOrThrow } from "./common/cashflow-item-helpers.js?v=home-performance-20261010-1";
+import { saveCashflowLedgerLinkedPaymentRecord } from "./common/cashflow-payment-record.js?v=home-performance-20261010-1";
 import {
   bindExcelDropdown,
   requireXLSXOrAlert,
   ymdCompact,
   safeSheetName,
-} from "./common/excel-export.js?v=ledger-delta-20261010-1";
+} from "./common/excel-export.js?v=home-performance-20261010-1";
 import {
   getActiveCustomersByType,
   parseNumberLike,
   confirmDuplicateBatchBeforeSave,
-} from "./common/transaction-shared.js?v=ledger-delta-20261010-1";
-import { createEntryTableManager } from "./common/entry-table-manager.js?v=ledger-delta-20261010-1";
+} from "./common/transaction-shared.js?v=home-performance-20261010-1";
+import { createEntryTableManager } from "./common/entry-table-manager.js?v=home-performance-20261010-1";
 
 bootstrapPageCommon({ page: "purchase", todayYMD, formatWeekdayLabel });
 
