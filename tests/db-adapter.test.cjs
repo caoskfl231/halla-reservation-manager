@@ -139,6 +139,17 @@ function mockIndexedDb() {
   assert.equal(chunkRows[1699].amount, 1699, 'last batch is retained in the same transaction');
   await chunked.restoreHallapaDbSnapshot(snapshot);
   assert.equal((await chunked.getTransactions()).length, 1, 'clear-first overwrite removes all prior batches');
+  await cloud.putLedgerTx({id:7,amount:100});
+  await cloud.putLedgerTx({id:'7',amount:200});
+  await cloud.saveTransactionBatch({remove:['20'],removeLedger:['7'],add:[{id:30,amount:300}]});
+  assert.equal(await cloud.getTransactionById(20),null);
+  assert.equal((await cloud.getTransactionById(30)).amount,300);
+  assert.equal((await cloud.getAllLedgerTx()).length,0,'mixed-key linked ledger rows deleted');
+  await cloud.putLedgerTx({id:'keep',amount:400});
+  await assert.rejects(cloud.saveTransactionBatch({remove:[30],removeLedger:['keep'],add:[{id:99},{id:99}]}));
+  assert.equal((await cloud.getTransactionById(30)).amount,300,'failed batch restores deleted transaction');
+  assert.equal((await cloud.getLedgerTxById('keep')).amount,400,'failed batch restores linked ledger');
+  assert.equal(await cloud.getTransactionById(99),null,'failed batch removes partial additions');
   indexedDB.setFailRead(true);
   await assert.rejects(cloud.exportHallapaDbSnapshot(), /read failed/);
   assert.equal((await local.exportHallapaDbSnapshot()).stores.transactions.length, 0, 'legacy read-error policy retained');

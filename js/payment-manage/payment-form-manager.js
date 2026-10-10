@@ -1,5 +1,5 @@
-import { showToast, warningDialog } from "../common/dialogs.js?v=app-20261010-17";
-import { resolveDefaultCashflowNameByCode } from "../common/util.js?v=app-20261010-17";
+import { showToast, warningDialog } from "../common/dialogs.js?v=app-20261010-18";
+import { resolveDefaultCashflowNameByCode } from "../common/util.js?v=app-20261010-18";
 
 export function bindPaymentForm(options = {}) {
   const {

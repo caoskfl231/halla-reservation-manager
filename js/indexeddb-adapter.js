@@ -472,25 +472,14 @@ export function createIndexedDbAdapter({
     return new Promise((resolve, reject) => {
       const t = db.transaction(STORE_LEDGER_TX, "readwrite");
       const store = t.objectStore(STORE_LEDGER_TX);
-      // key 타입(숫자/문자)와 무관하게, id 필드 값이
-      // 전달된 id와 같은 모든 레코드를 커서로 찾아 삭제한다.
       const targetId = String(id);
-      const req = store.openCursor();
-      req.onsuccess = (event) => {
-        const cursor = event.target.result;
-        if (!cursor) return;
-        const value = cursor.value || {};
-        if (String(value.id) === targetId) {
-          cursor.delete();
-        }
-        cursor.continue();
-      };
-      req.onerror = () => reject(req.error);
+      store.delete(targetId);
+      if (Number.isFinite(Number(targetId)) && String(Number(targetId)) === targetId) store.delete(Number(targetId));
       t.oncomplete = () => {
         queueDbChanged(STORE_LEDGER_TX);
         resolve();
       };
-      t.onerror = () => reject(t.error);
+      t.onerror = t.onabort = () => reject(t.error);
     });
   }
 
@@ -560,9 +549,32 @@ export function createIndexedDbAdapter({
     queueDbChanged(STORE_TRANSACTIONS);
   }
 
-  async function saveTransactionBatch({ add = [], remove = [] } = {}) {
-    for (const id of remove) await deleteTransaction(id);
-    for (const row of add) await addTransaction(row);
+  async function saveTransactionBatch({ add = [], remove = [], removeLedger = [] } = {}) {
+    await Promise.all(add.map(normalizeTransactionSupplierName));
+    if (!add.length && !remove.length && !removeLedger.length) return;
+    const db = await openDb();
+    return new Promise((resolve, reject) => {
+      const names = [STORE_TRANSACTIONS, ...(removeLedger.length ? [STORE_LEDGER_TX] : [])];
+      const tx = db.transaction(names, 'readwrite');
+      tx.oncomplete = () => { names.forEach(queueDbChanged); resolve(); };
+      tx.onerror = tx.onabort = () => reject(tx.error || new Error('전표 일괄 저장 실패'));
+      const watch = req => { req.onerror = () => { try { tx.abort(); } catch {} }; };
+      try {
+        const store = tx.objectStore(STORE_TRANSACTIONS);
+        for (const id of new Set(remove)) {
+          const key = /^\d+$/.test(String(id).trim()) ? Number(id) : id;
+          watch(store.delete(key));
+        }
+        for (const row of add) watch(store.add(row));
+        if (removeLedger.length) {
+          const ledger = tx.objectStore(STORE_LEDGER_TX);
+          for (const id of new Set(removeLedger.map(String))) {
+            watch(ledger.delete(id));
+            if (Number.isFinite(Number(id)) && String(Number(id)) === id) watch(ledger.delete(Number(id)));
+          }
+        }
+      } catch (error) { try { tx.abort(); } catch {} reject(error); }
+    });
   }
 
   async function updateTransaction(tx) {

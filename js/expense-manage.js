@@ -2,6 +2,7 @@ import {
   getTransactions,
   updateTransaction,
   deleteTransaction,
+  saveTransactionBatch,
   getCustomers,
   getCustomerGroups,
   putLedgerTx,
@@ -10,7 +11,7 @@ import {
   getAllLedgerTx,
   getCashflowItems,
   getCashflowTypes,
-} from "./db.js?v=app-20261010-17";
+} from "./db.js?v=app-20261010-18";
 import {
   openModalOverlay,
   closeModalOverlay,
@@ -23,7 +24,7 @@ import {
   bindDblClickRowConfirm,
   bindClickRowSelect,
   createScrollToBottomOnce,
-} from "./common/ui-helpers.js?v=app-20261010-17";
+} from "./common/ui-helpers.js?v=app-20261010-18";
 import {
   todayYMD,
   formatWeekdayLabel,
@@ -32,24 +33,24 @@ import {
   stripCodePrefix,
   resolveDefaultCashflowNameByCode,
   buildLedgerMemoFields,
-} from "./common/util.js?v=app-20261010-17";
-import { applySupplierGroupFilter } from "./common/supplier-group-filter.js?v=app-20261010-17";
-import { getStoredString, setStoredString } from "./common/storage.js?v=app-20261010-17";
-import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261010-17";
-import { confirmDuplicateSimplePaymentTransactionBeforeSave } from "./common/transaction-shared.js?v=app-20261010-17";
-import { loadCashflowLedgerOptionsIntoSelects } from "./common/cashflow-ledger-options.js?v=app-20261010-17";
-import { initDateFilter } from "./common/date-filter.js?v=app-20261010-17";
-import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261010-17";
-import { openLedgerPicker } from "./common/ledger-picker.js?v=app-20261010-17";
-import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261010-17";
-import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=app-20261010-17";
-import { sortByKey } from "./common/sortTable.js?v=app-20261010-17";
+} from "./common/util.js?v=app-20261010-18";
+import { applySupplierGroupFilter } from "./common/supplier-group-filter.js?v=app-20261010-18";
+import { getStoredString, setStoredString } from "./common/storage.js?v=app-20261010-18";
+import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261010-18";
+import { confirmDuplicateSimplePaymentTransactionBeforeSave } from "./common/transaction-shared.js?v=app-20261010-18";
+import { loadCashflowLedgerOptionsIntoSelects } from "./common/cashflow-ledger-options.js?v=app-20261010-18";
+import { initDateFilter } from "./common/date-filter.js?v=app-20261010-18";
+import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261010-18";
+import { openLedgerPicker } from "./common/ledger-picker.js?v=app-20261010-18";
+import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261010-18";
+import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=app-20261010-18";
+import { sortByKey } from "./common/sortTable.js?v=app-20261010-18";
 import {
   inferLedgerPaymentMethod,
   isLockedByPaymentLedger,
-} from "./common/payment-ledger-helpers.js?v=app-20261010-17";
-import { resolveCashflowItemSelectionOrThrow } from "./common/cashflow-item-helpers.js?v=app-20261010-17";
-import { saveCashflowLedgerLinkedPaymentRecord } from "./common/cashflow-payment-record.js?v=app-20261010-17";
+} from "./common/payment-ledger-helpers.js?v=app-20261010-18";
+import { resolveCashflowItemSelectionOrThrow } from "./common/cashflow-item-helpers.js?v=app-20261010-18";
+import { saveCashflowLedgerLinkedPaymentRecord } from "./common/cashflow-payment-record.js?v=app-20261010-18";
 
 bootstrapPageCommon({ page: "expense", todayYMD, formatWeekdayLabel });
 
@@ -1358,23 +1359,9 @@ if (btnModalDelete) {
 
     const baseTx = editingExpenseTx;
     try {
-      // 1) hallapa_db.transactions 에서 ledgerTxId 로 연결된 전표 모두 삭제
       const all = await getTransactions();
-      if (baseTx.ledgerTxId) {
-        const linked = all.filter(
-          (t) =>
-            t.ledgerTxId && String(t.ledgerTxId) === String(baseTx.ledgerTxId),
-        );
-        for (const row of linked) {
-          await deleteTransaction(Number(row.id));
-        }
-      } else {
-        await deleteTransaction(Number(baseTx.id));
-      }
-      // 2) Ledger DB 거래 삭제
-      if (baseTx.ledgerTxId) {
-        await deleteLedgerTxById(baseTx.ledgerTxId);
-      }
+      const linked = baseTx.ledgerTxId ? all.filter(t => t.ledgerTxId && String(t.ledgerTxId) === String(baseTx.ledgerTxId)) : [baseTx];
+      await saveTransactionBatch({ remove: linked.map(row => Number(row.id)), removeLedger: baseTx.ledgerTxId ? [baseTx.ledgerTxId] : [] });
     } catch (e) {
       console.error("지출 결제 삭제 중 오류:", e);
       alert("지출 결제 삭제 중 오류가 발생했습니다.");
@@ -1509,17 +1496,8 @@ if (btnDelete) {
 
     try {
       const all = await getTransactions();
-      if (tx.ledgerTxId) {
-        const linked = all.filter(
-          (t) => t.ledgerTxId && String(t.ledgerTxId) === String(tx.ledgerTxId),
-        );
-        for (const row of linked) {
-          await deleteTransaction(Number(row.id));
-        }
-        await deleteLedgerTxById(tx.ledgerTxId);
-      } else {
-        await deleteTransaction(Number(tx.id));
-      }
+      const linked = tx.ledgerTxId ? all.filter(t => t.ledgerTxId && String(t.ledgerTxId) === String(tx.ledgerTxId)) : [tx];
+      await saveTransactionBatch({ remove: linked.map(row => Number(row.id)), removeLedger: tx.ledgerTxId ? [tx.ledgerTxId] : [] });
     } catch (e) {
       console.error("지출 결제 삭제 중 오류:", e);
       alert("지출 결제 삭제 중 오류가 발생했습니다.");

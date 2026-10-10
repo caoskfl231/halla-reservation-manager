@@ -1,4 +1,4 @@
-import { confirmDialog, showToast, warningDialog } from "../common/dialogs.js?v=app-20261010-17";
+import { confirmDialog, showToast, warningDialog } from "../common/dialogs.js?v=app-20261010-18";
 
 export function bindPaymentActions(options = {}) {
   const {
@@ -20,6 +20,7 @@ export function bindPaymentActions(options = {}) {
     getTransactions,
     deleteLedgerTxById,
     deleteTransaction,
+    saveTransactionBatch,
     isPaymentLinkedTransaction,
     setPaymentFormFromTx,
     loadImportVendorPrefs,
@@ -157,30 +158,20 @@ export function bindPaymentActions(options = {}) {
       });
       if (!ok) return;
 
-      if (selectedTx.kind === "이체" && selectedTx.groupId) {
-        const groupId = selectedTx.groupId;
-        const toDelete = ledgerAll.filter(
-          (t) => t.groupId && String(t.groupId) === String(groupId),
-        );
-        for (const row of toDelete) {
-          await deleteLedgerTxById(row.id);
-        }
-      } else {
-        await deleteLedgerTxById(id);
-      }
-
+      const ledgerRows = selectedTx.kind === "이체" && selectedTx.groupId
+        ? ledgerAll.filter(t => t.groupId && String(t.groupId) === String(selectedTx.groupId))
+        : [selectedTx];
       try {
-        for (const row of linked) {
-          if (isPaymentLinkedTransaction(row)) {
-            await deleteTransaction(row.id);
-          }
-        }
-      } catch (e) {
-        console.error("연결된 전표 삭제 중 오류:", e);
+        await saveTransactionBatch({
+          remove: linked.filter(isPaymentLinkedTransaction).map(row => row.id),
+          removeLedger: ledgerRows.map(row => row.id),
+        });
+      } catch (error) {
+        showToast(error.message || '삭제하지 못했습니다.', { tone: 'error' });
+        return;
       }
 
       await render();
-      await refreshCashflowSummary();
     };
   }
 

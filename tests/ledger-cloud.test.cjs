@@ -24,9 +24,13 @@ async function client(options = {}){
   if(name==='getItems')return copy(local.stores.items||[]);
   if(name==='getCustomers')return copy(local.stores.customers||[]);
   if(name==='addTransaction'){let row=copy(args[0]);row.id=row.id||local.stores.transactions.length+1;local.stores.transactions.push(row);return;}
-  if(name==='saveTransactionBatch'){local.stores.transactions=local.stores.transactions.filter(x=>!(args[0].remove||[]).includes(x.id));local.stores.transactions.push(...copy(args[0].add||[]));return;}
+  if(name==='saveTransactionBatch'){local.stores.transactions=local.stores.transactions.filter(x=>!(args[0].remove||[]).includes(x.id));local.stores.transactions.push(...copy(args[0].add||[]));local.stores.ledger_tx=(local.stores.ledger_tx||[]).filter(x=>!(args[0].removeLedger||[]).map(String).includes(String(x.id)));return;}
   if(name==='updateTransaction'){let row=copy(args[0]);local.stores.transactions=local.stores.transactions.map(x=>x.id===row.id?row:x);return;}
   if(name==='deleteTransaction'){local.stores.transactions=local.stores.transactions.filter(x=>x.id!==args[0]);return;}
+  if(name==='getLedgerTxById')return copy((local.stores.ledger_tx||[]).find(row=>row.id===args[0])||null);
+  if(name==='getAllLedgerTx')return copy(local.stores.ledger_tx||[]);
+  if(name==='putLedgerTx'){local.stores.ledger_tx=(local.stores.ledger_tx||[]).filter(row=>row.id!==args[0].id);local.stores.ledger_tx.push(copy(args[0]));return;}
+  if(name==='deleteLedgerTxById'){local.stores.ledger_tx=(local.stores.ledger_tx||[]).filter(row=>String(row.id)!==String(args[0]));return;}
   if(name.startsWith('get'))return [];
  }]));
  cacheFns.closeCloudCache=()=>{};
@@ -105,6 +109,25 @@ async function client(options = {}){
  assert.equal(remote.snapshot.stores.transactions.length,countBeforeBatch+4,'lost batch response still leaves all four or none');
  await assert.rejects(g.saveTransactionBatch({add:[{amount:1}]}),/최신/);
  assert.equal(remote.snapshot.stores.transactions.length,countBeforeBatch+4,'uncertain batch cannot be replayed');
+ const ledgerClient=await client();
+ await ledgerClient.putLedgerTx({id:'ledger-test',amount:100});
+ await ledgerClient.putLedgerTx({id:7,amount:200});
+ await ledgerClient.putLedgerTx({id:'7',amount:300});
+ assert.equal(fullExports,0,'ledger save does not export 17000 unrelated rows');
+ const staleLedger=await client();
+ await ledgerClient.putLedgerTx({id:'ledger-test',amount:150});
+ await assert.rejects(staleLedger.putLedgerTx({id:'ledger-test',amount:999}),/LEDGER_RECORD_CONFLICT/);
+ assert.equal((await staleLedger.getLedgerTxById('ledger-test')).amount,100,'ledger conflict restores its prior baseline');
+ await ledgerClient.deleteLedgerTxById('7');
+ assert(!remote.snapshot.stores.ledger_tx.some(row=>String(row.id)==='7'),'numeric and string ledger keys both deleted');
+ const transactionId=remote.snapshot.stores.transactions[0].id;
+ const revisionBeforeMixed=remote.revision;
+ await ledgerClient.saveTransactionBatch({remove:[transactionId],removeLedger:['ledger-test']});
+ assert.equal(remote.revision,revisionBeforeMixed+1,'both stores deleted in one server commit');
+ assert(!remote.snapshot.stores.transactions.some(row=>row.id===transactionId));
+ assert(!remote.snapshot.stores.ledger_tx.some(row=>row.id==='ledger-test'));
+ await assert.rejects(staleLedger.putLedgerTx({id:'ledger-test',amount:555}),/LEDGER_RECORD_CONFLICT/,'ledger tombstone blocks resurrection');
+ assert.equal(fullExports,0,'ledger saves and grouped deletes never scan the full snapshot');
  remote={snapshot:snapshot(),revision:0,role:'owner',updated_at:new Date().toISOString()};recordVersions.clear();
  const f=await client();await assert.rejects(f.addTransaction({totalAmount:1}),/먼저/);
  const bad=snapshot();bad.stores.transactions=[{id:1},{id:1}];

@@ -1,10 +1,10 @@
-import * as cache from './db-cloud-cache.js?v=app-20261010-17';
-import { rpc, requireLedgerSession, friendlyError, signOut, sessionIdentity, sessionRejected } from './cloud-session.js?v=app-20261010-17';
-import { loadSyncedLedger, clearReadCache } from './ledger-read-cache.js?v=app-20261010-17';
-import { emitAppEvent } from './common/app-events.js?v=app-20261010-17';
-import { changedRecords, recordToken, versionMap } from './cloud-records.js?v=app-20261010-17';
-import { installBackupPanel } from './ledger-backups.js?v=app-20261010-17';
-import { uploadSnapshot } from './cloud-import.js?v=app-20261010-17';
+import * as cache from './db-cloud-cache.js?v=app-20261010-18';
+import { rpc, requireLedgerSession, friendlyError, signOut, sessionIdentity, sessionRejected } from './cloud-session.js?v=app-20261010-18';
+import { loadSyncedLedger, clearReadCache } from './ledger-read-cache.js?v=app-20261010-18';
+import { emitAppEvent } from './common/app-events.js?v=app-20261010-18';
+import { changedRecords, recordToken, versionMap } from './cloud-records.js?v=app-20261010-18';
+import { installBackupPanel } from './ledger-backups.js?v=app-20261010-18';
+import { uploadSnapshot } from './cloud-import.js?v=app-20261010-18';
 let state = await requireLedgerSession(async () => {
   try { return await loadSyncedLedger(rpc, sessionIdentity()); }
   catch (error) { if (sessionRejected(error)) await clearReadCache(); throw error; }
@@ -102,22 +102,32 @@ async function cloudCall(name, args) {
       }
       const result = await cache[name](...args);
       let snapshot, changes;
-      if (['addTransaction','updateTransaction','deleteTransaction','saveTransactionBatch'].includes(name)) {
+      if (['addTransaction','updateTransaction','deleteTransaction','saveTransactionBatch','putLedgerTx','deleteLedgerTxById'].includes(name)) {
         const normalizeId = id => typeof id === 'string' && /^\d+$/.test(id.trim()) ? Number(id) : id;
-        const ids = name === 'saveTransactionBatch'
-          ? [...(args[0].remove || []).map(normalizeId), ...(args[0].add || []).map(row => row.id)]
-          : [name === 'deleteTransaction' ? normalizeId(args[0]) : args[0].id];
-        const keys = [...new Set(ids)], touched = new Set(keys.map(id => recordToken('transactions', id)));
-        changes = [];
-        for (const key of keys) {
-          const data = await cache.getTransactionById(key);
-          changes.push({ store: 'transactions', key, data, expected_version: versions.get(recordToken('transactions', key)) || 0 });
+        const targets = new Map();
+        const collect = (store, keys) => {
+          for (const key of keys) targets.set(recordToken(store, key), { store, key });
+        };
+        if (name === 'saveTransactionBatch') {
+          collect('transactions', [...(args[0].remove || []).map(normalizeId), ...(args[0].add || []).map(row => row.id)]);
+        } else if (name === 'putLedgerTx') collect('ledger_tx', [args[0].id]);
+        else if (name !== 'deleteLedgerTxById') collect('transactions', [name === 'deleteTransaction' ? normalizeId(args[0]) : args[0].id]);
+        const ledgerIds = name === 'deleteLedgerTxById' ? [args[0]] : name === 'saveTransactionBatch' ? args[0].removeLedger || [] : [];
+        const deletedLedger = new Set(ledgerIds.map(String));
+        const deletedTransactions = new Set(name === 'deleteTransaction' ? [normalizeId(args[0])] : name === 'saveTransactionBatch' ? (args[0].remove || []).map(normalizeId) : []);
+        for (const row of name === 'saveTransactionBatch' ? args[0].add || [] : []) deletedTransactions.delete(row.id);
+        collect('ledger_tx', (state.snapshot.stores.ledger_tx || []).filter(row => deletedLedger.has(String(row.id))).map(row => row.id));
+        changes = await Promise.all([...targets.values()].map(async ({store, key}) => ({
+          store, key,
+          data: store === 'transactions' ? deletedTransactions.has(key) ? null : await cache.getTransactionById(key) : deletedLedger.has(String(key)) ? null : await cache.getLedgerTxById(key),
+          expected_version: versions.get(recordToken(store, key)) || 0,
+        })));
+        const stores = { ...state.snapshot.stores };
+        for (const store of new Set(changes.map(change => change.store))) {
+          stores[store] = (stores[store] || []).filter(row => !targets.has(recordToken(store, row.id)));
+          stores[store].push(...changes.filter(change => change.store === store && change.data !== null).map(change => change.data));
         }
-        // Read and compare only touched rows. Keep all untouched UI baselines intact.
-        const rows = (state.snapshot.stores.transactions || []).filter(row => !touched.has(recordToken('transactions', row.id)));
-        rows.push(...changes.filter(change => change.data !== null).map(change => change.data));
-        snapshot = { ...state.snapshot, meta: { ...state.snapshot.meta, exportedAt: new Date().toISOString() },
-          stores: { ...state.snapshot.stores, transactions: rows } };
+        snapshot = { ...state.snapshot, meta: { ...state.snapshot.meta, exportedAt: new Date().toISOString() }, stores };
       } else {
         snapshot = await cache.exportHallapaDbSnapshot();
         validate(snapshot);
@@ -152,7 +162,7 @@ async function cloudCall(name, args) {
       notice('인터넷 저장 완료 · ' + new Date(state.updated_at).toLocaleTimeString('ko-KR'));
       if (pendingRemote) notice('저장 완료 · 다른 기기의 새 내용은 최신 불러오기로 확인하세요.');
       document.getElementById('ledger-first-import')?.remove();
-      emitAppEvent('db:changed', { stores: Object.keys(snapshot.stores) }); return result;
+      emitAppEvent('db:changed', { stores: [...new Set(changes ? changes.map(change => change.store) : Object.keys(snapshot.stores))] }); return result;
     } catch (error) {
       await cache.restoreHallapaDbSnapshot(state.snapshot);
       notice(friendlyError(error) + ' · 최신 불러오기로 확인해 주세요.', true);
@@ -200,7 +210,7 @@ if (state.revision === 0 && state.role === 'owner') {
     try {
       if (!indexedDB.databases) throw new Error('이 브라우저에서는 전체백업 파일을 선택해 주세요.');
       if (!(await indexedDB.databases()).some(db => db.name === 'hallapa_db')) throw new Error('이 기기에 기존 장부자료가 없습니다. 전체백업 파일을 선택해 주세요.');
-      const local = await import('./db-local.js?v=app-20261010-17'); await upload(await local.exportHallapaDbSnapshot());
+      const local = await import('./db-local.js?v=app-20261010-18'); await upload(await local.exportHallapaDbSnapshot());
     } catch (error) { window.alert(friendlyError(error)); }
   };
 }
