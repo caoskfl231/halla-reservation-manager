@@ -3763,3 +3763,8 @@ body[data-mode="home"] .page-home .home-tx-card .table-wrapper {
     max-width: 95%;
   }
 }
+
+/* Shared visibility utility used by item and payment screens. */
+.is-hidden {
+  display: none !important;
+}
