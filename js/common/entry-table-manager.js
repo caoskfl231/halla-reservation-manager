@@ -216,6 +216,9 @@ export function createEntryTableManager(options = {}) {
   function getFieldsFromRow(tr) {
     if (!tr) return {};
     return {
+      // Semantic controls for sales; legacy row keys stay compatible with saved JSON.
+      purchaseUnitCost: tr.querySelector('[data-field="purchaseUnitCost"], [data-field="shrinkPercent"]'),
+      purchaseTotalCost: tr.querySelector('[data-field="purchaseTotalCost"], [data-field="shrinkPrice"]'),
       itemCode: tr.querySelector('[data-field="itemCode"]'),
       itemName: tr.querySelector('[data-field="itemName"]'),
       spec: tr.querySelector('[data-field="spec"]'),
@@ -223,8 +226,12 @@ export function createEntryTableManager(options = {}) {
       qty: tr.querySelector('[data-field="qty"]'),
       unitPrice: tr.querySelector('[data-field="unitPrice"]'),
       amount: tr.querySelector('[data-field="amount"]'),
-      shrinkPercent: tr.querySelector('[data-field="shrinkPercent"]'),
-      shrinkPrice: tr.querySelector('[data-field="shrinkPrice"]'),
+      shrinkPercent: tr.querySelector(derivedMode === 'purchaseCost'
+        ? '[data-field="purchaseUnitCost"], [data-field="shrinkPercent"]'
+        : '[data-field="shrinkPercent"]'),
+      shrinkPrice: tr.querySelector(derivedMode === 'purchaseCost'
+        ? '[data-field="purchaseTotalCost"], [data-field="shrinkPrice"]'
+        : '[data-field="shrinkPrice"]'),
       margin: tr.querySelector('[data-field="margin"]'),
       marginRate: tr.querySelector('[data-field="marginRate"]'),
     };
@@ -443,8 +450,12 @@ export function createEntryTableManager(options = {}) {
       const viewQty = tr.querySelector('[data-view="qty"]');
       const viewUnitPrice = tr.querySelector('[data-view="unitPrice"]');
       const viewAmount = tr.querySelector('[data-view="amount"]');
-      const viewShrinkPercent = tr.querySelector('[data-view="shrinkPercent"]');
-      const viewShrinkPrice = tr.querySelector('[data-view="shrinkPrice"]');
+      const viewShrinkPercent = tr.querySelector(derivedMode === 'purchaseCost'
+        ? '[data-view="purchaseUnitCost"], [data-view="shrinkPercent"]'
+        : '[data-view="shrinkPercent"]');
+      const viewShrinkPrice = tr.querySelector(derivedMode === 'purchaseCost'
+        ? '[data-view="purchaseTotalCost"], [data-view="shrinkPrice"]'
+        : '[data-view="shrinkPrice"]');
       const viewMargin = tr.querySelector('[data-view="margin"]');
       const viewMarginRate = tr.querySelector('[data-view="marginRate"]');
 
@@ -657,8 +668,12 @@ export function createEntryTableManager(options = {}) {
       const viewQty = tr.querySelector('[data-view="qty"]');
       const viewUnitPrice = tr.querySelector('[data-view="unitPrice"]');
       const viewAmount = tr.querySelector('[data-view="amount"]');
-      const viewShrinkPercent = tr.querySelector('[data-view="shrinkPercent"]');
-      const viewShrinkPrice = tr.querySelector('[data-view="shrinkPrice"]');
+      const viewShrinkPercent = tr.querySelector(derivedMode === 'purchaseCost'
+        ? '[data-view="purchaseUnitCost"], [data-view="shrinkPercent"]'
+        : '[data-view="shrinkPercent"]');
+      const viewShrinkPrice = tr.querySelector(derivedMode === 'purchaseCost'
+        ? '[data-view="purchaseTotalCost"], [data-view="shrinkPrice"]'
+        : '[data-view="shrinkPrice"]');
       const viewMargin = tr.querySelector('[data-view="margin"]');
       const viewMarginRate = tr.querySelector('[data-view="marginRate"]');
 

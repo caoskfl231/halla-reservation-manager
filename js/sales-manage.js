@@ -42,7 +42,7 @@ import {
   applyAmountColoring,
   createScrollToBottomOnce,
 } from "./common/ui-helpers.js?v=home-performance-20261010-1";
-import { createEntryTableManager } from "./common/entry-table-manager.js?v=home-performance-20261010-1";
+import { createEntryTableManager } from "./common/entry-table-manager.js?v=sales-cost-fields-20261010-1";
 import {
   todayYMD,
   formatWeekdayLabel,
@@ -198,8 +198,8 @@ let specInput = null;
 let unitInput = null;
 let qtyInput = null;
 let unitPriceInput = null;
-let shrinkPercentInput = null;
-let shrinkPriceInput = null;
+let purchaseUnitCostInput = null;
+let purchaseTotalCostInput = null;
 let marginInput = null;
 let marginRateInput = null;
 const taxTypeSelect = document.getElementById("sales-tax-type");
@@ -1057,8 +1057,8 @@ const entryTableManager = createEntryTableManager({
     qtyInput = fields.qty || null;
     unitPriceInput = fields.unitPrice || null;
     amountInput = fields.amount || null;
-    shrinkPercentInput = fields.shrinkPercent || null;
-    shrinkPriceInput = fields.shrinkPrice || null;
+    purchaseUnitCostInput = fields.purchaseUnitCost || null;
+    purchaseTotalCostInput = fields.purchaseTotalCost || null;
     marginInput = fields.margin || null;
     marginRateInput = fields.marginRate || null;
     btnItemPicker = itemPickerButton || null;
@@ -2077,7 +2077,7 @@ function applyItemFromSelect() {
     specInput.value = "";
     unitInput.value = "";
     unitPriceInput.value = "0";
-    if (shrinkPercentInput) shrinkPercentInput.value = "0";
+    if (purchaseUnitCostInput) purchaseUnitCostInput.value = "0";
     if (marginRateInput) marginRateInput.value = "0";
     updateAmountFields();
     return;
@@ -2098,8 +2098,8 @@ function applyItemFromSelect() {
     specInput.value = item.spec || "";
     unitInput.value = item.unit || "";
     unitPriceInput.value = resolvedSalesUnitPrice;
-    if (shrinkPercentInput)
-      shrinkPercentInput.value = String(Number(item.shrinkPrice ?? 0) || 0);
+    if (purchaseUnitCostInput)
+      purchaseUnitCostInput.value = String(Number(item.shrinkPrice ?? 0) || 0);
     if (marginRateInput)
       marginRateInput.value = String(
         Number(item.deliveryMargin ?? item.saleMargin ?? 0) || 0,
@@ -2107,8 +2107,8 @@ function applyItemFromSelect() {
     // 공통 매니저의 input 핸들러로 모델/파생값(매입합계/마진)을 즉시 갱신
     if (unitPriceInput)
       unitPriceInput.dispatchEvent(new Event("input", { bubbles: true }));
-    if (shrinkPercentInput)
-      shrinkPercentInput.dispatchEvent(new Event("input", { bubbles: true }));
+    if (purchaseUnitCostInput)
+      purchaseUnitCostInput.dispatchEvent(new Event("input", { bubbles: true }));
     if (marginRateInput)
       marginRateInput.dispatchEvent(new Event("input", { bubbles: true }));
     updateAmountFields();
@@ -4615,8 +4615,8 @@ async function saveCurrentPurchaseImpl({ keepOpen = false } = {}) {
 
     const currentQty = Number(qtyInput.value || "0");
     const currentCostUnit =
-      shrinkPercentInput && shrinkPercentInput.value != null
-        ? Number(shrinkPercentInput.value) || 0
+      purchaseUnitCostInput && purchaseUnitCostInput.value != null
+        ? Number(purchaseUnitCostInput.value) || 0
         : Number(existing && existing.shrinkPercent != null ? existing.shrinkPercent : 0) || 0;
     const computedCostTotal = Number.isFinite(currentCostUnit * currentQty)
       ? Math.round(currentCostUnit * currentQty)
