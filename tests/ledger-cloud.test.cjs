@@ -9,13 +9,15 @@ let remote={snapshot:snapshot(),revision:1,role:'owner',updated_at:new Date().to
 let nextId=1000000000000, nextVersion=1, recordVersions=new Map();
 let fullExports=0, batchReservations=0;
 function withVersions(){return copy({...remote,row_versions:[...recordVersions].map(([token,version])=>{const [store,key]=JSON.parse(token);return {store,key,version};})});}
-async function client(){
+async function client(options = {}){
  let local;
  const elements = new Map();
  function el(){return {style:{},remove(){},after(){},prepend(){},innerHTML:'',textContent:'',addEventListener(){}};}
  const context=vm.createContext({console,Set,Map,Date,JSON,Promise,Error,Object,Array,String,Number,setInterval(){},document:{visibilityState:'visible',body:el(),createElement:el,getElementById(id){if(!elements.has(id))elements.set(id,el());return elements.get(id);}},window:{confirm(){return true;}},location:{reload(){}},indexedDB:{},structuredClone});
  const cacheFns=Object.fromEntries(exportedNames.map(name=>[name,async(...args)=>{
-  if(name==='restoreHallapaDbSnapshot'){local=copy(args[0]);return;}
+  if(name==='restoreHallapaDbSnapshot'){if(options.restoreGate)await options.restoreGate;if(options.restoreError)throw options.restoreError;local=copy(args[0]);return;}
+  options.onCacheCall?.(name);
+  if(options.readGate && name.startsWith('get'))await options.readGate;
   if(name==='exportHallapaDbSnapshot'){fullExports++;return copy(local);}
   if(name==='getTransactions')return copy(local.stores.transactions||[]);
   if(name==='getTransactionById')return copy(local.stores.transactions.find(row=>row.id===args[0])||null);
@@ -111,5 +113,29 @@ async function client(){
  await f.restoreHallapaDbSnapshot(valid);assert.equal(remote.revision,1);assert.equal(remote.snapshot.stores.transactions[0].id,7);
  await f.addTransaction({totalAmount:200});
  assert.equal(remote.snapshot.stores.sales_quotes[0].id,'quote-test','sales quotes survive import and later trade saves');
+ // Module evaluation is not blocked by initial restoration; reads and writes still are.
+ let releaseRestore;
+ const restoreGate=new Promise(resolve=>{releaseRestore=resolve;});
+ const calls=[];
+ const deferred=await client({restoreGate,onCacheCall:name=>calls.push(name)});
+ const initialRead=deferred.getTransactions(),initialWrite=deferred.addTransaction({amount:321});
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(calls.length,0,'no cache read or write before restore completes');
+ releaseRestore();await Promise.all([initialRead,initialWrite]);
+ const failed=await client({restoreError:Error('disk restore failed')});
+ await assert.rejects(failed.getTransactions(),/disk restore failed/);
+ await assert.rejects(failed.addTransaction({amount:1}),/disk restore failed/);
+ // Parallel reads both start, but a subsequent write waits for both.
+ let releaseReads;
+ const readGate=new Promise(resolve=>{releaseReads=resolve;});
+ const readCalls=[];
+ const concurrent=await client({readGate,onCacheCall:name=>readCalls.push(name)});
+ const readA=concurrent.getTransactions(),readB=concurrent.getItems();
+ const write=concurrent.addTransaction({amount:456});
+ await new Promise(resolve=>setImmediate(resolve));
+ assert(readCalls.includes('getTransactions') && readCalls.includes('getItems'),'independent reads run concurrently');
+ assert(!readCalls.includes('addTransaction'),'write waits for active reads');
+ releaseReads();await Promise.all([readA,readB,write]);
+ assert(readCalls.includes('addTransaction'));
  console.log('PASS: distinct-device inserts/edits, unique IDs, same-row conflicts, stale baseline after unrelated save, tombstones, lost-response retry prevention, initial import');
 })().catch(error=>{console.error(error);process.exitCode=1;});

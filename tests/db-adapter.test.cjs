@@ -125,6 +125,15 @@ function mockIndexedDb() {
   await cloud.getTransactions(); assert.equal(indexedDB.opened.filter(name => name === 'cloud-one').length, opens, 'cache reuses its connection');
   await new Promise(resolve => setTimeout(resolve, 5));
   assert.equal(events.length, 1, 'local change emits event; cache writes do not');
+  const chunked = create({ databaseName: 'cloud-chunked', reuseConnection: true, strictSnapshotErrors: true, snapshotWriteBatchSize: 250 });
+  const large = structuredClone(snapshot);
+  large.stores.transactions = Array.from({length: 1700}, (_, id) => ({ id: id + 1, amount: id }));
+  await chunked.restoreHallapaDbSnapshot(large);
+  const chunkRows = await chunked.getTransactions();
+  assert.equal(chunkRows.length, 1700, 'all restoration batches finish before ready');
+  assert.equal(chunkRows[1699].amount, 1699, 'last batch is retained in the same transaction');
+  await chunked.restoreHallapaDbSnapshot(snapshot);
+  assert.equal((await chunked.getTransactions()).length, 1, 'clear-first overwrite removes all prior batches');
   indexedDB.setFailRead(true);
   await assert.rejects(cloud.exportHallapaDbSnapshot(), /read failed/);
   assert.equal((await local.exportHallapaDbSnapshot()).stores.transactions.length, 0, 'legacy read-error policy retained');

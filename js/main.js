@@ -1,13 +1,13 @@
-import { buildSalesCustomerBalances } from './common/sales-customer-balance.js?v=app-20261010-12';
-import { runHomeJob } from './home-worker-client.js?v=app-20261010-12';
-import { createHomePager } from './home-pagination.js?v=app-20261010-12';
-import { getTransactions, updateTransaction, getAllLedgerTx, getCashflowTypes, getCashflowItems, getCustomers, exportHallapaDbSnapshot, restoreHallapaDbSnapshot } from './db.js?v=app-20261010-12';
-import { initDateFilter } from './common/date-filter.js?v=app-20261010-12';
-import { applyAmountColoring, openModalOverlay, closeModalOverlay, registerModalEscClose, attachSearchInput } from './common/ui-helpers.js?v=app-20261010-12';
-import { formatWeekdayLabel, getQuickRange, includesIgnoreCase } from './common/util.js?v=app-20261010-12';
-import { initDateWeekdayAuto } from './common/date-weekday-box.js?v=app-20261010-12';
-import { installDbAutoRefresh } from './common/app-events.js?v=app-20261010-12';
-import { bootstrapPageCommon } from './common/page-bootstrap.js?v=app-20261010-12';
+import { buildSalesCustomerBalances } from './common/sales-customer-balance.js?v=app-20261010-13';
+import { runHomeJob } from './home-worker-client.js?v=app-20261010-13';
+import { createHomePager } from './home-pagination.js?v=app-20261010-13';
+import { getTransactions, updateTransaction, getAllLedgerTx, getCashflowTypes, getCashflowItems, getCustomers, exportHallapaDbSnapshot, restoreHallapaDbSnapshot } from './db.js?v=app-20261010-13';
+import { initDateFilter } from './common/date-filter.js?v=app-20261010-13';
+import { applyAmountColoring, openModalOverlay, closeModalOverlay, registerModalEscClose, attachSearchInput } from './common/ui-helpers.js?v=app-20261010-13';
+import { formatWeekdayLabel, getQuickRange, includesIgnoreCase } from './common/util.js?v=app-20261010-13';
+import { initDateWeekdayAuto } from './common/date-weekday-box.js?v=app-20261010-13';
+import { installDbAutoRefresh } from './common/app-events.js?v=app-20261010-13';
+import { bootstrapPageCommon } from './common/page-bootstrap.js?v=app-20261010-13';
 
 const btnDbBackup = document.getElementById('btn-home-db-backup');
 const btnDbRestore = document.getElementById('btn-home-db-restore');
@@ -277,6 +277,7 @@ let homeTransactionViewRequested = false;
 
 // 과거 데이터(거래처 코드 누락)를 페이지 로드 후 1회만 자동 보정한다.
 let hasRepairedMissingSuppliersOnce = false;
+let homeSupplierRepairScheduled = false;
 
 function pickSummaryLabel(values, hasMissing) {
   const arr = Array.from(values || [])
@@ -1211,17 +1212,16 @@ async function openHomeBreakdownFor(section, key, label) {
 
 async function renderList() {
   const generation = ++homeRenderGeneration;
-  const list = await getTransactions();
-  const rows = await runHomeJob({kind:'dates',rows:list || [],from:dateFrom,to:dateTo,sorted:true});
+  const [list, ledgerAll, customers] = await Promise.all([
+    getTransactions(),
+    getAllLedgerTx().catch(() => []),
+    getCustomers().catch(() => []),
+  ]);
   if (generation !== homeRenderGeneration) return;
-
-  let ledgerAll = [];
-  try {
-    ledgerAll = await getAllLedgerTx();
-  } catch (_) {
-    ledgerAll = [];
-  }
-  const ledgerRows = await runHomeJob({kind:'dates',rows:ledgerAll || [],from:dateFrom,to:dateTo});
+  const [rows, ledgerRows] = await Promise.all([
+    runHomeJob({kind:'dates',rows:list || [],from:dateFrom,to:dateTo,sorted:true}),
+    runHomeJob({kind:'dates',rows:ledgerAll || [],from:dateFrom,to:dateTo}),
+  ]);
   if (generation !== homeRenderGeneration) return;
 
   // 장부 타입(A01 등) 필터가 걸린 경우: cashflow_items를 로드해 itemCode->typeCode 매핑을 만든다.
@@ -1235,16 +1235,6 @@ async function renderList() {
     }
   }
 
-  let customers = [];
-  try {
-    customers = await getCustomers();
-  } catch (_) {
-    customers = [];
-  }
-
-  // 홈 화면에서 보이는 거래(기간 무관) 중 거래처 코드 누락을 1회 자동 보정
-  // (저장 당시 거래처를 선택하지 않고 입력만 해서 생긴 데이터)
-  await repairMissingSupplierIdsOnce(list, customers);
   const supplierGroupById = new Map(
     (customers || []).map((c) => [String(c?.id ?? ''), String(c?.group ?? '')]),
   );
@@ -1804,7 +1794,20 @@ async function renderList() {
   };
 
   // 홈 카드/테이블에 공통 금액 색상 적용
-  applyAmountColoring(document);
+  [listBody, summaryCards, moneyCards, workingCards].filter(Boolean).forEach(el => applyAmountColoring(el));
+
+  // 첫 화면을 그린 다음 보정한다. 기존 ID를 유지하는 updateTransaction 경로만 사용한다.
+  if (!hasRepairedMissingSuppliersOnce && !homeSupplierRepairScheduled) {
+    homeSupplierRepairScheduled = true;
+    const repair = () => setTimeout(() => {
+      repairMissingSupplierIdsOnce(list, customers)
+        .then(repaired => { if (repaired > 0) return renderList(); })
+        .catch(error => console.error('거래처 코드 보정 오류', error))
+        .finally(() => { homeSupplierRepairScheduled = false; });
+    }, 0);
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(repair);
+    else repair();
+  }
 }
 
 function initHomeSummaryToggles() {

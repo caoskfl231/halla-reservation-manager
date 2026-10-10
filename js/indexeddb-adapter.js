@@ -6,6 +6,7 @@ export function createIndexedDbAdapter({
   reuseConnection = false,
   includeSalesQuotes = false,
   strictSnapshotErrors = false,
+  snapshotWriteBatchSize = 0,
 } = {}) {
   let cacheConnection;
   function close() {
@@ -1435,13 +1436,29 @@ export function createIndexedDbAdapter({
         }
 
         const rows = Array.isArray(storesData[name]) ? storesData[name] : [];
-        rows.forEach((row) => {
-          try {
-            store.put(row);
-          } catch (error) {
-            if (strictSnapshotErrors) { tx.abort(); throw error; }
+        // 클라우드 초기 복원은 작은 묶음으로 요청을 등록한다.
+        // 다음 묶음은 IDB 성공 이벤트 안에서 등록해 같은 트랜잭션을 유지한다.
+        const batchSize = Number.isSafeInteger(snapshotWriteBatchSize) && snapshotWriteBatchSize > 0
+          ? snapshotWriteBatchSize : rows.length || 1;
+        let offset = 0;
+        const enqueue = () => {
+          const end = Math.min(rows.length, offset + batchSize);
+          let lastRequest;
+          while (offset < end) {
+            const row = rows[offset++];
+            try { lastRequest = store.put(row); }
+            catch (error) {
+              if (strictSnapshotErrors) { tx.abort(); throw error; }
+            }
           }
-        });
+          if (offset < rows.length) {
+            if (lastRequest) lastRequest.onsuccess = () => {
+              try { enqueue(); } catch (_) { /* abort로 완료 Promise가 거부된다. */ }
+            };
+            else enqueue();
+          }
+        };
+        enqueue();
         return;
       }
 
