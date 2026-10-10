@@ -137,3 +137,46 @@
   .page-home .home-working-status .home-summary-cards { grid-template-columns:1fr; }
   .top-bar nav a { font-size:13px; }
 }
+
+
+/* Halla mobile alignment polish 2026-10-11: presentation only, no data or JS changes */
+@media screen and (max-width: 900px) {
+  :root { --halla-mobile-gap: 8px; --halla-mobile-radius: 10px; }
+  html, body { max-width:100%; overflow-x:clip; }
+  .page, body[data-mode="home"] main.page.page-home { padding-inline:12px; }
+  .card, .page-home .home-dashboard .card { min-width:0; border-radius:14px; }
+  .top-bar { padding-top:max(14px,env(safe-area-inset-top)); }
+  .top-bar nav { gap:8px; }
+  .top-bar nav a { min-width:0; min-height:46px; padding:9px 3px; text-align:center; line-height:1.3; word-break:keep-all; border-radius:9px; }
+  body :is(button,.btn,.btn-primary,.btn-secondary,.btn-row-btn) {
+    box-sizing:border-box; min-height:44px; border-radius:9px;
+    line-height:1.3; text-align:center; vertical-align:middle;
+    white-space:normal; word-break:keep-all;
+  }
+  body :is(.table-action-buttons,.form-button-row,.modal-actions,.date-quick-footer) {
+    display:flex; flex-wrap:wrap; align-items:stretch; gap:8px;
+  }
+  body :is(.table-action-buttons,.form-button-row,.modal-actions,.date-quick-footer) > button {
+    flex:1 1 auto; margin:0; padding:10px 12px;
+  }
+  body :is(.table-action-box,.table-action-right,.purchase-date-filter,.sales-date-filter,.payment-date-filter) {
+    min-width:0; max-width:100%; gap:8px;
+  }
+  body :is(.purchase-date-filter,.sales-date-filter,.payment-date-filter) input {
+    min-width:0; max-width:100%;
+  }
+  body .date-quick-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+  body .date-quick-grid button { width:100%; margin:0; }
+  body :is(.purchase-type-switch,.sales-type-switch) { width:100%; gap:8px; }
+  body :is(.purchase-type-switch,.sales-type-switch) > button { min-width:0; margin:0; }
+  body .table-wrapper { width:100%; min-width:0; overflow-x:auto !important; }
+  body .table-wrapper table { border-collapse:separate; }
+  body .table-wrapper th, body .table-wrapper td { vertical-align:middle; }
+  .page-home .home-working-status .home-summary-cards { gap:8px; }
+  .page-home .home-summary-card { min-width:0; }
+  .page-home .home-summary-card .amount { font-variant-numeric:tabular-nums; }
+}
+@media screen and (max-width:380px) {
+  .top-bar nav a { font-size:12px; }
+  body :is(.table-action-buttons,.form-button-row,.modal-actions) > button { flex-basis:calc(50% - 4px); }
+}
