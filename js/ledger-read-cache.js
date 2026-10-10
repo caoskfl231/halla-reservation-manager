@@ -87,6 +87,9 @@ export async function loadSyncedLedger(rpc, user) {
   try { state = mergeLedgerDelta(previous,delta); }
   catch { previous = null; const full=await rpc('halla_ledger_sync_v2',{p_cursor:null}); state=full.chunked ? await loadPeriodLedger(rpc,full) : full; }
   if (!state?.snapshot?.stores || !Array.isArray(state.row_versions)) throw new Error('INVALID_LEDGER_RESPONSE');
-  if (user) try { await storage('readwrite',store => store.put({format:1,user,state},'current')); } catch {}
+  // 서버가 변경 없음을 확인했다면 동일한 전체 스냅샷을 다시 디스크에 쓰지 않는다.
+  const unchanged = previous && !delta.full && !(delta.changes || []).length
+    && previous.cursor === state.cursor && previous.revision === state.revision;
+  if (user && !unchanged) try { await storage('readwrite',store => store.put({format:1,user,state},'current')); } catch {}
   return state;
 }

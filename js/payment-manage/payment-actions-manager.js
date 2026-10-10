@@ -1,4 +1,4 @@
-import { confirmDialog, showToast, warningDialog } from "../common/dialogs.js?v=app-20261010-16";
+import { confirmDialog, showToast, warningDialog } from "../common/dialogs.js?v=app-20261010-17";
 
 export function bindPaymentActions(options = {}) {
   const {

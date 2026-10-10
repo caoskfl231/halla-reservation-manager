@@ -1,5 +1,5 @@
-import { getCashflowItems } from '../db.js?v=app-20261010-16';
-import { stripCodePrefix } from './util.js?v=app-20261010-16';
+import { getCashflowItems } from '../db.js?v=app-20261010-17';
+import { stripCodePrefix } from './util.js?v=app-20261010-17';
 
 function looksLikeCashflowTypeCode(code) {
   return /^A\d{2}$/.test(String(code || '').trim());
