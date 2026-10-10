@@ -253,5 +253,4 @@ export const migrateLegacyLedgerTxIfNeeded = (...args) => cloudCall('migrateLega
 export const ensureCashflowMastersIfEmpty = (...args) => cloudCall('ensureCashflowMastersIfEmpty', args);
 export const exportHallapaDbSnapshot = (...args) => cloudCall('exportHallapaDbSnapshot', args);
 export const restoreHallapaDbSnapshot = (...args) => cloudCall('restoreHallapaDbSnapshot', args);
-export const ensureDefaultCashflowMasters = (...args) => cloudCall('ensureDefaultCashflowMasters', args);
 
