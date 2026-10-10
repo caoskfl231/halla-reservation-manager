@@ -37,7 +37,7 @@ try {
     $ctx = $listener.GetContext()
 
     try {
-      $relativePath = $ctx.Request.Url.AbsolutePath.TrimStart('/')
+      $relativePath = [System.Uri]::UnescapeDataString($ctx.Request.Url.AbsolutePath.TrimStart('/'))
       if ([string]::IsNullOrWhiteSpace($relativePath)) { $relativePath = 'index.html' }
 
       $safeRelative = $relativePath -replace '/', [System.IO.Path]::DirectorySeparatorChar
