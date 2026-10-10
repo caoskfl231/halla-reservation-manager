@@ -42,6 +42,28 @@ export function friendlyError(error) {
   if (/fetch|network|Failed|timeout|timed out|abort/i.test(text)) return '서버 응답을 확인하지 못했습니다. 인터넷 연결을 확인하고 최신 불러오기로 저장 결과를 확인해 주세요. 같은 저장을 바로 다시 누르지 마세요.';
   return text;
 }
+export function sessionRejected(error) {
+  return [401,403].includes(error?.status) || /LOGIN_REQUIRED|MFA_REQUIRED|LEDGER_ACCESS_DENIED/.test(error?.message || '');
+}
+export function friendlyLoadError(error) {
+  if (/fetch|network|Failed|timeout|timed out|abort/i.test(error?.message || ''))
+    return '장부를 불러오지 못했습니다. 인터넷 연결을 확인한 뒤 다시 불러오기를 눌러 주세요. 로그인 정보와 저장된 장부는 삭제되지 않았습니다.';
+  return '장부를 불러오지 못했습니다. ' + friendlyError(error);
+}
+function loadingPanel() {
+  const panel = document.createElement('section');
+  panel.setAttribute('role', 'status');
+  panel.setAttribute('aria-live', 'polite');
+  panel.style.cssText = 'position:fixed;inset:0;z-index:100000;background:#f3f5f8;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box';
+  const card = document.createElement('div');
+  card.style.cssText = 'width:100%;max-width:420px;padding:28px;box-sizing:border-box;border-radius:18px;background:white;color:#172231;font-family:system-ui,sans-serif;line-height:1.7;text-align:center';
+  const title = document.createElement('h2'); title.textContent = '장부 불러오기';
+  const message = document.createElement('p');
+  const retry = document.createElement('button'); retry.textContent = '다시 불러오기'; retry.hidden = true;
+  retry.style.cssText = 'min-height:48px;width:100%;border:0;border-radius:10px;background:#153a60;color:white;font:inherit;font-weight:700;cursor:pointer';
+  card.append(title, message, retry); panel.append(card); document.body.append(panel);
+  return { panel, message, retry };
+}
 export async function request(path, body, token, timeoutMs = 30000) {
   const headers = { apikey: KEY, 'Content-Type': 'application/json' };
   if (token) headers.Authorization = 'Bearer ' + token;
@@ -50,7 +72,7 @@ export async function request(path, body, token, timeoutMs = 30000) {
     body: body === undefined ? undefined : JSON.stringify(body),
     signal: AbortSignal.timeout(timeoutMs), cache: 'no-store',
   });
-  const data = await response.json().catch(() => ({}));
+  const data = response.ok ? await response.json() : await response.json().catch(() => ({}));
   if (!response.ok) {
     const error = new Error(data.msg || data.message || data.error_description || data.error || '연결에 실패했습니다.');
     error.status = response.status;
@@ -89,11 +111,26 @@ export async function requireLedgerSession() {
     loginRedirect();
     return new Promise(() => {});
   }
-  try { return await rpc('halla_ledger_read'); }
-  catch (error) {
-    if ([400,401,403].includes(error.status) || /LOGIN_REQUIRED|MFA_REQUIRED|LEDGER_ACCESS_DENIED/.test(error.message)) clearSession();
-    sessionStorage.setItem('hallapa_ledger_login_error', friendlyError(error));
-    loginRedirect();
-    return new Promise(() => {});
+  const ui = loadingPanel();
+  for (;;) {
+    ui.message.textContent = '선택한 메뉴의 자료를 불러오는 중입니다. 자료가 많으면 시간이 걸릴 수 있습니다.';
+    ui.retry.hidden = true; ui.retry.disabled = true;
+    try {
+      const state = await rpc('halla_ledger_read');
+      ui.panel.remove();
+      return state;
+    } catch (error) {
+      if (sessionRejected(error)) {
+        clearSession();
+        sessionStorage.setItem('hallapa_ledger_login_error', friendlyError(error));
+        loginRedirect();
+        return new Promise(() => {});
+      }
+      ui.message.textContent = friendlyLoadError(error);
+      ui.retry.hidden = false; ui.retry.disabled = false;
+      await new Promise(resolve => ui.retry.onclick = () => {
+        ui.retry.onclick = null; ui.retry.disabled = true; resolve();
+      });
+    }
   }
 }

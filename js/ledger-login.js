@@ -1,4 +1,4 @@
-import { request, keepSession, clearSession, rpc, nextPage, friendlyError, session, autoLoginEnabled, setAutoLogin, savedEmail, rememberEmail } from './cloud-session.js?v=ledger-auto-20261010-1';
+import { request, keepSession, clearSession, rpc, nextPage, friendlyError, friendlyLoadError, sessionRejected, accessToken, session, autoLoginEnabled, setAutoLogin, savedEmail, rememberEmail } from './cloud-session.js?v=ledger-load-20261010-1';
 const errorEl = document.getElementById('error');
 const form = document.getElementById('login-form');
 const mfaForm = document.getElementById('mfa-form');
@@ -6,6 +6,7 @@ let factor;
 const emailInput = document.getElementById('email');
 const autoLogin = document.getElementById('auto-login');
 const saveEmail = document.getElementById('save-email');
+const resumeButton = document.getElementById('resume-button');
 let pendingEmail = '', pendingAutoLogin = false, pendingSaveEmail = false;
 emailInput.value = savedEmail();
 saveEmail.checked = !!emailInput.value;
@@ -22,14 +23,22 @@ async function openLedger(newLogin = false) {
   }
   location.replace(nextPage());
 }
-if (session()?.access_token) {
+async function resumeLogin() {
   document.getElementById('login-button').disabled = true;
+  resumeButton.hidden = true;
   errorEl.textContent = '저장된 로그인 확인 중…';
-  openLedger().catch(error => {
-    if ([400,401,403].includes(error.status) || /MFA_REQUIRED|LEDGER_ACCESS_DENIED/.test(error.message)) clearSession();
-    errorEl.textContent = friendlyError(error);
-  }).finally(() => { document.getElementById('login-button').disabled = false; });
+  try {
+    // Only refresh the stored token here. The destination loads and authorizes
+    // the ledger once, instead of downloading the entire ledger twice.
+    await accessToken();
+    location.replace(nextPage());
+  } catch (error) {
+    if (sessionRejected(error)) { clearSession(); errorEl.textContent = friendlyError(error); }
+    else { errorEl.textContent = friendlyLoadError(error); resumeButton.hidden = false; }
+  } finally { document.getElementById('login-button').disabled = false; }
 }
+resumeButton.addEventListener('click', resumeLogin);
+if (session()?.access_token) resumeLogin();
 form.addEventListener('submit', async event => {
   event.preventDefault();
   const button = document.getElementById('login-button');
@@ -56,7 +65,7 @@ mfaForm.addEventListener('submit', async event => {
   const button = document.getElementById('mfa-button');
   button.disabled = true; errorEl.textContent = '';
   try {
-    const { accessToken } = await import('./cloud-session.js?v=ledger-auto-20261010-1');
+    const { accessToken } = await import('./cloud-session.js?v=ledger-load-20261010-1');
     const token = await accessToken();
     const challenge = await request('/auth/v1/factors/' + factor.id + '/challenge', {}, token);
     const result = await request('/auth/v1/factors/' + factor.id + '/verify', {

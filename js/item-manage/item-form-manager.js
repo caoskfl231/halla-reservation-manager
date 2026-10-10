@@ -1,11 +1,11 @@
-import { generateItemId } from "./item-utils.js?v=ledger-auto-20261010-1";
+import { generateItemId } from "./item-utils.js?v=ledger-load-20261010-1";
 import {
   formatPercent,
   calcShrinkPrice,
   calcPriceFromMargin,
   calcMarginFromPrice,
-} from "./price-utils.js?v=ledger-auto-20261010-1";
-import { warningDialog } from "../common/dialogs.js?v=ledger-auto-20261010-1";
+} from "./price-utils.js?v=ledger-load-20261010-1";
+import { warningDialog } from "../common/dialogs.js?v=ledger-load-20261010-1";
 
 export function createItemFormManager(options) {
   const DEFAULT_SHRINK_PERCENT = 10;

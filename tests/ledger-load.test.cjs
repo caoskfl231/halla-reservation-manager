@@ -1,0 +1,24 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const tick=()=>new Promise(r=>setImmediate(r));
+(async()=>{
+ const values=new Map(),local=new Map(),redirects=[],nodes=[];
+ const storage=map=>({getItem:k=>map.get(k)||null,setItem:(k,v)=>map.set(k,v),removeItem:k=>map.delete(k)});
+ const createElement=tag=>{const n={tag,textContent:'',hidden:false,disabled:false,style:{},setAttribute(){},append(){},remove(){this.removed=true;}};nodes.push(n);return n;};
+ const context=vm.createContext({console,Date,JSON,Error,AbortSignal,URLSearchParams,document:{createElement,body:{append(){}}},sessionStorage:storage(values),localStorage:storage(local),location:{search:'',pathname:'/sales-manage.html',replace:x=>redirects.push(x)}});
+ const mod=new vm.SourceTextModule(fs.readFileSync('js/cloud-session.js','utf8'),{context});await mod.link(()=>{});await mod.evaluate();const c=mod.namespace;
+ c.keepSession({access_token:'valid',refresh_token:'r',expires_in:3600},true);
+ let calls=0;context.fetch=async()=>{calls++;if(calls===1)throw Error('signal timed out');return {ok:true,json:async()=>({revision:7,snapshot:{stores:{}}})};};
+ const pending=c.requireLedgerSession();await tick();
+ const button=nodes.find(n=>n.tag==='button'),message=nodes.find(n=>n.tag==='p');
+ assert.equal(redirects.length,0,'read timeout stays on the selected menu');assert(c.autoLoginEnabled(),'read timeout keeps saved login');
+ assert(!button.hidden&&!button.disabled);assert(message.textContent.includes('로그인 정보와 저장된 장부는 삭제되지 않았습니다'));
+ assert.equal(calls,1,'no uncontrolled automatic request loop');button.onclick();assert(button.disabled);assert.equal((await pending).revision,7);assert(nodes[0].removed);
+ context.fetch=async()=>({ok:false,status:400,json:async()=>({message:'statement timeout'})});
+ const retryPending=c.requireLedgerSession();await tick();assert.equal(redirects.length,0,'non-auth SQL error is not a logout');assert(c.autoLoginEnabled());
+ context.fetch=async()=>({ok:true,json:async()=>({revision:8,snapshot:{stores:{}}})});nodes.filter(n=>n.tag==='button').at(-1).onclick();await retryPending;
+ context.fetch=async()=>({ok:true,json:async()=>{throw Error('network interrupted JSON body');}});
+ await assert.rejects(c.rpc('halla_ledger_read'),/interrupted/,'partial response body must not become a successful empty result');
+ context.fetch=async()=>({ok:false,status:403,json:async()=>({message:'LEDGER_ACCESS_DENIED'})});
+ c.requireLedgerSession();await tick();assert.equal(c.session(),null);assert.equal(redirects.at(-1),'login.html?next=sales-manage.html','denied access still requires login');
+ console.log('PASS: menu loading, retained login after read errors, explicit retry, partial body rejection, authorization enforcement');
+})().catch(error=>{console.error(error);process.exitCode=1;});
