@@ -180,3 +180,41 @@
   .top-bar nav a { font-size:12px; }
   body :is(.table-action-buttons,.form-button-row,.modal-actions) > button { flex-basis:calc(50% - 4px); }
 }
+
+/* Sales toolbar: fixed mobile rows instead of content-sized wrapping. */
+@media screen and (max-width:900px) {
+  body[data-mode="sales"] .sales-card > .table-action-box {
+    display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:8px; padding:10px; align-items:stretch;
+  }
+  body[data-mode="sales"] .sales-card > .table-action-box > button {
+    width:100%; min-width:0; margin:0; padding:10px 4px;
+  }
+  body[data-mode="sales"] .sales-card > .table-action-box > .table-action-right {
+    grid-column:1 / -1; display:grid; grid-template-columns:minmax(0,1fr);
+    width:100%; margin:0; gap:8px;
+  }
+  body[data-mode="sales"] .sales-card .table-action-buttons {
+    display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  body[data-mode="sales"] .sales-card .table-action-buttons > button {
+    width:100%; min-width:0; margin:0;
+  }
+  body[data-mode="sales"] .sales-card .sales-date-filter {
+    display:grid; grid-template-columns:repeat(6,minmax(0,1fr));
+    width:100%; margin:0; gap:8px; align-items:stretch;
+  }
+  body[data-mode="sales"] .sales-card .sales-date-input {
+    grid-column:span 3; grid-row:1; width:100%; min-width:0;
+    padding:0 6px; height:44px; box-sizing:border-box;
+  }
+  body[data-mode="sales"] .sales-card .sales-date-separator { display:none; }
+  body[data-mode="sales"] .sales-card .sales-date-quick-btn,
+  body[data-mode="sales"] .sales-card .sales-date-search-btn,
+  body[data-mode="sales"] .sales-card .excel-dropdown {
+    grid-column:span 2; grid-row:2; width:100%; min-width:0; margin:0;
+  }
+  body[data-mode="sales"] .sales-card .excel-dropdown > button {
+    width:100%; min-width:0; margin:0;
+  }
+}
