@@ -155,7 +155,9 @@ export function prepareHomeTable(displayRows, homeDashboardFilter, homeSearchQue
     if (!aggregatedByVendor.has(key)) {
       aggregatedByVendor.set(key, {
         date: periodLabel,
-        type: '합계',
+        type: '',
+        code: '',
+        __types: new Set(),
         group: '',
         vendor: vendorKey,
         __supplierIds: new Set(),
@@ -172,6 +174,10 @@ export function prepareHomeTable(displayRows, homeDashboardFilter, homeSearchQue
     }
     const acc = aggregatedByVendor.get(key);
     if (r.__supplierId) acc.__supplierIds.add(String(r.__supplierId));
+    const sourceType = r.__src === 'ledger' ? '입출금 장부'
+      : r.type === '매출' ? '매출처' : r.type === '매입' ? '매입처'
+      : r.type === '지출' ? '지출처' : String(r.type || '').trim();
+    if (sourceType) acc.__types.add(sourceType);
     const g = String(r.group || '').trim();
     if (g) acc.__groups.add(g);
     else acc.__missingGroup = true;
@@ -188,6 +194,10 @@ export function prepareHomeTable(displayRows, homeDashboardFilter, homeSearchQue
   for (const acc of aggregatedByVendor.values()) {
     const groupLabel = pickSummaryLabel(acc.__groups, acc.__missingGroup);
     acc.__supplierIds = Array.from(acc.__supplierIds);
+    acc.code = [...acc.__supplierIds].sort((a, b) => a.localeCompare(b, 'ko')).join(', ');
+    const typeOrder = ['매출처', '매입처', '지출처', '입출금 장부'];
+    acc.type = Array.from(acc.__types).sort((a, b) => typeOrder.indexOf(a) - typeOrder.indexOf(b)).join(' / ') || '(미지정)';
+    delete acc.__types;
     acc.group = groupLabel || '(미지정)';
     delete acc.__groups;
     delete acc.__missingGroup;

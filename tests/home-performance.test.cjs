@@ -42,6 +42,21 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
     { ...rows[0], date:'2026-10-10', __src:'ledger', sales:0, receipt:0, inn:50, out:5 },
   ],{mode:'ledgerAll'},'',{from:'2026-10-01',to:'2026-10-10'});
   assert.equal(ledgerOnly[0].sales,0);assert.equal(ledgerOnly[0].inn,50,'card filter applies before aggregation');
+  const labels=compute.prepareHomeTable([
+    { ...rows[0], type:'매출', __supplierId:'00123' },
+    { ...rows[0], type:'매출', __supplierId:'00123', date:'2026-10-01' },
+    { ...rows[1], type:'매입', __supplierId:'00234' },
+    { ...rows[2], type:'지출', __supplierId:'00345' },
+    { ...rows[3], type:'입금', __src:'ledger', __supplierId:'' },
+  ],null,'');
+  assert.equal(labels[0].code,'00123','leading zeros in customer codes preserved');
+  assert.equal(labels[0].type,'매출처');
+  assert.equal(labels[1].type,'매입처');
+  assert.equal(labels[2].type,'지출처');
+  assert.equal(labels[3].type,'입출금 장부');
+  assert.equal(labels[3].code,'','unknown customer code is not a ledger account code');
+  const mixed=compute.prepareHomeTable([{...rows[0],type:'매출',__supplierId:'00123'},{...rows[0],type:'매입',__supplierId:'00123'}],null,'');
+  assert.equal(mixed[0].type,'매출처 / 매입처');assert.equal(mixed[0].code,'00123');
   new vm.SourceTextModule(fs.readFileSync('js/main.js','utf8'),{context});
   assert(fs.readFileSync('js/main.js','utf8').includes('listBody.innerHTML = pageRows'));
   assert(fs.readFileSync('js/main.js','utf8').includes('signedAmountCell(rowSalesBalance(r))'));

@@ -1,5 +1,5 @@
-import { emitAppEvent } from './common/app-events.js?v=app-20261010-7';
-import { createIndexedDbAdapter } from './indexeddb-adapter.js?v=app-20261010-7';
+import { emitAppEvent } from './common/app-events.js?v=app-20261010-8';
+import { createIndexedDbAdapter } from './indexeddb-adapter.js?v=app-20261010-8';
 
 const adapter = createIndexedDbAdapter({ databaseName: 'hallapa_db', emitAppEvent });
 export const {

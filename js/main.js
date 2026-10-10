@@ -1,13 +1,13 @@
-import { buildSalesCustomerBalances } from './common/sales-customer-balance.js?v=app-20261010-7';
-import { runHomeJob } from './home-worker-client.js?v=app-20261010-7';
-import { createHomePager } from './home-pagination.js?v=app-20261010-7';
-import { getTransactions, updateTransaction, getAllLedgerTx, getCashflowTypes, getCashflowItems, getCustomers, exportHallapaDbSnapshot, restoreHallapaDbSnapshot } from './db.js?v=app-20261010-7';
-import { initDateFilter } from './common/date-filter.js?v=app-20261010-7';
-import { applyAmountColoring, openModalOverlay, closeModalOverlay, registerModalEscClose, attachSearchInput } from './common/ui-helpers.js?v=app-20261010-7';
-import { formatWeekdayLabel, getQuickRange, includesIgnoreCase } from './common/util.js?v=app-20261010-7';
-import { initDateWeekdayAuto } from './common/date-weekday-box.js?v=app-20261010-7';
-import { installDbAutoRefresh } from './common/app-events.js?v=app-20261010-7';
-import { bootstrapPageCommon } from './common/page-bootstrap.js?v=app-20261010-7';
+import { buildSalesCustomerBalances } from './common/sales-customer-balance.js?v=app-20261010-8';
+import { runHomeJob } from './home-worker-client.js?v=app-20261010-8';
+import { createHomePager } from './home-pagination.js?v=app-20261010-8';
+import { getTransactions, updateTransaction, getAllLedgerTx, getCashflowTypes, getCashflowItems, getCustomers, exportHallapaDbSnapshot, restoreHallapaDbSnapshot } from './db.js?v=app-20261010-8';
+import { initDateFilter } from './common/date-filter.js?v=app-20261010-8';
+import { applyAmountColoring, openModalOverlay, closeModalOverlay, registerModalEscClose, attachSearchInput } from './common/ui-helpers.js?v=app-20261010-8';
+import { formatWeekdayLabel, getQuickRange, includesIgnoreCase } from './common/util.js?v=app-20261010-8';
+import { initDateWeekdayAuto } from './common/date-weekday-box.js?v=app-20261010-8';
+import { installDbAutoRefresh } from './common/app-events.js?v=app-20261010-8';
+import { bootstrapPageCommon } from './common/page-bootstrap.js?v=app-20261010-8';
 
 const btnDbBackup = document.getElementById('btn-home-db-backup');
 const btnDbRestore = document.getElementById('btn-home-db-restore');
@@ -1273,6 +1273,19 @@ async function renderList() {
   // 잔액 기준일(기간 종료일이 있으면 그 날짜, 없으면 오늘)
   const balanceCutoff = dateTo || todayYMD();
 
+  const customerIdsByName = new Map();
+  for (const c of customers) {
+    const name = String(c?.name || '').trim();
+    if (!name || c?.id == null) continue;
+    if (!customerIdsByName.has(name)) customerIdsByName.set(name, []);
+    customerIdsByName.get(name).push(String(c.id));
+  }
+  function resolveCustomerId(id, name) {
+    if (id != null && String(id).trim()) return String(id).trim();
+    const ids = customerIdsByName.get(String(name || '').trim()) || [];
+    return ids.length === 1 ? ids[0] : '';
+  }
+
   const displayRows = [];
   rows.forEach((tx) => {
       const cat = normalizeCategory(tx);
@@ -1337,7 +1350,7 @@ async function renderList() {
         type: getCategoryLabel(cat) || '',
         group: supplierGroup || '',
         vendor: supplier || '',
-        __supplierId: supplierId,
+        __supplierId: resolveCustomerId(supplierId, supplier),
         sales: cat === 'sales' ? amount : 0,
         receipt: cat === 'sales' && payment > 0 ? payment : 0,
         purchase: cat === 'purchase' && amount > 0 ? amount : 0,
@@ -1372,6 +1385,7 @@ async function renderList() {
       group,
       vendor,
       __src: 'ledger',
+      __supplierId: resolveCustomerId(ltx?.supplierId || ltx?.customerId, vendor),
       __ledgerAccountId: accountIdRaw,
       __ledgerCashflowCode: cashflowCodeRaw,
       __ledgerCashflowItemCode: cashflowItemCodeRaw,
@@ -1469,7 +1483,7 @@ async function renderList() {
       .map((r) => {
         return `
           <tr>
-            <td>${escapeHtml(r.date || '')}</td>
+            <td>${escapeHtml(r.code || '—')}</td>
             <td>${escapeHtml(r.type || '')}</td>
             <td>${escapeHtml(r.group || '')}</td>
             <td>${escapeHtml(r.vendor || '')}</td>
