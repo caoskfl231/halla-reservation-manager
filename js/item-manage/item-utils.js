@@ -1,6 +1,6 @@
-import { sortByKey } from "../common/sortTable.js?v=ledger-import-20261010-1";
-import { parseNumber } from "../common/util.js?v=ledger-import-20261010-1";
-import { calcShrinkPrice, getCostBase } from "./price-utils.js?v=ledger-import-20261010-1";
+import { sortByKey } from "../common/sortTable.js?v=ledger-import-20261010-2";
+import { parseNumber } from "../common/util.js?v=ledger-import-20261010-2";
+import { calcShrinkPrice, getCostBase } from "./price-utils.js?v=ledger-import-20261010-2";
 
 export function generateItemId(existing) {
   const nums = (existing || [])

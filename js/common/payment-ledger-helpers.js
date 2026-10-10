@@ -1,5 +1,5 @@
-import { getLedgerTxById, deleteLedgerTxById } from '../db.js?v=ledger-import-20261010-1';
-import { isPaymentLinkedTransaction } from './util.js?v=ledger-import-20261010-1';
+import { getLedgerTxById, deleteLedgerTxById } from '../db.js?v=ledger-import-20261010-2';
+import { isPaymentLinkedTransaction } from './util.js?v=ledger-import-20261010-2';
 
 export function inferLedgerPaymentMethod(label) {
 	const str = String(label || '').toLowerCase();

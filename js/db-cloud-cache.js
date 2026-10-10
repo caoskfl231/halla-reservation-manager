@@ -130,6 +130,9 @@ function openDb() {
     request.onupgradeneeded = (event) => {
       const db = event.target.result;
       const oldVersion = event.oldVersion || 0;
+      if (!db.objectStoreNames.contains('sales_quotes')) {
+        db.createObjectStore('sales_quotes', { keyPath:'id' });
+      }
 
       if (!db.objectStoreNames.contains(STORE_TRANSACTIONS)) {
         db.createObjectStore(STORE_TRANSACTIONS, {

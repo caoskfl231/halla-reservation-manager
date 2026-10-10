@@ -25,16 +25,17 @@ export function friendlyError(error) {
   if (/LEDGER_ACCESS_DENIED|OWNER_REQUIRED|permission denied/.test(text)) return '이 계정에는 장부 이용 권한이 없습니다. 관리자에게 요청해 주세요.';
   if (/Invalid login credentials/.test(text)) return '아이디 또는 비밀번호를 확인해 주세요.';
   if (/LEDGER_CONFLICT|ALREADY_INITIALIZED/.test(text)) return '다른 사람이 먼저 저장했습니다. 최신 내용을 확인한 뒤 다시 저장해 주세요.';
-  if (/fetch|network|Failed|timeout|abort/i.test(text)) return '인터넷 연결을 확인해 주세요. 저장 완료가 표시되기 전에는 저장된 것이 아닙니다.';
+  if (/LEDGER_RECORD_CONFLICT/.test(text)) return '같은 거래를 다른 기기에서 먼저 변경했습니다. 입력 내용을 메모한 뒤 최신 불러오기로 확인해 주세요.';
+  if (/fetch|network|Failed|timeout|timed out|abort/i.test(text)) return '서버 응답을 확인하지 못했습니다. 인터넷 연결을 확인하고 최신 불러오기로 저장 결과를 확인해 주세요. 같은 저장을 바로 다시 누르지 마세요.';
   return text;
 }
-export async function request(path, body, token) {
+export async function request(path, body, token, timeoutMs = 30000) {
   const headers = { apikey: KEY, 'Content-Type': 'application/json' };
   if (token) headers.Authorization = 'Bearer ' + token;
   const response = await fetch(BASE + path, {
     method: body === undefined ? 'GET' : 'POST', headers,
     body: body === undefined ? undefined : JSON.stringify(body),
-    signal: AbortSignal.timeout(30000), cache: 'no-store',
+    signal: AbortSignal.timeout(timeoutMs), cache: 'no-store',
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
@@ -55,7 +56,7 @@ export async function accessToken() {
   return refreshing;
 }
 export async function rpc(name, body = {}) {
-  return request('/rest/v1/rpc/' + name, body, await accessToken());
+  return request('/rest/v1/rpc/' + name, body, await accessToken(), name === 'halla_ledger_save' ? 120000 : 30000);
 }
 export async function signOut() {
   const current = session();

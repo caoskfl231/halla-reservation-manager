@@ -1,12 +1,12 @@
-import { getCashflowItems, getCashflowTypes, getAllLedgerTx } from '../db.js?v=ledger-import-20261010-1';
+import { getCashflowItems, getCashflowTypes, getAllLedgerTx } from '../db.js?v=ledger-import-20261010-2';
 import {
   applyAmountColoring,
   closeModalOverlay,
   enableTableArrowNavigation,
   openModalOverlay,
   registerModalEscClose,
-} from './ui-helpers.js?v=ledger-import-20261010-1';
-import { formatMoney } from './util.js?v=ledger-import-20261010-1';
+} from './ui-helpers.js?v=ledger-import-20261010-2';
+import { formatMoney } from './util.js?v=ledger-import-20261010-2';
 
 const MODAL_ID = 'ledger-picker-modal';
 

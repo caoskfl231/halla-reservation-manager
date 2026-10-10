@@ -7,9 +7,9 @@ import {
   enableTableArrowNavigation,
   bindDblClickRowEdit,
   bindClickRowSelect,
-} from "../common/ui-helpers.js?v=ledger-import-20261010-1";
-import { confirmDialog, warningDialog } from "../common/dialogs.js?v=ledger-import-20261010-1";
-import { getNextItemGroupCode } from "./item-utils.js?v=ledger-import-20261010-1";
+} from "../common/ui-helpers.js?v=ledger-import-20261010-2";
+import { confirmDialog, warningDialog } from "../common/dialogs.js?v=ledger-import-20261010-2";
+import { getNextItemGroupCode } from "./item-utils.js?v=ledger-import-20261010-2";
 
 export function createItemGroupManager(options) {
   const {

@@ -7,13 +7,13 @@ import {
   getCashflowTypes,
   getCashflowItems,
   getAllLedgerTx,
-} from './db.js?v=ledger-import-20261010-1';
-import { formatMoney, includesIgnoreCase, todayYMD, formatWeekdayLabel } from './common/util.js?v=ledger-import-20261010-1';
-import { initDateFilter } from './common/date-filter.js?v=ledger-import-20261010-1';
-import { openModalOverlay, closeModalOverlay, registerModalEscClose, applyAmountColoring, bindDblClickRowConfirm } from './common/ui-helpers.js?v=ledger-import-20261010-1';
-import { bootstrapPageCommon } from './common/page-bootstrap.js?v=ledger-import-20261010-1';
-import { getStoredJson, setStoredJson } from './common/storage.js?v=ledger-import-20261010-1';
-import { installDbAutoRefresh } from './common/app-events.js?v=ledger-import-20261010-1';
+} from './db.js?v=ledger-import-20261010-2';
+import { formatMoney, includesIgnoreCase, todayYMD, formatWeekdayLabel } from './common/util.js?v=ledger-import-20261010-2';
+import { initDateFilter } from './common/date-filter.js?v=ledger-import-20261010-2';
+import { openModalOverlay, closeModalOverlay, registerModalEscClose, applyAmountColoring, bindDblClickRowConfirm } from './common/ui-helpers.js?v=ledger-import-20261010-2';
+import { bootstrapPageCommon } from './common/page-bootstrap.js?v=ledger-import-20261010-2';
+import { getStoredJson, setStoredJson } from './common/storage.js?v=ledger-import-20261010-2';
+import { installDbAutoRefresh } from './common/app-events.js?v=ledger-import-20261010-2';
 
 bootstrapPageCommon({ page: 'transaction-report', todayYMD, formatWeekdayLabel });
 
