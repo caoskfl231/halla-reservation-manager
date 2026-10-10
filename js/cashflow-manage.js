@@ -14,7 +14,7 @@ import {
   bulkReplaceCashflowGroups,
   getAllLedgerTx,
   putLedgerTx,
-} from "./db.js?v=app-20261010-10";
+} from "./db.js?v=app-20261010-11";
 import {
   openModalOverlay,
   closeModalOverlay,
@@ -25,11 +25,11 @@ import {
   attachSearchInput,
   bindDblClickRowEdit,
   bindClickRowSelect,
-} from "./common/ui-helpers.js?v=app-20261010-10";
-import { sortByKey } from "./common/sortTable.js?v=app-20261010-10";
-import { formatMoney } from "./common/util.js?v=app-20261010-10";
-import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261010-10";
-import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261010-10";
+} from "./common/ui-helpers.js?v=app-20261010-11";
+import { sortByKey } from "./common/sortTable.js?v=app-20261010-11";
+import { formatMoney } from "./common/util.js?v=app-20261010-11";
+import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261010-11";
+import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261010-11";
 
 // 숫자 포맷 헬퍼
 const fmt = (n) => formatMoney(n, "ko-KR");
@@ -192,6 +192,7 @@ let cachedItemsAll = [];
 let cachedTypes = [];
 let cachedGroups = [];
 let selectedTypeCode = null;
+let transactionViewRequested = false;
 
 function updateCashflowJsonRestoreButtonVisibility() {
   // '복원(JSON)'은 백업 파일을 덮어써서 복원하는 기능이다.
@@ -461,6 +462,7 @@ function auditCashflowBalanceMismatches() {
 
 // cashflow_items의 기초잔액 + ledger tx의 입금/출금을 합산해 구분별 잔액을 계산
 async function rebuildTypeBalances() {
+  if (!transactionViewRequested) return;
   try {
     const items = await getCashflowItems();
     let types = cachedTypes;
@@ -701,7 +703,7 @@ function renderTypeList(types) {
     tr.innerHTML = `
       <td>${t.code || ""}</td>
       <td>${t.name || ""}</td>
-      <td class="right" data-amount-color="1" data-amount-value="${balance}">${fmt(balance)}</td>
+      <td class="right" data-amount-color="1" data-amount-value="${balance}">${transactionViewRequested ? fmt(balance) : "—"}</td>
     `;
     typeList.appendChild(tr);
   });
@@ -710,6 +712,7 @@ function renderTypeList(types) {
     rowSelector: 'tr[data-code]',
     onSelect: (row) => {
       selectedTypeCode = String(row?.dataset?.code || '');
+      transactionViewRequested = true;
       // 선택한 구분에 따라 우측 항목 목록을 필터링
       reloadList();
     },
@@ -772,6 +775,15 @@ function loadToForm(item) {
 }
 
 async function reloadList() {
+  if (!transactionViewRequested) {
+    renderList([], "");
+    if (listBody) listBody.innerHTML = '<tr><td colspan="7">장부구분을 선택하거나 전체보기를 누르면 목록을 조회합니다.</td></tr>';
+    return;
+  }
+  try {
+    await repairLedgerTxCashflowItemFieldsIfNeeded({ debug: false });
+  } catch (_) { /* 보정 실패 시에도 목록 조회는 계속한다. */ }
+
   cachedItemsAll = await getCashflowItems();
   cachedItems = [...(cachedItemsAll || [])];
   rebuildCashflowItemCodeByName(cachedItemsAll || []);
@@ -913,6 +925,13 @@ async function reloadGroups() {
 }
 
 function bindEvents() {
+  document.getElementById("btn-cashflow-view-all")?.addEventListener("click", async () => {
+    selectedTypeCode = null;
+    transactionViewRequested = true;
+    if (typeList) typeList.querySelectorAll("tr.selected").forEach(row => row.classList.remove("selected"));
+    await reloadList();
+  });
+
   if (btnNew) {
     btnNew.addEventListener("click", () => {
       resetForm();
@@ -1461,14 +1480,6 @@ function bindEvents() {
 }
 
 async function init() {
-  // 결제/지출/매입 화면과 동일하게, ledger_tx의 cashflowItemCode 누락을 1회 자동 보정한다.
-  // (장부목록 잔액 집계가 cashflowItemCode 기준이므로, 누락 시 잔액이 맞지 않는다.)
-  try {
-    await repairLedgerTxCashflowItemFieldsIfNeeded({ debug: false });
-  } catch (_) {
-    // ignore
-  }
-
   await reloadTypes();
   await reloadGroups();
   await reloadList();

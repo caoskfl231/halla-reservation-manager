@@ -1,13 +1,13 @@
-import { buildSalesCustomerBalances } from './common/sales-customer-balance.js?v=app-20261010-10';
-import { runHomeJob } from './home-worker-client.js?v=app-20261010-10';
-import { createHomePager } from './home-pagination.js?v=app-20261010-10';
-import { getTransactions, updateTransaction, getAllLedgerTx, getCashflowTypes, getCashflowItems, getCustomers, exportHallapaDbSnapshot, restoreHallapaDbSnapshot } from './db.js?v=app-20261010-10';
-import { initDateFilter } from './common/date-filter.js?v=app-20261010-10';
-import { applyAmountColoring, openModalOverlay, closeModalOverlay, registerModalEscClose, attachSearchInput } from './common/ui-helpers.js?v=app-20261010-10';
-import { formatWeekdayLabel, getQuickRange, includesIgnoreCase } from './common/util.js?v=app-20261010-10';
-import { initDateWeekdayAuto } from './common/date-weekday-box.js?v=app-20261010-10';
-import { installDbAutoRefresh } from './common/app-events.js?v=app-20261010-10';
-import { bootstrapPageCommon } from './common/page-bootstrap.js?v=app-20261010-10';
+import { buildSalesCustomerBalances } from './common/sales-customer-balance.js?v=app-20261010-11';
+import { runHomeJob } from './home-worker-client.js?v=app-20261010-11';
+import { createHomePager } from './home-pagination.js?v=app-20261010-11';
+import { getTransactions, updateTransaction, getAllLedgerTx, getCashflowTypes, getCashflowItems, getCustomers, exportHallapaDbSnapshot, restoreHallapaDbSnapshot } from './db.js?v=app-20261010-11';
+import { initDateFilter } from './common/date-filter.js?v=app-20261010-11';
+import { applyAmountColoring, openModalOverlay, closeModalOverlay, registerModalEscClose, attachSearchInput } from './common/ui-helpers.js?v=app-20261010-11';
+import { formatWeekdayLabel, getQuickRange, includesIgnoreCase } from './common/util.js?v=app-20261010-11';
+import { initDateWeekdayAuto } from './common/date-weekday-box.js?v=app-20261010-11';
+import { installDbAutoRefresh } from './common/app-events.js?v=app-20261010-11';
+import { bootstrapPageCommon } from './common/page-bootstrap.js?v=app-20261010-11';
 
 const btnDbBackup = document.getElementById('btn-home-db-backup');
 const btnDbRestore = document.getElementById('btn-home-db-restore');
@@ -272,6 +272,8 @@ let breakdownModalEscOff = null;
 
 // 홈 대시보드(하단 테이블) 필터: 요약카드/상세 항목 클릭 시 적용
 let homeDashboardFilter = null;
+// 요약 카드는 표시하되 거래 목록은 항목/전체보기 선택 후에만 만든다.
+let homeTransactionViewRequested = false;
 
 // 과거 데이터(거래처 코드 누락)를 페이지 로드 후 1회만 자동 보정한다.
 let hasRepairedMissingSuppliersOnce = false;
@@ -441,6 +443,7 @@ function getDashboardFilterFromSummaryKey(summaryKey, groupName) {
 }
 
 async function applyHomeDashboardFilter(filter) {
+  homeTransactionViewRequested = true;
   homeDashboardFilter = filter;
   await renderList();
   const table = document.getElementById('home-main-table');
@@ -1345,7 +1348,7 @@ async function renderList() {
         ? (payment > 0 ? payment : amount > 0 ? amount : 0)
         : 0;
 
-      displayRows.push({
+      if (homeTransactionViewRequested) displayRows.push({
         date: String(tx.date || ''),
         type: getCategoryLabel(cat) || '',
         group: supplierGroup || '',
@@ -1379,7 +1382,7 @@ async function renderList() {
     const vendor = String(ltx?.vendor || ltx?.item || '').trim();
     const typeCode = getLedgerTxTypeCode(ltx, itemTypeByItemCode);
 
-    displayRows.push({
+    if (homeTransactionViewRequested) displayRows.push({
       date: String(ltx?.date || ''),
       type,
       group,
@@ -1402,7 +1405,9 @@ async function renderList() {
     });
   });
 
-  const displayForTable = await runHomeJob({kind:'table',rows:displayRows,filter:homeDashboardFilter,query:homeSearchQuery,from:dateFrom,to:dateTo});
+  const displayForTable = homeTransactionViewRequested
+    ? await runHomeJob({kind:'table',rows:displayRows,filter:homeDashboardFilter,query:homeSearchQuery,from:dateFrom,to:dateTo})
+    : [];
   if (generation !== homeRenderGeneration) return;
 
   // 기간 합계와 별개로, 매출처 화면과 같은 원장 잔액을 가져온다.
@@ -1475,7 +1480,9 @@ async function renderList() {
 
   homePager.set(displayForTable, (pageRows) => {
   listBody.innerHTML = '';
-  if (!pageRows.length) {
+  if (!homeTransactionViewRequested) {
+    listBody.innerHTML = '<tr><td colspan="14">현황 항목을 선택하거나 전체보기를 누르면 내역을 조회합니다.</td></tr>';
+  } else if (!pageRows.length) {
     listBody.innerHTML = '<tr><td colspan="14" style="text-align:center;">거래 내역 없음</td></tr>';
   } else {
     // 각 거래처의 조회 기간 합계로 잔액을 표시한다.
@@ -1907,6 +1914,10 @@ try {
 } catch (_) {
   // ignore
 }
+
+document.getElementById('btn-home-view-all')?.addEventListener('click', async () => {
+  await applyHomeDashboardFilter(null);
+});
 
 renderList();
 initHomeSummaryToggles();

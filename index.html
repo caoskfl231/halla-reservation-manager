@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <title>할라 장부 관리</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="css/style.css?v=app-20261010-10" />
-   <link rel="stylesheet" href="css/mobile.css?v=app-20261010-10" />
+  <link rel="stylesheet" href="css/style.css?v=app-20261010-11" />
+   <link rel="stylesheet" href="css/mobile.css?v=app-20261010-11" />
 </head>
 <body
   data-title="할라 장부 관리"
@@ -16,7 +16,7 @@
 >
   <div id="global-nav-include"></div>
   <script type="module">
-    import { loadGlobalNav } from './js/common/nav-include.js?v=app-20261010-10';
+    import { loadGlobalNav } from './js/common/nav-include.js?v=app-20261010-11';
     loadGlobalNav();
   </script>
 
@@ -73,6 +73,7 @@
                 <span class="date-quick-icon" aria-hidden="true">📅</span>
               </button>
               <input type="date" id="home-date-to" class="purchase-date-input" aria-label="종료일" />
+              <button type="button" id="btn-home-view-all" class="btn-secondary">전체보기</button>
               <button type="button" id="btn-home-date-search" class="btn-primary purchase-date-search-btn">조회</button>
               <button type="button" id="btn-home-db-backup" class="btn-secondary">전체백업</button>
               <button type="button" id="btn-home-db-restore" class="btn-secondary">전체복구</button>
@@ -185,7 +186,7 @@
     </div>
   </main>
 
-  <script type="module" src="js/main.js?v=app-20261010-10"></script>
+  <script type="module" src="js/main.js?v=app-20261010-11"></script>
 </body>
 </html>
 

@@ -1,10 +1,10 @@
-import { formatMoney } from "../common/util.js?v=app-20261010-10";
-import { sortItems, getItemProfitValues } from "./item-utils.js?v=app-20261010-10";
+import { formatMoney } from "../common/util.js?v=app-20261010-11";
+import { sortItems, getItemProfitValues } from "./item-utils.js?v=app-20261010-11";
 import {
   attachSearchInput,
   enableTableArrowNavigation,
   bindClickRowSelect,
-} from "../common/ui-helpers.js?v=app-20261010-10";
+} from "../common/ui-helpers.js?v=app-20261010-11";
 
 export function createItemListManager(options) {
   const {

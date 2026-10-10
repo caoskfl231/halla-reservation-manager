@@ -4,13 +4,13 @@
   <meta charset="utf-8" />
   <title>장부관리 - 할라 장부 관리</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="css/style.css?v=app-20261010-10" />
-   <link rel="stylesheet" href="css/mobile.css?v=app-20261010-10" />
+  <link rel="stylesheet" href="css/style.css?v=app-20261010-11" />
+   <link rel="stylesheet" href="css/mobile.css?v=app-20261010-11" />
 </head>
 <body data-title="장부관리" data-mode="cashflow" data-global-search="1" data-global-search-target="#cashflow-search">
   <div id="global-nav-include"></div>
   <script type="module">
-    import { loadGlobalNav } from './js/common/nav-include.js?v=app-20261010-10';
+    import { loadGlobalNav } from './js/common/nav-include.js?v=app-20261010-11';
     loadGlobalNav();
   </script>
 
@@ -21,6 +21,7 @@
         <section class="card cashflow-type-card">
           <h2 class="card-header-split"><span class="card-title">구분</span>
             <span class="customer-header-buttons">
+              <button type="button" id="btn-cashflow-view-all" class="btn-row-btn">전체보기</button>
               <button type="button" id="btn-open-cashflow-type-modal" class="btn-row-btn customer-type-open-button">구분 추가</button>
               <button type="button" id="btn-cashflow-type-edit" class="btn-row-btn">수정</button>
               <button type="button" id="btn-cashflow-type-delete" class="btn-row-btn">삭제</button>
@@ -197,7 +198,7 @@
     </div>
   </div>
 
-  <script type="module" src="js/cashflow-manage.js?v=app-20261010-10"></script>
+  <script type="module" src="js/cashflow-manage.js?v=app-20261010-11"></script>
 </body>
 </html>
 
