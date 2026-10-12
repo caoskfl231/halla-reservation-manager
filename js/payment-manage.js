@@ -1,4 +1,4 @@
-// 항목 또는 전체보기를 클릭한 후에만 원장을 조회한다.
+// 잔액 요약은 초기에도 계산하고, 상세 내역은 항목/전체보기 선택 후 표시한다.
 let transactionViewRequested = false;
 let transactionPreparation;
 
@@ -1823,7 +1823,7 @@ function updateCashflowTypeButtons() {
 async function renderCashflowSummaryTable(ledgerTransactions) {
   await renderCashflowSummaryTableCore({
     ledgerTransactions,
-    balancesLoaded: transactionViewRequested,
+    balancesLoaded: true,
     cashflowListBody,
     cashflowTotalSpan,
     cashflowTypes,
@@ -1845,7 +1845,7 @@ async function renderCashflowSummaryTable(ledgerTransactions) {
     setMainTxFilterCode: (value) => {
       window._mainTxFilterCode = value;
     },
-    getAllLedgerTx: () => transactionViewRequested ? getAllLedgerTx() : Promise.resolve([]),
+    getAllLedgerTx,
     render: async () => { transactionViewRequested = true; await render(); },
   });
 }
@@ -2563,7 +2563,7 @@ function bind() {
 ========================= */
 (async function init() {
   bind();
-  // 초기에는 장부 마스터만 로드한다. 원장 보정과 조회는 항목 선택 후 실행한다.
+  // 초기에도 장부구분 잔액을 계산한다. 원장 보정과 상세 내역 표시는 항목 선택 후 실행한다.
   await refreshCashflowSummary();
   await render();
 
