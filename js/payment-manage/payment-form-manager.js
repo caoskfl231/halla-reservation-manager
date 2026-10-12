@@ -1,5 +1,5 @@
-import { showToast, warningDialog } from "../common/dialogs.js?v=app-20261010-18";
-import { resolveDefaultCashflowNameByCode } from "../common/util.js?v=app-20261010-18";
+import { showToast, warningDialog } from "../common/dialogs.js?v=app-20261012-common-save-01";
+import { resolveDefaultCashflowNameByCode } from "../common/util.js?v=app-20261012-common-save-01";
 
 export function bindPaymentForm(options = {}) {
   const {
@@ -17,6 +17,7 @@ export function bindPaymentForm(options = {}) {
     inferLedgerPaymentMethod,
     ensureLedgerTxKeys,
     putLedgerTx,
+    saveTransactionBatch,
     getTransactions,
     deleteTransaction,
     saveVendorTransactionIfMatched,
@@ -165,7 +166,7 @@ export function bindPaymentForm(options = {}) {
     return name === "ConstraintError" || message.includes("ConstraintError");
   };
 
-  const submitPaymentEntry = async ({ keepOpen }) => {
+  const submitPaymentEntryImpl = async ({ keepOpen }) => {
     // 입력값 읽기
     const date = document.getElementById("payment-entry-date")?.value || todayYMD();
     const flow = getSelectedPaymentFlow();
@@ -192,6 +193,7 @@ export function bindPaymentForm(options = {}) {
     const memoInput = document.getElementById("payment-entry-memo");
     const memo = memoInput?.value || "";
     const now = Date.now();
+    const preparedLedger = [], transactionsToSave = [], linkedToRemove = [];
 
     if (!amount) {
       await warningDialog("금액을 입력하세요.");
@@ -328,8 +330,7 @@ export function bindPaymentForm(options = {}) {
       }
 
       try {
-        await putLedgerTx(ensureLedgerTxKeys(assignLedgerTxFingerprint(txOut)));
-        await putLedgerTx(ensureLedgerTxKeys(assignLedgerTxFingerprint(txIn)));
+        await saveTransactionBatch({ ledger: [ensureLedgerTxKeys(assignLedgerTxFingerprint(txOut)), ensureLedgerTxKeys(assignLedgerTxFingerprint(txIn))] });
       } catch (err) {
         if (isConstraintError(err)) {
           await warningDialog("이미 동일 거래가 존재합니다. (중복 저장 차단)", {
@@ -457,8 +458,7 @@ export function bindPaymentForm(options = {}) {
         }
 
         try {
-          await putLedgerTx(ensureLedgerTxKeys(assignLedgerTxFingerprint(txOut)));
-          await putLedgerTx(ensureLedgerTxKeys(assignLedgerTxFingerprint(txIn)));
+          await saveTransactionBatch({ ledger: [ensureLedgerTxKeys(assignLedgerTxFingerprint(txOut)), ensureLedgerTxKeys(assignLedgerTxFingerprint(txIn))] });
         } catch (err) {
           if (isConstraintError(err)) {
             await warningDialog("이미 동일 거래가 존재합니다. (중복 저장 차단)", {
@@ -516,7 +516,7 @@ export function bindPaymentForm(options = {}) {
         }
 
         try {
-          await putLedgerTx(ensureLedgerTxKeys(assignLedgerTxFingerprint(tx)));
+          preparedLedger.push(ensureLedgerTxKeys(assignLedgerTxFingerprint(tx)));
         } catch (err) {
           if (isConstraintError(err)) {
             await warningDialog("이미 동일 거래가 존재합니다. (중복 저장 차단)", {
@@ -535,9 +535,7 @@ export function bindPaymentForm(options = {}) {
           const linked = txList.filter(
             (row) => row.ledgerTxId && String(row.ledgerTxId) === String(id),
           );
-          for (const row of linked) {
-            await deleteTransaction(row.id);
-          }
+          linkedToRemove.push(...linked.map(row => row.id));
         } catch (err) {
           console.error("기존 매입 연동 전표 정리 중 오류:", err);
         }
@@ -552,6 +550,7 @@ export function bindPaymentForm(options = {}) {
             memo: linkedMemo,
             ledgerName: ledgerLabel,
             ledgerTxId: id,
+            transactionsToSave,
           });
         } else if (flow === "in") {
           const ledgerLabel = normalizeLedgerLabel(accountName || accountId || "");
@@ -563,7 +562,20 @@ export function bindPaymentForm(options = {}) {
             memo: linkedMemo,
             ledgerName: ledgerLabel,
             ledgerTxId: id,
+            transactionsToSave,
           });
+        }
+      }
+
+      if (preparedLedger.length) {
+        try {
+          await saveTransactionBatch({ ledger: preparedLedger, add: transactionsToSave, remove: linkedToRemove });
+        } catch (error) {
+          if (isConstraintError(error)) {
+            await warningDialog("이미 동일 거래가 존재합니다. (중복 저장 차단)", { title: "중복 저장" });
+            return;
+          }
+          throw error;
         }
       }
 
@@ -580,7 +592,6 @@ export function bindPaymentForm(options = {}) {
     }
 
     await render();
-    await refreshCashflowSummary();
 
     // render/summary 갱신 과정에서 선택값(숨김필드)이 다시 동기화되며
     // dirty로 오인될 수 있으므로, 저장 완료 시점 스냅샷을 다시 잡는다.
@@ -606,6 +617,20 @@ export function bindPaymentForm(options = {}) {
     }
 
     closePaymentModal();
+  };
+
+  let saveInProgress = false;
+  const submitPaymentEntry = async options => {
+    if (saveInProgress) return;
+    saveInProgress = true;
+    const buttons = [btnPaymentSaveContinue, paymentForm.querySelector?.('[type="submit"]')].filter(Boolean);
+    const previous = buttons.map(button => button.disabled);
+    buttons.forEach(button => { button.disabled = true; });
+    try { return await submitPaymentEntryImpl(options); }
+    finally {
+      buttons.forEach((button, index) => { button.disabled = previous[index]; });
+      saveInProgress = false;
+    }
   };
 
   // 수정 모드에서는 Enter를 누르면 "연속"처럼 동작하게 한다.
@@ -651,4 +676,5 @@ export function bindPaymentForm(options = {}) {
     };
   }
 }
+
 

@@ -1,5 +1,5 @@
-import { getLedgerTxById, deleteLedgerTxById } from '../db.js?v=app-20261010-18';
-import { isPaymentLinkedTransaction } from './util.js?v=app-20261010-18';
+import { getLedgerTxById, deleteLedgerTxById } from '../db.js?v=app-20261012-common-save-01';
+import { isPaymentLinkedTransaction } from './util.js?v=app-20261012-common-save-01';
 
 export function inferLedgerPaymentMethod(label) {
 	const str = String(label || '').toLowerCase();
@@ -36,4 +36,5 @@ export async function deleteLinkedLedgerTxIfAny(tx) {
 		// ledger 쪽 삭제 실패는 사용자 경험을 해치지 않도록 무시하고 진행
 	}
 }
+
 

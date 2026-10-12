@@ -136,6 +136,8 @@ export function installDbAutoRefresh(options) {
 
   let destroyed = false;
   let dirty = false;
+  let refreshing = false;
+  let dirtyVersion = 0;
   let retryTimer = null;
 
   const scheduleRetry = () => {
@@ -152,21 +154,27 @@ export function installDbAutoRefresh(options) {
   const debounced = createDebounced(async () => {
     if (destroyed) return;
     if (document.visibilityState !== "visible") return;
-    if (isBusy()) {
+    if (refreshing || isBusy()) {
       scheduleRetry();
       return;
     }
 
+    const version = dirtyVersion;
+    refreshing = true;
     try {
       await refresh();
-      dirty = false;
+      dirty = dirtyVersion !== version;
     } catch (_) {
-      // ignore
+      dirty = true;
+    } finally {
+      refreshing = false;
+      if (dirty) scheduleRetry();
     }
   }, debounceMs);
 
   const markDirty = () => {
     dirty = true;
+    dirtyVersion += 1;
     debounced.schedule();
   };
 
@@ -189,8 +197,8 @@ export function installDbAutoRefresh(options) {
   document.addEventListener("visibilitychange", onVisibility);
   window.addEventListener("focus", onFocus);
 
-  // 처음 진입 직후에도 한번 실행해 두면, "다른 탭에서 미리 바뀐 데이터"가 반영됨
-  debounced.schedule();
+  // Pages already render during init. Opt in only when the caller needs an initial render.
+  if (options?.refreshInitially) markDirty();
 
   return () => {
     destroyed = true;
@@ -206,3 +214,4 @@ export function installDbAutoRefresh(options) {
     }
   };
 }
+

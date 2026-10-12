@@ -7,9 +7,9 @@ import {
   enableTableArrowNavigation,
   bindDblClickRowEdit,
   bindClickRowSelect,
-} from "../common/ui-helpers.js?v=app-20261010-18";
-import { confirmDialog, warningDialog } from "../common/dialogs.js?v=app-20261010-18";
-import { getNextItemGroupCode } from "./item-utils.js?v=app-20261010-18";
+} from "../common/ui-helpers.js?v=app-20261012-common-save-01";
+import { confirmDialog, warningDialog } from "../common/dialogs.js?v=app-20261012-common-save-01";
+import { getNextItemGroupCode } from "./item-utils.js?v=app-20261012-common-save-01";
 
 export function createItemGroupManager(options) {
   const {
@@ -356,4 +356,5 @@ export function createItemGroupManager(options) {
     getSelectedItemGroupName: () => selectedItemGroupName,
   };
 }
+
 

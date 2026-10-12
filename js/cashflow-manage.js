@@ -14,7 +14,7 @@ import {
   bulkReplaceCashflowGroups,
   getAllLedgerTx,
   putLedgerTx,
-} from "./db.js?v=app-20261010-18";
+} from "./db.js?v=app-20261012-common-save-01";
 import {
   openModalOverlay,
   closeModalOverlay,
@@ -25,11 +25,11 @@ import {
   attachSearchInput,
   bindDblClickRowEdit,
   bindClickRowSelect,
-} from "./common/ui-helpers.js?v=app-20261010-18";
-import { sortByKey } from "./common/sortTable.js?v=app-20261010-18";
-import { formatMoney } from "./common/util.js?v=app-20261010-18";
-import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261010-18";
-import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261010-18";
+} from "./common/ui-helpers.js?v=app-20261012-common-save-01";
+import { sortByKey } from "./common/sortTable.js?v=app-20261012-common-save-01";
+import { formatMoney } from "./common/util.js?v=app-20261012-common-save-01";
+import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261012-common-save-01";
+import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261012-common-save-01";
 
 // 숫자 포맷 헬퍼
 const fmt = (n) => formatMoney(n, "ko-KR");
@@ -340,6 +340,7 @@ function buildTypeBalances(items, types, txAll) {
     openingByType.set(typeCode, (openingByType.get(typeCode) || 0) + opening);
   });
 
+  const itemByCode = new Map((items || []).map(item => [String(item?.code || ""), item]));
   const sumByType = new Map();
   (txAll || []).forEach((tx) => {
     const code = resolveLedgerItemOrTypeCode(tx);
@@ -348,7 +349,7 @@ function buildTypeBalances(items, types, txAll) {
     if (!(amount > 0)) return;
 
     let typeCode = "";
-    const item = (items || []).find((it) => String(it?.code) === String(code));
+    const item = itemByCode.get(String(code));
     if (item) typeCode = item.typeCode || "";
     else typeCode = code;
     if (!typeCode) return;
@@ -893,11 +894,11 @@ async function reloadList() {
   renderList(cachedItems, keyword);
 }
 
-async function reloadTypes() {
+async function reloadTypes({ loadBalances = true } = {}) {
   cachedTypes = await getCashflowTypes();
   updateCashflowJsonRestoreButtonVisibility();
   updateCashflowInitDefaultsButtonVisibility();
-  await rebuildTypeBalances();
+  if (loadBalances) await rebuildTypeBalances();
   renderTypeList(cachedTypes);
 
   // 구분 선택 콤보박스도 함께 채운다.
@@ -1479,14 +1480,14 @@ function bindEvents() {
 }
 
 async function init() {
-  await reloadTypes();
+  await reloadTypes({ loadBalances: !transactionViewRequested });
   await reloadGroups();
   await reloadList();
   bindEvents();
 
   installDbAutoRefresh({
     refresh: async () => {
-      await reloadTypes();
+      await reloadTypes({ loadBalances: !transactionViewRequested });
       await reloadGroups();
       await reloadList();
     },
@@ -1497,4 +1498,5 @@ async function init() {
 init().catch((err) => {
   console.error("입출금 관리 초기화 오류", err);
 });
+
 

@@ -1,4 +1,4 @@
-import { getCashflowItems, getCashflowTypes } from '../db.js?v=app-20261010-18';
+import { getCashflowItems, getCashflowTypes } from '../db.js?v=app-20261012-common-save-01';
 
 let inflightCashflowOptionListPromise = null;
 
@@ -64,4 +64,5 @@ export async function loadCashflowLedgerOptionsIntoSelects(selectElements, { pla
     }
   }
 }
+
 

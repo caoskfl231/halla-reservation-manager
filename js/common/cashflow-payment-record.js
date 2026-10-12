@@ -1,8 +1,8 @@
-import { addTransaction, putLedgerTx } from "../db.js?v=app-20261010-18";
-import { ensureLedgerTxKeys } from "./ledger-tx-normalizer.js?v=app-20261010-18";
-import { resolveCashflowItemSelectionOrThrow } from "./cashflow-item-helpers.js?v=app-20261010-18";
-import { inferLedgerPaymentMethod } from "./payment-ledger-helpers.js?v=app-20261010-18";
-import { buildLedgerMemoFields, stripCodePrefix } from "./util.js?v=app-20261010-18";
+import { saveTransactionBatch } from "../db.js?v=app-20261012-common-save-01";
+import { ensureLedgerTxKeys } from "./ledger-tx-normalizer.js?v=app-20261012-common-save-01";
+import { resolveCashflowItemSelectionOrThrow } from "./cashflow-item-helpers.js?v=app-20261012-common-save-01";
+import { inferLedgerPaymentMethod } from "./payment-ledger-helpers.js?v=app-20261012-common-save-01";
+import { buildLedgerMemoFields, stripCodePrefix } from "./util.js?v=app-20261012-common-save-01";
 
 /**
  * Ledger DB(ledger_tx) + hallapa_db.transactions 를 동시에 기록하는 공통 결제 저장 함수.
@@ -98,7 +98,6 @@ export async function saveCashflowLedgerLinkedPaymentRecord({
     updatedAt: now,
   };
 
-  await putLedgerTx(ensureLedgerTxKeys(ledgerTx));
 
   const trimmedMemo = memoText && String(memoText).trim() ? String(memoText).trim() : "";
   const memo =
@@ -122,8 +121,9 @@ export async function saveCashflowLedgerLinkedPaymentRecord({
     ledgerTxId: String(ledgerId),
   };
 
-  await addTransaction(paymentTx);
+  await saveTransactionBatch({ ledger: [ensureLedgerTxKeys(ledgerTx)], add: [paymentTx] });
 
   return { ledgerId: String(ledgerId), accountNameOnly, paymentTx, ledgerTx };
 }
+
 

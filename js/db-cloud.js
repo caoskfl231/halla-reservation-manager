@@ -1,10 +1,10 @@
-import * as cache from './db-cloud-cache.js?v=app-20261010-18';
-import { rpc, requireLedgerSession, friendlyError, signOut, sessionIdentity, sessionRejected } from './cloud-session.js?v=app-20261010-18';
-import { loadSyncedLedger, clearReadCache } from './ledger-read-cache.js?v=app-20261010-18';
-import { emitAppEvent } from './common/app-events.js?v=app-20261010-18';
-import { changedRecords, recordToken, versionMap } from './cloud-records.js?v=app-20261010-18';
-import { installBackupPanel } from './ledger-backups.js?v=app-20261010-18';
-import { uploadSnapshot } from './cloud-import.js?v=app-20261010-18';
+import * as cache from './db-cloud-cache.js?v=app-20261012-common-save-01';
+import { rpc, requireLedgerSession, friendlyError, signOut, sessionIdentity, sessionRejected } from './cloud-session.js?v=app-20261012-common-save-01';
+import { loadSyncedLedger, clearReadCache } from './ledger-read-cache.js?v=app-20261012-common-save-01';
+import { emitAppEvent } from './common/app-events.js?v=app-20261012-common-save-01';
+import { changedRecords, recordToken, versionMap } from './cloud-records.js?v=app-20261012-common-save-01';
+import { installBackupPanel } from './ledger-backups.js?v=app-20261012-common-save-01';
+import { uploadSnapshot } from './cloud-import.js?v=app-20261012-common-save-01';
 let state = await requireLedgerSession(async () => {
   try { return await loadSyncedLedger(rpc, sessionIdentity()); }
   catch (error) { if (sessionRejected(error)) await clearReadCache(); throw error; }
@@ -34,6 +34,31 @@ let restoring = false;
 const reads = new Set(Object.keys(cache).filter(name => name.startsWith('get')));
 ['exportHallapaDbSnapshot','ensureCashflowMastersIfEmpty','migrateLegacyLedgerTxIfNeeded'].forEach(name => reads.add(name));
 const activeReads = new Set();
+const readMemo = new Map();
+const copyRead = value => typeof structuredClone === 'function' ? structuredClone(value) : value == null ? value : JSON.parse(JSON.stringify(value));
+function cachedRead(name, args) {
+  const key = JSON.stringify([name, args]);
+  if (!readMemo.has(key)) {
+    const result = Promise.resolve().then(() => cache[name](...args));
+    readMemo.set(key, result);
+    result.catch(() => { if (readMemo.get(key) === result) readMemo.delete(key); });
+  }
+  return readMemo.get(key).then(copyRead);
+}
+// Single-store operations need only that store, never all transaction history.
+const masterStores = {
+  users: ['getUsers', ['addUser']],
+  customers: ['getCustomers', ['addCustomer','updateCustomer','deleteCustomer','bulkInsertCustomers']],
+  items: ['getItems', ['addItemMaster','updateItem','deleteItem','bulkInsertItems']],
+  customer_types: ['getCustomerTypes', ['addCustomerType','updateCustomerType','deleteCustomerType','bulkReplaceCustomerTypes']],
+  customer_groups: ['getCustomerGroups', ['addCustomerGroup','updateCustomerGroup','deleteCustomerGroup','bulkReplaceCustomerGroups']],
+  item_groups: ['getItemGroups', ['addItemGroup','updateItemGroup','deleteItemGroup','bulkReplaceItemGroups']],
+  cashflow_types: ['getCashflowTypes', ['addCashflowType','updateCashflowType','deleteCashflowType','bulkReplaceCashflowTypes']],
+  cashflow_items: ['getCashflowItems', ['addCashflowItem','updateCashflowItem','deleteCashflowItem','bulkReplaceCashflowItems']],
+  cashflow_groups: ['getCashflowGroups', ['updateCashflowGroup','deleteCashflowGroup','bulkReplaceCashflowGroups']],
+};
+const masterOperation = new Map(Object.entries(masterStores).flatMap(([store,[getter,names]]) => names.map(name => [name,{store,getter}])));
+
 function parallelRead(work) {
   const result = queue.then(work);
   activeReads.add(result);
@@ -76,8 +101,8 @@ async function cloudCall(name, args) {
   const operation = schedule(async () => {
     await cacheReady;
     // 보정 및 저장 중 종료되면 다음 메뉴에서 승인된 스냅샷으로 재구성한다.
-    if (!name.startsWith('get') && name !== 'exportHallapaDbSnapshot') cache.invalidateCloudCache?.();
-    if (reads.has(name)) return cache[name](...args);
+    if (!name.startsWith('get') && name !== 'exportHallapaDbSnapshot') { readMemo.clear(); cache.invalidateCloudCache?.(); }
+    if (reads.has(name)) return name.startsWith('get') ? cachedRead(name, args) : cache[name](...args);
     if (uncertain) throw new Error('최신 불러오기를 눌러 저장 결과를 확인한 뒤 다시 시도해 주세요.');
     if (state.revision === 0 && name !== 'restoreHallapaDbSnapshot')
       throw new Error('먼저 전체백업 파일이나 이 PC의 자료를 공용 장부로 옮겨 주세요.');
@@ -110,10 +135,12 @@ async function cloudCall(name, args) {
         };
         if (name === 'saveTransactionBatch') {
           collect('transactions', [...(args[0].remove || []).map(normalizeId), ...(args[0].add || []).map(row => row.id)]);
+          collect('ledger_tx', (args[0].ledger || []).map(row => row.id));
         } else if (name === 'putLedgerTx') collect('ledger_tx', [args[0].id]);
         else if (name !== 'deleteLedgerTxById') collect('transactions', [name === 'deleteTransaction' ? normalizeId(args[0]) : args[0].id]);
         const ledgerIds = name === 'deleteLedgerTxById' ? [args[0]] : name === 'saveTransactionBatch' ? args[0].removeLedger || [] : [];
         const deletedLedger = new Set(ledgerIds.map(String));
+        for (const row of name === 'saveTransactionBatch' ? args[0].ledger || [] : []) deletedLedger.delete(String(row.id));
         const deletedTransactions = new Set(name === 'deleteTransaction' ? [normalizeId(args[0])] : name === 'saveTransactionBatch' ? (args[0].remove || []).map(normalizeId) : []);
         for (const row of name === 'saveTransactionBatch' ? args[0].add || [] : []) deletedTransactions.delete(row.id);
         collect('ledger_tx', (state.snapshot.stores.ledger_tx || []).filter(row => deletedLedger.has(String(row.id))).map(row => row.id));
@@ -128,6 +155,11 @@ async function cloudCall(name, args) {
           stores[store].push(...changes.filter(change => change.store === store && change.data !== null).map(change => change.data));
         }
         snapshot = { ...state.snapshot, meta: { ...state.snapshot.meta, exportedAt: new Date().toISOString() }, stores };
+      } else if (masterOperation.has(name)) {
+        const { store, getter } = masterOperation.get(name);
+        const rows = await cache[getter]();
+        changes = changedRecords({stores:{[store]:state.snapshot.stores[store] || []}}, {stores:{[store]:rows}}, versions);
+        snapshot = { ...state.snapshot, meta: { ...state.snapshot.meta, exportedAt: new Date().toISOString() }, stores: { ...state.snapshot.stores, [store]: rows } };
       } else {
         snapshot = await cache.exportHallapaDbSnapshot();
         validate(snapshot);
@@ -164,6 +196,7 @@ async function cloudCall(name, args) {
       document.getElementById('ledger-first-import')?.remove();
       emitAppEvent('db:changed', { stores: [...new Set(changes ? changes.map(change => change.store) : Object.keys(snapshot.stores))] }); return result;
     } catch (error) {
+      readMemo.clear();
       await cache.restoreHallapaDbSnapshot(state.snapshot);
       notice(friendlyError(error) + ' · 최신 불러오기로 확인해 주세요.', true);
       throw new Error(friendlyError(error));
@@ -210,7 +243,7 @@ if (state.revision === 0 && state.role === 'owner') {
     try {
       if (!indexedDB.databases) throw new Error('이 브라우저에서는 전체백업 파일을 선택해 주세요.');
       if (!(await indexedDB.databases()).some(db => db.name === 'hallapa_db')) throw new Error('이 기기에 기존 장부자료가 없습니다. 전체백업 파일을 선택해 주세요.');
-      const local = await import('./db-local.js?v=app-20261010-18'); await upload(await local.exportHallapaDbSnapshot());
+      const local = await import('./db-local.js?v=app-20261012-common-save-01'); await upload(await local.exportHallapaDbSnapshot());
     } catch (error) { window.alert(friendlyError(error)); }
   };
 }
@@ -293,4 +326,5 @@ export const migrateLegacyLedgerTxIfNeeded = (...args) => cloudCall('migrateLega
 export const ensureCashflowMastersIfEmpty = (...args) => cloudCall('ensureCashflowMastersIfEmpty', args);
 export const exportHallapaDbSnapshot = (...args) => cloudCall('exportHallapaDbSnapshot', args);
 export const restoreHallapaDbSnapshot = (...args) => cloudCall('restoreHallapaDbSnapshot', args);
+
 

@@ -14,11 +14,11 @@ import {
   deleteLedgerTxById,
   getCashflowItems,
   getCashflowTypes,
-} from "./db.js?v=app-20261010-18";
-import { sortByKey } from "./common/sortTable.js?v=app-20261010-18";
-import { applySupplierGroupFilter } from "./common/supplier-group-filter.js?v=app-20261010-18";
-import { getStoredString, setStoredString } from "./common/storage.js?v=app-20261010-18";
-import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261010-18";
+} from "./db.js?v=app-20261012-common-save-01";
+import { sortByKey } from "./common/sortTable.js?v=app-20261012-common-save-01";
+import { applySupplierGroupFilter } from "./common/supplier-group-filter.js?v=app-20261012-common-save-01";
+import { getStoredString, setStoredString } from "./common/storage.js?v=app-20261012-common-save-01";
+import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261012-common-save-01";
 import {
   openModalOverlay,
   closeModalOverlay,
@@ -34,7 +34,7 @@ import {
   applyPickedSupplierSelectionToContext,
   resetFieldsAndFocus,
   createScrollToBottomOnce,
-} from "./common/ui-helpers.js?v=app-20261010-18";
+} from "./common/ui-helpers.js?v=app-20261012-common-save-01";
 import {
   todayYMD,
   formatWeekdayLabel,
@@ -46,36 +46,36 @@ import {
   resolveDefaultCashflowNameByCode,
   buildLedgerMemoFields,
   amountClassBySign,
-} from "./common/util.js?v=app-20261010-18";
-import { initDateFilter } from "./common/date-filter.js?v=app-20261010-18";
-import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261010-18";
-import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=app-20261010-18";
-import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261010-18";
-import { openLedgerPicker } from "./common/ledger-picker.js?v=app-20261010-18";
+} from "./common/util.js?v=app-20261012-common-save-01";
+import { initDateFilter } from "./common/date-filter.js?v=app-20261012-common-save-01";
+import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261012-common-save-01";
+import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=app-20261012-common-save-01";
+import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261012-common-save-01";
+import { openLedgerPicker } from "./common/ledger-picker.js?v=app-20261012-common-save-01";
 import {
   isLockedByPaymentLedger,
   hasLockedPaymentEntries,
   deleteLinkedLedgerTxIfAny,
-} from "./common/payment-ledger-helpers.js?v=app-20261010-18";
+} from "./common/payment-ledger-helpers.js?v=app-20261012-common-save-01";
 import {
   isPaymentOnlyTransaction,
   makeSummaryKeyForTransaction,
-} from "./common/transaction-summary-key.js?v=app-20261010-18";
-import { loadCashflowLedgerOptionsIntoSelects } from "./common/cashflow-ledger-options.js?v=app-20261010-18";
-import { resolveCashflowItemSelectionOrThrow } from "./common/cashflow-item-helpers.js?v=app-20261010-18";
-import { saveCashflowLedgerLinkedPaymentRecord } from "./common/cashflow-payment-record.js?v=app-20261010-18";
+} from "./common/transaction-summary-key.js?v=app-20261012-common-save-01";
+import { loadCashflowLedgerOptionsIntoSelects } from "./common/cashflow-ledger-options.js?v=app-20261012-common-save-01";
+import { resolveCashflowItemSelectionOrThrow } from "./common/cashflow-item-helpers.js?v=app-20261012-common-save-01";
+import { saveCashflowLedgerLinkedPaymentRecord } from "./common/cashflow-payment-record.js?v=app-20261012-common-save-01";
 import {
   bindExcelDropdown,
   requireXLSXOrAlert,
   ymdCompact,
   safeSheetName,
-} from "./common/excel-export.js?v=app-20261010-18";
+} from "./common/excel-export.js?v=app-20261012-common-save-01";
 import {
   getActiveCustomersByType,
   parseNumberLike,
   confirmDuplicateBatchBeforeSave,
-} from "./common/transaction-shared.js?v=app-20261010-18";
-import { createEntryTableManager } from "./common/entry-table-manager.js?v=app-20261010-18";
+} from "./common/transaction-shared.js?v=app-20261012-common-save-01";
+import { createEntryTableManager } from "./common/entry-table-manager.js?v=app-20261012-common-save-01";
 
 bootstrapPageCommon({ page: "purchase", todayYMD, formatWeekdayLabel });
 
@@ -1183,51 +1183,26 @@ const closeImportModalWithConfirm = wrapDirtyClose(
 
 // 특정 품목의 평균가(avgPrice)를 "누적 매입 공급가 합계 / 누적 수량 합계"로 재계산해
 // 품목 마스터에 반영한다.
-async function recomputeItemAveragePrice(itemId) {
-  const safeId = String(itemId || "");
-  if (!safeId) return;
-
-  const idx = items.findIndex((it) => String(it.id) === safeId);
-  if (idx === -1) return;
-
-  const current = items[idx];
-  let avgPrice = Number(current.avgPrice ?? 0) || 0;
-
-  try {
-    const allTx = await getTransactions();
-    const related = allTx.filter(
-      (tx) =>
-        tx &&
-        tx.category === transactionCategory &&
-        String(tx.itemId || "") === safeId,
-    );
-
-    let totalQty = 0;
-    let totalSupply = 0;
-    for (const tx of related) {
-      const q = Number(tx.quantity || 0);
-      if (!(q > 0)) continue;
-      const supplyRaw =
-        tx.supplyAmount != null
-          ? Number(tx.supplyAmount)
-          : Number(tx.unitPrice || 0) * q;
-      if (!Number.isFinite(supplyRaw)) continue;
-      totalQty += q;
-      totalSupply += supplyRaw;
-    }
-
-    if (totalQty > 0 && Number.isFinite(totalSupply) && totalSupply > 0) {
-      avgPrice = Math.round(totalSupply / totalQty);
-    } else {
-      avgPrice = 0;
-    }
-  } catch (e) {
-    console.error("평균가 계산 중 오류:", e);
+async function recomputeItemAveragePrices(itemIds) {
+  const targets = new Set([...itemIds].map(String).filter(Boolean));
+  if (!targets.size) return;
+  let all;
+  try { all = await getTransactions(); }
+  catch (error) { console.error("평균가 계산 중 오류:", error); return; }
+  const averages = calculatePurchaseAveragePrices(all, targets);
+  for (const id of targets) {
+    const idx = items.findIndex(item => String(item.id) === id);
+    if (idx < 0) continue;
+    const avgPrice = averages.get(id) || 0;
+    if (Number(items[idx].avgPrice || 0) === avgPrice) continue;
+    const updated = { ...items[idx], avgPrice };
+    await updateItem(updated);
+    items[idx] = updated;
   }
+}
 
-  const updated = { ...current, avgPrice };
-  await updateItem(updated);
-  items[idx] = updated;
+async function recomputeItemAveragePrice(itemId) {
+  if (itemId) await recomputeItemAveragePrices([itemId]);
 }
 
 // 매입에서 사용된 최종 단가를 품목 마스터(품목관리)에도 반영한다.
@@ -5686,9 +5661,7 @@ btnDelete.addEventListener("click", async () => {
 
   currentEditingId = null;
   resetForm();
-  for (const id of affectedItemIds) {
-    await recomputeItemAveragePrice(id);
-  }
+  await recomputeItemAveragePrices(affectedItemIds);
   await reloadPurchaseList();
 });
 
@@ -6735,4 +6708,5 @@ async function init() {
 }
 
 init();
+
 

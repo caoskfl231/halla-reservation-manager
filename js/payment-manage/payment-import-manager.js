@@ -1,4 +1,4 @@
-import { confirmDialog, showToast, warningDialog } from "../common/dialogs.js?v=app-20261010-18";
+import { confirmDialog, showToast, warningDialog } from "../common/dialogs.js?v=app-20261012-common-save-01";
 
 export function bindPaymentImportManager(options = {}) {
   const {
@@ -35,6 +35,7 @@ export function bindPaymentImportManager(options = {}) {
     getCustomers,
     addTransaction,
     putLedgerTx,
+    saveTransactionBatch,
     ensureLedgerTxKeys,
     inferLedgerPaymentMethod,
     normalizeVendorName,
@@ -936,6 +937,7 @@ export function bindPaymentImportManager(options = {}) {
       }
 
       let savedCount = 0;
+      const ledgerBatch = [], transactionBatch = [];
 
       // 매입 결제 및 화면 표시에 쓸 거래처 정보를 한 번만 불러온다.
       let customers = [];
@@ -1403,20 +1405,8 @@ export function bindPaymentImportManager(options = {}) {
           const txBaseFinal = ensureLedgerTxKeys(assignLedgerTxFingerprint(txBase));
           const txCounterFinal = ensureLedgerTxKeys(assignLedgerTxFingerprint(txCounter));
 
-          let savedHere = 0;
-          try {
-            await putLedgerTx(txBaseFinal);
-            savedHere += 1;
-          } catch (e) {
-            if (String(e?.name || "") !== "ConstraintError") throw e;
-          }
-          try {
-            await putLedgerTx(txCounterFinal);
-            savedHere += 1;
-          } catch (e) {
-            if (String(e?.name || "") !== "ConstraintError") throw e;
-          }
-          savedCount += savedHere;
+          ledgerBatch.push(txBaseFinal, txCounterFinal);
+          savedCount += 2;
 
           // 이체 모드에서도, 벤더별 분류/구분/이체 장부 선택값은 기억해 둔다.
           const key = normalizeVendorName(rec.vendor);
@@ -1504,16 +1494,8 @@ export function bindPaymentImportManager(options = {}) {
           updatedAt: now,
         };
         const txFinal = ensureLedgerTxKeys(assignLedgerTxFingerprint(tx));
-        let ledgerSaved = false;
-        try {
-          await putLedgerTx(txFinal);
-          savedCount += 1;
-          ledgerSaved = true;
-        } catch (e) {
-          if (String(e?.name || "") !== "ConstraintError") throw e;
-          // fingerprint 유니크 인덱스에 의해 중복 저장이 차단됨
-          ledgerSaved = false;
-        }
+        ledgerBatch.push(txFinal);
+        savedCount += 1;
 
         // 벤더별 분류/매입처/거래처/구분(입출금/이체) 및 이체 장부 선택값을 기억
         const key = normalizeVendorName(rec.vendor);
@@ -1534,11 +1516,6 @@ export function bindPaymentImportManager(options = {}) {
               ? rec.transferLedgerLabel || prev.transferLedgerLabel || ""
               : prev.transferLedgerLabel || "",
           };
-        }
-
-        // 원장 저장이 스킵된(중복) 행은 연동 전표까지 저장하면 불일치가 생기므로 함께 스킵한다.
-        if (!ledgerSaved) {
-          continue;
         }
 
         // 2) 출금(out) 건에 한해서, 분류/매입처/지출처 설정에 따라
@@ -1585,7 +1562,7 @@ export function bindPaymentImportManager(options = {}) {
               source: "payment",
               ledgerTxId: String(ledgerId),
             };
-            await addTransaction(paymentTx);
+            transactionBatch.push(paymentTx);
           }
 
           // 2-2) 지출 결제: 지출처 기준으로 expense 전표 생성
@@ -1620,7 +1597,7 @@ export function bindPaymentImportManager(options = {}) {
               source: "payment",
               ledgerTxId: String(ledgerId),
             };
-            await addTransaction(expenseTx);
+            transactionBatch.push(expenseTx);
           }
         }
 
@@ -1661,8 +1638,18 @@ export function bindPaymentImportManager(options = {}) {
               source: "payment",
               ledgerTxId: String(ledgerId),
             };
-            await addTransaction(salesTx);
+            transactionBatch.push(salesTx);
           }
+        }
+      }
+
+      // One atomic server commit: linked invoice rows and both sides of transfers succeed together.
+      if (ledgerBatch.length || transactionBatch.length) {
+        try {
+          await saveTransactionBatch({ ledger: ledgerBatch, add: transactionBatch });
+        } catch (error) {
+          await warningDialog(String(error?.message || "저장 실패") + "\n인터넷 저장 결과를 확인한 뒤 다시 시도해 주세요.", { title: "저장 확인 필요" });
+          return;
         }
       }
 
@@ -1701,7 +1688,6 @@ export function bindPaymentImportManager(options = {}) {
       // 메인 입출금 내역과 좌측 장부 요약(잔액)을 즉시 다시 계산한다.
       if (savedCount > 0) {
         await render();
-        await refreshCashflowSummary();
       }
       } finally {
         if (btnPaymentImportSave) btnPaymentImportSave.disabled = false;
@@ -1715,4 +1701,5 @@ export function bindPaymentImportManager(options = {}) {
     };
   }
 }
+
 

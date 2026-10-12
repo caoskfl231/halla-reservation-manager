@@ -1,5 +1,5 @@
-import { getAllLedgerTx, getTransactions } from "../db.js?v=app-20261010-18";
-import { confirmDialog } from "./dialogs.js?v=app-20261010-18";
+import { getAllLedgerTx, getTransactions } from "../db.js?v=app-20261012-common-save-01";
+import { confirmDialog } from "./dialogs.js?v=app-20261012-common-save-01";
 
 export function getActiveCustomersByType(allCustomers, typeLabel) {
   const isActiveStatus = (v) => String(v || "active") === "active";
@@ -450,4 +450,5 @@ export async function confirmDuplicateBatchBeforeSave({
 
   return true;
 }
+
 

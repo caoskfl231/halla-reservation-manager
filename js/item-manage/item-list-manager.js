@@ -1,10 +1,10 @@
-import { formatMoney } from "../common/util.js?v=app-20261010-18";
-import { sortItems, getItemProfitValues } from "./item-utils.js?v=app-20261010-18";
+import { formatMoney } from "../common/util.js?v=app-20261012-common-save-01";
+import { sortItems, getItemProfitValues } from "./item-utils.js?v=app-20261012-common-save-01";
 import {
   attachSearchInput,
   enableTableArrowNavigation,
   bindClickRowSelect,
-} from "../common/ui-helpers.js?v=app-20261010-18";
+} from "../common/ui-helpers.js?v=app-20261012-common-save-01";
 
 export function createItemListManager(options) {
   const {
@@ -148,6 +148,7 @@ export function createItemListManager(options) {
     const keyword = searchInput ? searchInput.value.trim() : "";
     const sorted = sortItems(items, currentSort);
     renderList(sorted, keyword);
+    return items;
   }
 
   if (listEl) {
@@ -199,4 +200,5 @@ export function createItemListManager(options) {
     reloadList,
   };
 }
+
 
