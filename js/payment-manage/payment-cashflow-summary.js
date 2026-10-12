@@ -1,4 +1,4 @@
-import { bindClickRowSelect } from "../common/ui-helpers.js?v=app-20261010-18";
+import { bindClickRowSelect } from "../common/ui-helpers.js?v=app-20261012-common-save-01";
 
 let currentCashflowSummarySelectRef = null;
 
@@ -397,4 +397,5 @@ export function bindCashflowSummaryEvents(options = {}) {
     });
   }
 }
+
 

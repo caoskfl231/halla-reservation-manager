@@ -1,4 +1,4 @@
-import { createIndexedDbAdapter } from './indexeddb-adapter.js?v=app-20261010-18';
+import { createIndexedDbAdapter } from './indexeddb-adapter.js?v=app-20261012-common-save-01';
 
 const CACHE_PREFIX = 'hallapa_cloud_cache_';
 // 잠금 프로토콜을 쓰는 DB만 자동 정리한다. 구버전 탭의 캐시는 건드리지 않는다.
@@ -158,3 +158,4 @@ export const {
   exportHallapaDbSnapshot,
   restoreHallapaDbSnapshot,
 } = adapter;
+

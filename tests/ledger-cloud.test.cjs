@@ -24,13 +24,17 @@ async function client(options = {}){
   if(name==='getItems')return copy(local.stores.items||[]);
   if(name==='getCustomers')return copy(local.stores.customers||[]);
   if(name==='addTransaction'){let row=copy(args[0]);row.id=row.id||local.stores.transactions.length+1;local.stores.transactions.push(row);return;}
-  if(name==='saveTransactionBatch'){local.stores.transactions=local.stores.transactions.filter(x=>!(args[0].remove||[]).includes(x.id));local.stores.transactions.push(...copy(args[0].add||[]));local.stores.ledger_tx=(local.stores.ledger_tx||[]).filter(x=>!(args[0].removeLedger||[]).map(String).includes(String(x.id)));return;}
+  if(name==='saveTransactionBatch'){local.stores.transactions=local.stores.transactions.filter(x=>!(args[0].remove||[]).includes(x.id));local.stores.transactions.push(...copy(args[0].add||[]));local.stores.ledger_tx=(local.stores.ledger_tx||[]).filter(x=>!(args[0].removeLedger||[]).map(String).includes(String(x.id)));for(const row of args[0].ledger||[]){local.stores.ledger_tx=local.stores.ledger_tx.filter(x=>JSON.stringify(x.id)!==JSON.stringify(row.id));local.stores.ledger_tx.push(copy(row));}return;}
   if(name==='updateTransaction'){let row=copy(args[0]);local.stores.transactions=local.stores.transactions.map(x=>x.id===row.id?row:x);return;}
   if(name==='deleteTransaction'){local.stores.transactions=local.stores.transactions.filter(x=>x.id!==args[0]);return;}
   if(name==='getLedgerTxById')return copy((local.stores.ledger_tx||[]).find(row=>row.id===args[0])||null);
   if(name==='getAllLedgerTx')return copy(local.stores.ledger_tx||[]);
   if(name==='putLedgerTx'){local.stores.ledger_tx=(local.stores.ledger_tx||[]).filter(row=>row.id!==args[0].id);local.stores.ledger_tx.push(copy(args[0]));return;}
   if(name==='deleteLedgerTxById'){local.stores.ledger_tx=(local.stores.ledger_tx||[]).filter(row=>String(row.id)!==String(args[0]));return;}
+  const master={updateItem:['items','id'],addItemMaster:['items','id'],deleteItem:['items','id'],updateCustomer:['customers','id'],addCustomer:['customers','id'],deleteCustomer:['customers','id'],updateCashflowType:['cashflow_types','code'],addCashflowType:['cashflow_types','code'],deleteCashflowType:['cashflow_types','code']};
+  const getters={getCashflowTypes:'cashflow_types'};
+  if(getters[name])return copy(local.stores[getters[name]]||[]);
+  if(master[name]){const[store,key]=master[name];const value=args[0];local.stores[store]=(local.stores[store]||[]).filter(x=>JSON.stringify(x[key])!==JSON.stringify(name.startsWith('delete')?value:value[key]));if(!name.startsWith('delete'))local.stores[store].push(copy(value));return;}
   if(name.startsWith('get'))return [];
  }]));
  cacheFns.closeCloudCache=()=>{};
@@ -128,6 +132,37 @@ async function client(options = {}){
  assert(!remote.snapshot.stores.ledger_tx.some(row=>row.id==='ledger-test'));
  await assert.rejects(staleLedger.putLedgerTx({id:'ledger-test',amount:555}),/LEDGER_RECORD_CONFLICT/,'ledger tombstone blocks resurrection');
  assert.equal(fullExports,0,'ledger saves and grouped deletes never scan the full snapshot');
+ // Master saves skip unrelated history and retain record-version conflict protection.
+ const masterA=await client(),masterB=await client();
+ const exportsBefore=fullExports;
+ await masterA.addItemMaster({id:'item-fast',price:100});
+ assert.equal(fullExports,exportsBefore);
+ assert.equal(remote.snapshot.stores.items.find(x=>x.id==='item-fast').price,100);
+ await assert.rejects(masterB.updateItem({id:'item-fast',price:999}),/LEDGER_RECORD_CONFLICT/);
+ const masterC=await client(), masterD=await client();
+ await masterC.updateItem({id:'item-fast',price:150});
+ await assert.rejects(masterD.updateItem({id:'item-fast',price:200}),/LEDGER_RECORD_CONFLICT/);
+ await masterC.addCustomer({id:'cust-fast',name:'customer'});
+ await masterC.addCashflowType({code:'A99',name:'new type'});
+ assert.equal(remote.snapshot.stores.cashflow_types.find(x=>x.code==='A99').name,'new type');
+ assert.equal(fullExports,exportsBefore,'masters never export all history');
+ // Read reuse must not share mutable row objects or outlive a write.
+ let actualReads=0;const memo=await client({onCacheCall:name=>{if(name==='getItems')actualReads++;}});
+ const read1=await memo.getItems();read1[0].price=9999;
+ const read2=await memo.getItems();assert.equal(read2[0].price,150);assert.equal(actualReads,1);
+ await memo.updateItem({id:'item-fast',price:160});
+ assert.equal((await memo.getItems())[0].price,160);assert.equal(actualReads,3,'target-store write read plus invalidated reader');
+ const mix=await client(),beforeMixedSave=remote.revision;
+ await mix.saveTransactionBatch({ledger:[{id:'atomic-out',amount:10},{id:'atomic-in',amount:10}],add:[{amount:10,ledgerTxId:'atomic-out'}]});
+ assert.equal(remote.revision,beforeMixedSave+1);
+ assert(remote.snapshot.stores.ledger_tx.some(x=>x.id==='atomic-in'));
+ assert(remote.snapshot.stores.transactions.some(x=>x.ledgerTxId==='atomic-out'));
+ const staleMix=await client();await mix.putLedgerTx({id:'atomic-out',amount:20});
+ const beforeConflict=remote.snapshot.stores.transactions.length;
+ await assert.rejects(staleMix.saveTransactionBatch({ledger:[{id:'atomic-out',amount:999},{id:'conflict-pair',amount:999}],add:[{amount:999}]}),/LEDGER_RECORD_CONFLICT/);
+ assert.equal(remote.snapshot.stores.transactions.length,beforeConflict);
+ assert(!remote.snapshot.stores.ledger_tx.some(x=>x.id==='conflict-pair'),'mixed conflict leaves no partial records');
+ assert.equal(fullExports,exportsBefore);
  remote={snapshot:snapshot(),revision:0,role:'owner',updated_at:new Date().toISOString()};recordVersions.clear();
  const f=await client();await assert.rejects(f.addTransaction({totalAmount:1}),/먼저/);
  const bad=snapshot();bad.stores.transactions=[{id:1},{id:1}];
@@ -162,3 +197,4 @@ async function client(options = {}){
  assert(readCalls.includes('addTransaction'));
  console.log('PASS: distinct-device inserts/edits, unique IDs, same-row conflicts, stale baseline after unrelated save, tombstones, lost-response retry prevention, initial import');
 })().catch(error=>{console.error(error);process.exitCode=1;});
+

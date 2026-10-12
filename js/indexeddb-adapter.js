@@ -549,12 +549,12 @@ export function createIndexedDbAdapter({
     queueDbChanged(STORE_TRANSACTIONS);
   }
 
-  async function saveTransactionBatch({ add = [], remove = [], removeLedger = [] } = {}) {
+  async function saveTransactionBatch({ add = [], remove = [], removeLedger = [], ledger = [] } = {}) {
     await Promise.all(add.map(normalizeTransactionSupplierName));
-    if (!add.length && !remove.length && !removeLedger.length) return;
+    if (!add.length && !remove.length && !removeLedger.length && !ledger.length) return;
     const db = await openDb();
     return new Promise((resolve, reject) => {
-      const names = [STORE_TRANSACTIONS, ...(removeLedger.length ? [STORE_LEDGER_TX] : [])];
+      const names = [STORE_TRANSACTIONS, ...((removeLedger.length || ledger.length) ? [STORE_LEDGER_TX] : [])];
       const tx = db.transaction(names, 'readwrite');
       tx.oncomplete = () => { names.forEach(queueDbChanged); resolve(); };
       tx.onerror = tx.onabort = () => reject(tx.error || new Error('전표 일괄 저장 실패'));
@@ -566,12 +566,13 @@ export function createIndexedDbAdapter({
           watch(store.delete(key));
         }
         for (const row of add) watch(store.add(row));
-        if (removeLedger.length) {
-          const ledger = tx.objectStore(STORE_LEDGER_TX);
+        if (removeLedger.length || ledger.length) {
+          const ledgerStore = tx.objectStore(STORE_LEDGER_TX);
           for (const id of new Set(removeLedger.map(String))) {
-            watch(ledger.delete(id));
-            if (Number.isFinite(Number(id)) && String(Number(id)) === id) watch(ledger.delete(Number(id)));
+            watch(ledgerStore.delete(id));
+            if (Number.isFinite(Number(id)) && String(Number(id)) === id) watch(ledgerStore.delete(Number(id)));
           }
+          for (const row of ledger) watch(ledgerStore.put(row));
         }
       } catch (error) { try { tx.abort(); } catch {} reject(error); }
     });
@@ -1594,3 +1595,4 @@ export function createIndexedDbAdapter({
     restoreHallapaDbSnapshot,
   };
 }
+

@@ -1,4 +1,4 @@
-import { request, keepSession, clearSession, rpc, nextPage, friendlyError, friendlyLoadError, sessionRejected, accessToken, session, autoLoginEnabled, setAutoLogin, savedEmail, rememberEmail } from './cloud-session.js?v=app-20261010-18';
+import { request, keepSession, clearSession, rpc, nextPage, friendlyError, friendlyLoadError, sessionRejected, accessToken, session, autoLoginEnabled, setAutoLogin, savedEmail, rememberEmail } from './cloud-session.js?v=app-20261012-common-save-01';
 const errorEl = document.getElementById('error');
 const form = document.getElementById('login-form');
 const mfaForm = document.getElementById('mfa-form');
@@ -65,7 +65,7 @@ mfaForm.addEventListener('submit', async event => {
   const button = document.getElementById('mfa-button');
   button.disabled = true; errorEl.textContent = '';
   try {
-    const { accessToken } = await import('./cloud-session.js?v=app-20261010-18');
+    const { accessToken } = await import('./cloud-session.js?v=app-20261012-common-save-01');
     const token = await accessToken();
     const challenge = await request('/auth/v1/factors/' + factor.id + '/challenge', {}, token);
     const result = await request('/auth/v1/factors/' + factor.id + '/verify', {
@@ -76,3 +76,4 @@ mfaForm.addEventListener('submit', async event => {
   } catch (error) { errorEl.textContent = friendlyError(error); }
   finally { button.disabled = false; }
 });
+

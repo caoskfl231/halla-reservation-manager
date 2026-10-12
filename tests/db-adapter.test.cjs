@@ -243,3 +243,14 @@ test('v12 adds unique fingerprint index without rerunning earlier migrations', a
   assert.equal(f.rows('ledger_tx').find(row => row.id === 'existing').amount, 300);
   assert.equal(f.rows('ledger_tx').length, 2);
 });
+
+
+test('mixed ledger and transaction batch commits together and rolls back on a fingerprint collision',async()=>{
+ const f=await createMigrationFixture(null);
+ await f.adapter.saveTransactionBatch({ledger:[{id:'out',fingerprint:'mixed-out',amount:10},{id:'in',fingerprint:'mixed-in',amount:10}],add:[{id:500,amount:10}]});
+ assert.equal(f.rows('ledger_tx').length,2);
+ assert.equal(f.rows('transactions').length,1);
+ await assert.rejects(f.adapter.saveTransactionBatch({remove:[500],ledger:[{id:'partial',fingerprint:'partial'},{id:'duplicate',fingerprint:'mixed-in'}],add:[{id:501,amount:999}]}));
+ assert.equal(f.rows('transactions')[0].id,500);
+ assert.deepEqual(f.rows('ledger_tx').map(x=>x.id),['out','in']);
+});

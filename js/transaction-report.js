@@ -7,13 +7,13 @@ import {
   getCashflowTypes,
   getCashflowItems,
   getAllLedgerTx,
-} from './db.js?v=app-20261010-18';
-import { formatMoney, includesIgnoreCase, todayYMD, formatWeekdayLabel } from './common/util.js?v=app-20261010-18';
-import { initDateFilter } from './common/date-filter.js?v=app-20261010-18';
-import { openModalOverlay, closeModalOverlay, registerModalEscClose, applyAmountColoring, bindDblClickRowConfirm } from './common/ui-helpers.js?v=app-20261010-18';
-import { bootstrapPageCommon } from './common/page-bootstrap.js?v=app-20261010-18';
-import { getStoredJson, setStoredJson } from './common/storage.js?v=app-20261010-18';
-import { installDbAutoRefresh } from './common/app-events.js?v=app-20261010-18';
+} from './db.js?v=app-20261012-common-save-01';
+import { formatMoney, includesIgnoreCase, todayYMD, formatWeekdayLabel } from './common/util.js?v=app-20261012-common-save-01';
+import { initDateFilter } from './common/date-filter.js?v=app-20261012-common-save-01';
+import { openModalOverlay, closeModalOverlay, registerModalEscClose, applyAmountColoring, bindDblClickRowConfirm } from './common/ui-helpers.js?v=app-20261012-common-save-01';
+import { bootstrapPageCommon } from './common/page-bootstrap.js?v=app-20261012-common-save-01';
+import { getStoredJson, setStoredJson } from './common/storage.js?v=app-20261012-common-save-01';
+import { installDbAutoRefresh } from './common/app-events.js?v=app-20261012-common-save-01';
 
 bootstrapPageCommon({ page: 'transaction-report', todayYMD, formatWeekdayLabel });
 
@@ -3568,4 +3568,5 @@ async function init() {
 init().catch((err) => {
   console.error('전표 조회 초기화 실패', err);
 });
+
 

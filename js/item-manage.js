@@ -12,17 +12,17 @@ import {
   updateItemGroup,
   deleteItemGroup,
   renameItemGroupNameInItems,
-} from "./db.js?v=app-20261010-18";
-import { createItemGroupManager } from "./item-manage/item-group-manager.js?v=app-20261010-18";
-import { createItemListManager } from "./item-manage/item-list-manager.js?v=app-20261010-18";
-import { createItemFormManager } from "./item-manage/item-form-manager.js?v=app-20261010-18";
-import { createItemActionsManager } from "./item-manage/item-actions-manager.js?v=app-20261010-18";
-import { createModalManager } from "./common/modal-manager.js?v=app-20261010-18";
-import { bindDblClickRowEdit } from "./common/ui-helpers.js?v=app-20261010-18";
-import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261010-18";
-import { generateItemId, getNextItemGroupCode } from "./item-manage/item-utils.js?v=app-20261010-18";
-import { loadItemsFromJson } from "./item-manage/item-data-loader.js?v=app-20261010-18";
-import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261010-18";
+} from "./db.js?v=app-20261012-common-save-01";
+import { createItemGroupManager } from "./item-manage/item-group-manager.js?v=app-20261012-common-save-01";
+import { createItemListManager } from "./item-manage/item-list-manager.js?v=app-20261012-common-save-01";
+import { createItemFormManager } from "./item-manage/item-form-manager.js?v=app-20261012-common-save-01";
+import { createItemActionsManager } from "./item-manage/item-actions-manager.js?v=app-20261012-common-save-01";
+import { createModalManager } from "./common/modal-manager.js?v=app-20261012-common-save-01";
+import { bindDblClickRowEdit } from "./common/ui-helpers.js?v=app-20261012-common-save-01";
+import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261012-common-save-01";
+import { generateItemId, getNextItemGroupCode } from "./item-manage/item-utils.js?v=app-20261012-common-save-01";
+import { loadItemsFromJson } from "./item-manage/item-data-loader.js?v=app-20261012-common-save-01";
+import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261012-common-save-01";
 
 bootstrapPageCommon({
   page: "item",
@@ -101,8 +101,8 @@ async function updateItemJsonImportButtonVisibility() {
 }
 
 async function reloadItemsAndUpdateImportButton() {
-  await itemListManager.reloadList();
-  await updateItemJsonImportButtonVisibility();
+  const loaded = await itemListManager.reloadList();
+  if (btnLoadJson) btnLoadJson.hidden = (loaded || []).length > 0;
 }
 
 // 품목 분류 마스터 관련 요소
@@ -488,4 +488,5 @@ if (restoreFileInput) {
     }
   });
 }
+
 
