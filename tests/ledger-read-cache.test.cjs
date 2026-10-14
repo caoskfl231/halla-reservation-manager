@@ -18,7 +18,12 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
  const next=await c.loadSyncedLedger(rpc,'owner');assert.equal(cursors.at(-1),3);assert.equal(next.snapshot.stores.transactions.length,2);assert.equal(next.snapshot.stores.transactions.find(r=>r.id===1).total,15);assert.equal(next.snapshot.stores.item_groups[0].name,'new');assert.equal(next.row_versions.find(r=>r.key===2).version,5,'tombstone version kept');assert.equal(next.role,'editor');
  reply=Error('network offline');await assert.rejects(c.loadSyncedLedger(rpc,'owner'),/offline/,'never display cached data without server authorization');
  reply=initial;await c.loadSyncedLedger(rpc,'another-user');assert.equal(cursors.at(-1),null,'different account cannot reuse old data');
+ const confirmed={...next,cursor:8,revision:3,row_versions:[...next.row_versions,{store:'transactions',key:4,version:8}],snapshot:{...next.snapshot,stores:{...next.snapshot.stores,transactions:[...next.snapshot.stores.transactions,{id:4,total:40}]}}};
+ assert.equal(await c.saveConfirmedLedger(confirmed,'owner'),true);
+ reply={full:false,cursor:8,revision:3,role:'owner',meta:confirmed.snapshot.meta,changes:[]};
+ const home=await c.loadSyncedLedger(rpc,'owner');assert.equal(cursors.at(-1),8);assert(home.snapshot.stores.transactions.some(row=>row.id===4));
+ assert.equal(await c.saveConfirmedLedger(confirmed,null),false);
  await c.clearReadCache();assert.equal(data.size,0);
- unavailable=true;await c.loadSyncedLedger(rpc,'owner');assert.equal(cursors.at(-1),null,'blocked disk storage safely falls back to full read');
+ reply=initial;unavailable=true;assert.equal(await c.saveConfirmedLedger(confirmed,'owner'),false);await c.loadSyncedLedger(rpc,'owner');assert.equal(cursors.at(-1),null,'blocked disk storage safely falls back to full read');
  console.log('PASS: cross-page cached read, update/add/delete/code-key deltas, current role, no offline bypass, account isolation, logout cleanup, storage fallback');
 })().catch(error=>{console.error(error);process.exitCode=1;});

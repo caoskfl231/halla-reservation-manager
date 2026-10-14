@@ -8,7 +8,7 @@ const copy = x=>structuredClone(x);
 let remote={snapshot:snapshot(),revision:1,role:'owner',updated_at:new Date().toISOString()}, loseResponse=false;
 let nextId=1000000000000, nextVersion=1, recordVersions=new Map();
 let fullExports=0, batchReservations=0;
-function withVersions(){return copy({...remote,row_versions:[...recordVersions].map(([token,version])=>{const [store,key]=JSON.parse(token);return {store,key,version};})});}
+function withVersions(){return copy({...remote,cursor:Math.max(0,...recordVersions.values()),row_versions:[...recordVersions].map(([token,version])=>{const [store,key]=JSON.parse(token);return {store,key,version};})});}
 async function client(options = {}){
  let local;
  const elements = new Map();
@@ -38,7 +38,8 @@ async function client(options = {}){
   if(name.startsWith('get'))return [];
  }]));
  cacheFns.closeCloudCache=()=>{};
- const sessionFns={sessionIdentity:()=>null,sessionRejected:()=>false,requireLedgerSession:async()=>withVersions(),friendlyError:e=>e.message,signOut:async()=>{},rpc:async(name,body)=>{
+ cacheFns.confirmCloudCache=(state,user)=>options.onConfirm?.(copy(state),user);
+ const sessionFns={sessionIdentity:()=>'owner',sessionRejected:()=>false,requireLedgerSession:async()=>withVersions(),friendlyError:e=>e.message,signOut:async()=>{},rpc:async(name,body)=>{
   if(name==='halla_ledger_read')return withVersions();
   if(name==='halla_ledger_reserve_transaction_id')return nextId++;
   if(name==='halla_ledger_reserve_transaction_ids'){batchReservations++;return Array.from({length:body.p_count},()=>nextId++);}
@@ -61,16 +62,34 @@ async function client(options = {}){
    for(const [store,rows] of Object.entries(remote.snapshot.stores)){const keyField=['customer_types','customer_groups','item_groups','cashflow_items','cashflow_types','cashflow_groups'].includes(store)?'code':'id';for(const row of rows)recordVersions.set(JSON.stringify([store,row[keyField]]),nextVersion++);}
   }
   if(loseResponse){loseResponse=false;throw Error('network response lost');}
-  if(name==='halla_ledger_patch_compact')return {...withVersions(),snapshot:undefined,previous_revision:previousRevision};
+  if(name==='halla_ledger_patch_compact')return {revision:remote.revision,role:remote.role,updated_at:remote.updated_at,row_versions:withVersions().row_versions.filter(row=>body.p_changes.some(c=>c.store===row.store && c.key===row.key)),previous_revision:previousRevision};
   return withVersions();
  }};
  function moduleOf(values){return new vm.SyntheticModule(Object.keys(values),function(){for(const [key,value]of Object.entries(values))this.setExport(key,value);},{context});}
  const modules={'./ledger-backups.js':moduleOf({installBackupPanel(){}}),'./db-cloud-cache.js':moduleOf(cacheFns),'./cloud-session.js':moduleOf(sessionFns),'./common/app-events.js':moduleOf({emitAppEvent(){}}), './cloud-records.js':new vm.SourceTextModule(fs.readFileSync('js/cloud-records.js','utf8'),{context})};
  modules['./cloud-import.js']=moduleOf({uploadSnapshot:async(snap,revision,action,rpc)=>rpc('halla_ledger_save',{p_snapshot:snap,p_revision:revision,p_action:action})});
- modules['./ledger-read-cache.js']=moduleOf({loadSyncedLedger:async()=>withVersions(),clearReadCache:async()=>{}});
+ modules['./ledger-read-cache.js']=moduleOf({loadSyncedLedger:async()=>withVersions(),clearReadCache:async()=>{},saveConfirmedLedger:async(state,user)=>{options.onPersist?.(copy(state),user);return options.persistSuccess!==false;}});
  const m=new vm.SourceTextModule(source,{context});await m.link(name=>modules[name.split('?')[0]]);await m.evaluate();return m.namespace;
 }
 (async()=>{
+ // Successful saves carry a complete baseline into the next page.
+ const persisted=[],confirmed=[];
+ const fast=await client({onPersist:s=>persisted.push(s),onConfirm:s=>confirmed.push(s)});
+ await fast.addTransaction({amount:10});
+ await fast.addTransaction({amount:20});
+ assert.equal(persisted.length,2);assert.equal(confirmed.length,2);
+ assert.equal(persisted[1].snapshot.stores.transactions.length,2);
+ assert.equal(persisted[1].row_versions.length,2,'compact response retains untouched versions');
+ assert.equal(persisted[1].cursor,Math.max(...persisted[1].row_versions.map(r=>r.version)));
+ const stale=await client({onPersist:s=>persisted.push(s),onConfirm:s=>confirmed.push(s)});
+ await fast.addTransaction({amount:30});const count=persisted.length;
+ await stale.addTransaction({amount:40});assert.equal(persisted.length,count,'unseen remote change cannot advance download cache');
+ assert.equal(confirmed.length,count);
+ const noDisk=await client({persistSuccess:false,onConfirm:s=>confirmed.push(s)});
+ await noDisk.addTransaction({amount:50});assert.equal(confirmed.length,count,'disk failure leaves dirty marker for next-page recovery');
+ const lost=await client({onPersist:s=>persisted.push(s)});loseResponse=true;
+ await assert.rejects(lost.addTransaction({amount:60}),/lost/);assert.equal(persisted.length,count);
+ remote={snapshot:snapshot(),revision:1,role:'owner',updated_at:new Date().toISOString()};recordVersions.clear();
  const a=await client(),b=await client();
  await a.addTransaction({date:'2026-10-10',totalAmount:1000});
  await b.addTransaction({date:'2026-10-10',totalAmount:2000});

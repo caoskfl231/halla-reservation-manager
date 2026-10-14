@@ -82,3 +82,16 @@ test('duplicated tabs isolate work caches and missing caches never reuse a ready
  const next=await f.load(session);f.names.delete(next.state.name);assert.equal((await next.api.prepareCloudCache(state,'owner')).reused,false);
  second.api.closeCloudCache();next.api.closeCloudCache();await flush();
 });
+
+test('server-confirmed local save reuses work cache on next page without restoring all records', async () => {
+ const f=fixture(),session=new Map(),first=await f.load(session);
+ const before={revision:1,cursor:1,snapshot:{stores:{transactions:[{id:1}]}}};
+ await first.api.prepareCloudCache(before,'owner');first.api.invalidateCloudCache();
+ const saved={revision:2,cursor:2,snapshot:{stores:{transactions:[{id:1},{id:2}]}}};
+ first.api.confirmCloudCache(saved,'owner');first.close();await flush();
+ const home=await f.load(session);assert.equal((await home.api.prepareCloudCache(saved,'owner')).reused,true);
+ assert.equal(home.state.restores,undefined);
+ // A later remote revision still rebuilds from the newly authorized state.
+ assert.equal((await home.api.prepareCloudCache({...saved,revision:3,cursor:3},'owner')).reused,false);
+ home.api.closeCloudCache();await flush();
+});

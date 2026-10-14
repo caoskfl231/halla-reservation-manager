@@ -16,6 +16,15 @@ async function storage(mode, work) {
   } finally { db.close(); }
 }
 export async function clearReadCache() { try { await storage('readwrite',store => store.clear()); } catch {} }
+// A complete, server-confirmed baseline only. Never advance past unseen remote changes.
+export async function saveConfirmedLedger(state, user) {
+  if (!user || !Number.isSafeInteger(state?.cursor) || !state?.snapshot?.stores ||
+      !Array.isArray(state.row_versions)) return false;
+  try {
+    await storage('readwrite', store => store.put({format:1,user,state}, 'current'));
+    return true;
+  } catch { return false; } // Storage failure must not turn a committed save into an error.
+}
 export async function loadPeriodLedger(rpc, manifest) {
   if (!Array.isArray(manifest.stores) || !Array.isArray(manifest.periods)) throw new Error('INVALID_LEDGER_MANIFEST');
   const stores=Object.fromEntries(manifest.stores.map(name=>[name,[]]));

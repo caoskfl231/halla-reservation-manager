@@ -1,10 +1,10 @@
-import * as cache from './db-cloud-cache.js?v=app-20261012-common-save-01';
-import { rpc, requireLedgerSession, friendlyError, signOut, sessionIdentity, sessionRejected } from './cloud-session.js?v=app-20261012-common-save-01';
-import { loadSyncedLedger, clearReadCache } from './ledger-read-cache.js?v=app-20261012-common-save-01';
-import { emitAppEvent } from './common/app-events.js?v=app-20261012-common-save-01';
-import { changedRecords, recordToken, versionMap } from './cloud-records.js?v=app-20261012-common-save-01';
-import { installBackupPanel } from './ledger-backups.js?v=app-20261012-common-save-01';
-import { uploadSnapshot } from './cloud-import.js?v=app-20261012-common-save-01';
+import * as cache from './db-cloud-cache.js?v=app-20261014-save-cache-01';
+import { rpc, requireLedgerSession, friendlyError, signOut, sessionIdentity, sessionRejected } from './cloud-session.js?v=app-20261014-save-cache-01';
+import { loadSyncedLedger, clearReadCache, saveConfirmedLedger } from './ledger-read-cache.js?v=app-20261014-save-cache-01';
+import { emitAppEvent } from './common/app-events.js?v=app-20261014-save-cache-01';
+import { changedRecords, recordToken, versionMap } from './cloud-records.js?v=app-20261014-save-cache-01';
+import { installBackupPanel } from './ledger-backups.js?v=app-20261014-save-cache-01';
+import { uploadSnapshot } from './cloud-import.js?v=app-20261014-save-cache-01';
 let state = await requireLedgerSession(async () => {
   try { return await loadSyncedLedger(rpc, sessionIdentity()); }
   catch (error) { if (sessionRejected(error)) await clearReadCache(); throw error; }
@@ -180,6 +180,15 @@ async function cloudCall(name, args) {
           // approve a stale edit of another record still open in the UI.
           pendingRemote = pendingRemote || next.previous_revision !== state.revision;
           state = { ...state, ...next, snapshot };
+          if (!pendingRemote) {
+            // Compact save returns versions for touched records, not a sync cursor.
+            // All earlier revisions are present, so their maximum is a safe cursor.
+            state.row_versions = [...versions].map(([token, version]) => {
+              const [store, key] = JSON.parse(token);
+              return { store, key, version };
+            });
+            state.cursor = state.row_versions.reduce((cursor, row) => Math.max(cursor, row.version), state.cursor || 0);
+          }
         } else {
           state = await uploadSnapshot(snapshot, state.revision, action, rpc, notice);
           versions = versionMap(state.row_versions);
@@ -191,6 +200,9 @@ async function cloudCall(name, args) {
         throw error;
       }
       observedRevision = state.revision;
+      if (!pendingRemote && await saveConfirmedLedger(state, sessionIdentity())) {
+        cache.confirmCloudCache?.(state, sessionIdentity());
+      }
       notice('인터넷 저장 완료 · ' + new Date(state.updated_at).toLocaleTimeString('ko-KR'));
       if (pendingRemote) notice('저장 완료 · 다른 기기의 새 내용은 최신 불러오기로 확인하세요.');
       document.getElementById('ledger-first-import')?.remove();
@@ -243,7 +255,7 @@ if (state.revision === 0 && state.role === 'owner') {
     try {
       if (!indexedDB.databases) throw new Error('이 브라우저에서는 전체백업 파일을 선택해 주세요.');
       if (!(await indexedDB.databases()).some(db => db.name === 'hallapa_db')) throw new Error('이 기기에 기존 장부자료가 없습니다. 전체백업 파일을 선택해 주세요.');
-      const local = await import('./db-local.js?v=app-20261012-common-save-01'); await upload(await local.exportHallapaDbSnapshot());
+      const local = await import('./db-local.js?v=app-20261014-save-cache-01'); await upload(await local.exportHallapaDbSnapshot());
     } catch (error) { window.alert(friendlyError(error)); }
   };
 }

@@ -1,4 +1,4 @@
-import { createIndexedDbAdapter } from './indexeddb-adapter.js?v=app-20261012-common-save-01';
+import { createIndexedDbAdapter } from './indexeddb-adapter.js?v=app-20261014-save-cache-01';
 
 const CACHE_PREFIX = 'hallapa_cloud_cache_';
 // 잠금 프로토콜을 쓰는 DB만 자동 정리한다. 구버전 탭의 캐시는 건드리지 않는다.
@@ -68,6 +68,11 @@ const adapter = createIndexedDbAdapter({
   snapshotWriteBatchSize: 250,
 });
 export function invalidateCloudCache() { saveSessionValue(CACHE_STAMP_KEY, null); }
+// Called only after the local write and server commit both succeeded.
+export function confirmCloudCache(state, user) {
+  if (user && hasCacheLock) saveSessionValue(CACHE_STAMP_KEY,
+    JSON.stringify({ name: CACHE_NAME, user, revision: state.revision, cursor: state.cursor }));
+}
 // 반드시 서버에서 계정/권한과 최신 revision을 승인한 뒤 호출한다.
 export async function prepareCloudCache(state, user, options = {}) {
   const stamp = JSON.stringify({ name: CACHE_NAME, user, revision: state.revision, cursor: state.cursor });
