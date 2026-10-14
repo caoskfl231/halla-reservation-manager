@@ -1,5 +1,5 @@
-import { rpc, friendlyError } from './cloud-session.js?v=app-20261014-history-batch-05';
-import { historyComparison } from './history-format.js?v=app-20261014-history-batch-05';
+import { rpc, friendlyError } from './cloud-session.js?v=app-20261014-history-modal-06';
+import { historyComparison } from './history-format.js?v=app-20261014-history-modal-06';
 const names = {transactions:'거래',customers:'거래처',items:'품목',ledger_tx:'입출금',users:'사용자',customer_types:'거래처 구분',customer_groups:'거래처 분류',item_groups:'품목 분류',cashflow_items:'장부',cashflow_types:'장부 구분',cashflow_groups:'장부 분류'};
 function element(tag, className, text) {
   const node=document.createElement(tag);
@@ -76,16 +76,17 @@ export function installHistoryPanel(owner) {
   const open=element('button','btn-secondary','수정·삭제 기록');open.type='button';
   document.getElementById('ledger-cloud-bar').append(open);
   const overlay=element('div','modal-overlay ledger-history-overlay');
-  overlay.innerHTML='<div class="modal-dialog modal-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="ledger-history-title"><section class="card history-panel"><div class="history-top"><div class="modal-header"><h2 id="ledger-history-title">수정·삭제 기록</h2><button type="button" class="modal-close-x" aria-label="닫기">×</button></div><p class="history-action-date" hidden></p></div><div class="history-scroll"><button type="button" class="history-back" hidden>← 다른 기록 보기</button><div class="history-list"></div><div class="history-selected" hidden></div><button type="button" class="btn-secondary history-more" hidden>이전 기록 더 보기</button></div><div class="history-footer"><div class="history-recover-holder"></div><p class="history-status" role="status"></p><button type="button" class="btn-secondary history-close">닫기</button></div></section></div>';
+  overlay.innerHTML='<div class="modal-dialog modal-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="ledger-history-title"><section class="card history-panel"><div class="history-top"><div class="modal-header"><h2 id="ledger-history-title">수정·삭제 기록</h2><button type="button" class="modal-close-x" aria-label="닫기">×</button></div><p class="history-action-date" hidden></p></div><div class="history-scroll"><button type="button" class="history-back" hidden>← 다른 기록 보기</button><div class="history-list"></div><div class="history-selected" hidden></div><button type="button" class="btn-secondary history-more" hidden>이전 기록 더 보기</button></div><div class="history-footer"><div class="history-footer-note"></div><div class="history-recover-holder"></div><p class="history-status" role="status"></p><button type="button" class="btn-secondary history-close">닫기</button></div></section></div>';
   document.body.append(overlay);
   const list=overlay.querySelector('.history-list'), status=overlay.querySelector('.history-status'), more=overlay.querySelector('.history-more');
   const detail=overlay.querySelector('.history-selected'), back=overlay.querySelector('.history-back');
+  const footerNote=overlay.querySelector('.history-footer-note');
   const recovery=overlay.querySelector('.history-recover-holder'),scroll=overlay.querySelector('.history-scroll'),dateLabel=overlay.querySelector('.history-action-date');
   let busy=false,cursor=null;
   const close=()=>{if(!busy){overlay.classList.remove('is-open');open.focus();}};
   overlay.querySelector('.modal-close-x').onclick=close;
   overlay.querySelector('.history-close').onclick=close;
-  back.onclick=()=>{if(busy)return;dateLabel.hidden=true;recovery.replaceChildren();scroll.scrollTop=0;detail.replaceChildren();detail.hidden=true;back.hidden=true;list.hidden=false;more.hidden=!cursor?.hasMore;};
+  back.onclick=()=>{if(busy)return;dateLabel.hidden=true;footerNote.replaceChildren();recovery.replaceChildren();scroll.scrollTop=0;detail.replaceChildren();detail.hidden=true;back.hidden=true;list.hidden=false;more.hidden=!cursor?.hasMore;};
   overlay.onclick=e=>{if(e.target===overlay)close();};
   overlay.addEventListener('keydown',e=>{
     if(e.key==='Escape')close();
@@ -147,6 +148,7 @@ export function installHistoryPanel(owner) {
           element('p','history-record-name',entry.label || `${kind} ${String(entry.record_key)}`),
           element('p','history-record-meta',String(entry.record_key).length<=12?`${kind} 코드 ${String(entry.record_key)}`:''));
         header.append(icon,info);detail.replaceChildren(header,preview,grouped);
+        footerNote.replaceChildren(preview.querySelector('.history-restore-note'));
         recovery.replaceChildren();
         if(owner){
           const recover=element('button','btn-primary history-recover','이 기록만 복구');recover.type='button';
@@ -168,7 +170,7 @@ export function installHistoryPanel(owner) {
   more.onclick=load;
   open.onclick=()=>{
     if(busy)return;
-    list.replaceChildren();list.hidden=false;dateLabel.hidden=true;recovery.replaceChildren();scroll.scrollTop=0;overlay.scrollTop=0;detail.replaceChildren();detail.hidden=true;back.hidden=true;cursor=null;more.hidden=true;
+    list.replaceChildren();list.hidden=false;dateLabel.hidden=true;footerNote.replaceChildren();recovery.replaceChildren();scroll.scrollTop=0;overlay.scrollTop=0;detail.replaceChildren();detail.hidden=true;back.hidden=true;cursor=null;more.hidden=true;
     overlay.classList.add('is-open');overlay.querySelector('.modal-close-x').focus();load();
   };
 }

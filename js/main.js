@@ -1,13 +1,13 @@
-import { buildSalesCustomerBalances } from './common/sales-customer-balance.js?v=app-20261014-history-batch-05';
-import { runHomeJob } from './home-worker-client.js?v=app-20261014-history-batch-05';
-import { createHomePager } from './home-pagination.js?v=app-20261014-history-batch-05';
-import { getTransactions, updateTransaction, getAllLedgerTx, getCashflowTypes, getCashflowItems, getCustomers, exportHallapaDbSnapshot, restoreHallapaDbSnapshot } from './db.js?v=app-20261014-history-batch-05';
-import { initDateFilter } from './common/date-filter.js?v=app-20261014-history-batch-05';
-import { applyAmountColoring, openModalOverlay, closeModalOverlay, registerModalEscClose, attachSearchInput } from './common/ui-helpers.js?v=app-20261014-history-batch-05';
-import { formatWeekdayLabel, getQuickRange, includesIgnoreCase } from './common/util.js?v=app-20261014-history-batch-05';
-import { initDateWeekdayAuto } from './common/date-weekday-box.js?v=app-20261014-history-batch-05';
-import { installDbAutoRefresh } from './common/app-events.js?v=app-20261014-history-batch-05';
-import { bootstrapPageCommon } from './common/page-bootstrap.js?v=app-20261014-history-batch-05';
+import { buildSalesCustomerBalances } from './common/sales-customer-balance.js?v=app-20261014-history-modal-06';
+import { runHomeJob } from './home-worker-client.js?v=app-20261014-history-modal-06';
+import { createHomePager } from './home-pagination.js?v=app-20261014-history-modal-06';
+import { getTransactions, updateTransaction, getAllLedgerTx, getCashflowTypes, getCashflowItems, getCustomers, exportHallapaDbSnapshot, restoreHallapaDbSnapshot } from './db.js?v=app-20261014-history-modal-06';
+import { initDateFilter } from './common/date-filter.js?v=app-20261014-history-modal-06';
+import { applyAmountColoring, openModalOverlay, closeModalOverlay, registerModalEscClose, attachSearchInput } from './common/ui-helpers.js?v=app-20261014-history-modal-06';
+import { formatWeekdayLabel, getQuickRange, includesIgnoreCase } from './common/util.js?v=app-20261014-history-modal-06';
+import { initDateWeekdayAuto } from './common/date-weekday-box.js?v=app-20261014-history-modal-06';
+import { installDbAutoRefresh } from './common/app-events.js?v=app-20261014-history-modal-06';
+import { bootstrapPageCommon } from './common/page-bootstrap.js?v=app-20261014-history-modal-06';
 
 const btnDbBackup = document.getElementById('btn-home-db-backup');
 const btnDbRestore = document.getElementById('btn-home-db-restore');

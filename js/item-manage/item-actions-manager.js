@@ -1,4 +1,4 @@
-import { confirmDialog, warningDialog } from "../common/dialogs.js?v=app-20261014-history-batch-05";
+import { confirmDialog, warningDialog } from "../common/dialogs.js?v=app-20261014-history-modal-06";
 
 export function createItemActionsManager(options = {}) {
   const {

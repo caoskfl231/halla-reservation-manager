@@ -12,17 +12,17 @@ import {
   updateItemGroup,
   deleteItemGroup,
   renameItemGroupNameInItems,
-} from "./db.js?v=app-20261014-history-batch-05";
-import { createItemGroupManager } from "./item-manage/item-group-manager.js?v=app-20261014-history-batch-05";
-import { createItemListManager } from "./item-manage/item-list-manager.js?v=app-20261014-history-batch-05";
-import { createItemFormManager } from "./item-manage/item-form-manager.js?v=app-20261014-history-batch-05";
-import { createItemActionsManager } from "./item-manage/item-actions-manager.js?v=app-20261014-history-batch-05";
-import { createModalManager } from "./common/modal-manager.js?v=app-20261014-history-batch-05";
-import { bindDblClickRowEdit } from "./common/ui-helpers.js?v=app-20261014-history-batch-05";
-import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261014-history-batch-05";
-import { generateItemId, getNextItemGroupCode } from "./item-manage/item-utils.js?v=app-20261014-history-batch-05";
-import { loadItemsFromJson } from "./item-manage/item-data-loader.js?v=app-20261014-history-batch-05";
-import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261014-history-batch-05";
+} from "./db.js?v=app-20261014-history-modal-06";
+import { createItemGroupManager } from "./item-manage/item-group-manager.js?v=app-20261014-history-modal-06";
+import { createItemListManager } from "./item-manage/item-list-manager.js?v=app-20261014-history-modal-06";
+import { createItemFormManager } from "./item-manage/item-form-manager.js?v=app-20261014-history-modal-06";
+import { createItemActionsManager } from "./item-manage/item-actions-manager.js?v=app-20261014-history-modal-06";
+import { createModalManager } from "./common/modal-manager.js?v=app-20261014-history-modal-06";
+import { bindDblClickRowEdit } from "./common/ui-helpers.js?v=app-20261014-history-modal-06";
+import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261014-history-modal-06";
+import { generateItemId, getNextItemGroupCode } from "./item-manage/item-utils.js?v=app-20261014-history-modal-06";
+import { loadItemsFromJson } from "./item-manage/item-data-loader.js?v=app-20261014-history-modal-06";
+import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261014-history-modal-06";
 
 bootstrapPageCommon({
   page: "item",
