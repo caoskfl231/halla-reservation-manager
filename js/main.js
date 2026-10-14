@@ -1,13 +1,13 @@
-import { buildSalesCustomerBalances } from './common/sales-customer-balance.js?v=app-20261014-history-labels-08';
-import { runHomeJob } from './home-worker-client.js?v=app-20261014-history-labels-08';
-import { createHomePager } from './home-pagination.js?v=app-20261014-history-labels-08';
-import { getTransactions, updateTransaction, getAllLedgerTx, getCashflowTypes, getCashflowItems, getCustomers, exportHallapaDbSnapshot, restoreHallapaDbSnapshot } from './db.js?v=app-20261014-history-labels-08';
-import { initDateFilter } from './common/date-filter.js?v=app-20261014-history-labels-08';
-import { applyAmountColoring, openModalOverlay, closeModalOverlay, registerModalEscClose, attachSearchInput } from './common/ui-helpers.js?v=app-20261014-history-labels-08';
-import { formatWeekdayLabel, getQuickRange, includesIgnoreCase } from './common/util.js?v=app-20261014-history-labels-08';
-import { initDateWeekdayAuto } from './common/date-weekday-box.js?v=app-20261014-history-labels-08';
-import { installDbAutoRefresh } from './common/app-events.js?v=app-20261014-history-labels-08';
-import { bootstrapPageCommon } from './common/page-bootstrap.js?v=app-20261014-history-labels-08';
+import { buildSalesCustomerBalances } from './common/sales-customer-balance.js?v=app-20261014-remove-history-09';
+import { runHomeJob } from './home-worker-client.js?v=app-20261014-remove-history-09';
+import { createHomePager } from './home-pagination.js?v=app-20261014-remove-history-09';
+import { getTransactions, updateTransaction, getAllLedgerTx, getCashflowTypes, getCashflowItems, getCustomers, exportHallapaDbSnapshot, restoreHallapaDbSnapshot } from './db.js?v=app-20261014-remove-history-09';
+import { initDateFilter } from './common/date-filter.js?v=app-20261014-remove-history-09';
+import { applyAmountColoring, openModalOverlay, closeModalOverlay, registerModalEscClose, attachSearchInput } from './common/ui-helpers.js?v=app-20261014-remove-history-09';
+import { formatWeekdayLabel, getQuickRange, includesIgnoreCase } from './common/util.js?v=app-20261014-remove-history-09';
+import { initDateWeekdayAuto } from './common/date-weekday-box.js?v=app-20261014-remove-history-09';
+import { installDbAutoRefresh } from './common/app-events.js?v=app-20261014-remove-history-09';
+import { bootstrapPageCommon } from './common/page-bootstrap.js?v=app-20261014-remove-history-09';
 
 const btnDbBackup = document.getElementById('btn-home-db-backup');
 const btnDbRestore = document.getElementById('btn-home-db-restore');

@@ -1,10 +1,10 @@
-import * as cache from './db-cloud-cache.js?v=app-20261014-history-labels-08';
-import { rpc, requireLedgerSession, friendlyError, signOut, sessionIdentity, sessionRejected } from './cloud-session.js?v=app-20261014-history-labels-08';
-import { loadSyncedLedger, clearReadCache, saveConfirmedLedger } from './ledger-read-cache.js?v=app-20261014-history-labels-08';
-import { emitAppEvent } from './common/app-events.js?v=app-20261014-history-labels-08';
-import { changedRecords, recordToken, versionMap } from './cloud-records.js?v=app-20261014-history-labels-08';
-import { installBackupPanel } from './ledger-backups.js?v=app-20261014-history-labels-08';
-import { uploadSnapshot } from './cloud-import.js?v=app-20261014-history-labels-08';
+import * as cache from './db-cloud-cache.js?v=app-20261014-remove-history-09';
+import { rpc, requireLedgerSession, friendlyError, signOut, sessionIdentity, sessionRejected } from './cloud-session.js?v=app-20261014-remove-history-09';
+import { loadSyncedLedger, clearReadCache, saveConfirmedLedger } from './ledger-read-cache.js?v=app-20261014-remove-history-09';
+import { emitAppEvent } from './common/app-events.js?v=app-20261014-remove-history-09';
+import { changedRecords, recordToken, versionMap } from './cloud-records.js?v=app-20261014-remove-history-09';
+import { installBackupPanel } from './ledger-backups.js?v=app-20261014-remove-history-09';
+import { uploadSnapshot } from './cloud-import.js?v=app-20261014-remove-history-09';
 let state = await requireLedgerSession(async () => {
   try { return await loadSyncedLedger(rpc, sessionIdentity()); }
   catch (error) { if (sessionRejected(error)) await clearReadCache(); throw error; }
@@ -255,7 +255,7 @@ if (state.revision === 0 && state.role === 'owner') {
     try {
       if (!indexedDB.databases) throw new Error('이 브라우저에서는 전체백업 파일을 선택해 주세요.');
       if (!(await indexedDB.databases()).some(db => db.name === 'hallapa_db')) throw new Error('이 기기에 기존 장부자료가 없습니다. 전체백업 파일을 선택해 주세요.');
-      const local = await import('./db-local.js?v=app-20261014-history-labels-08'); await upload(await local.exportHallapaDbSnapshot());
+      const local = await import('./db-local.js?v=app-20261014-remove-history-09'); await upload(await local.exportHallapaDbSnapshot());
     } catch (error) { window.alert(friendlyError(error)); }
   };
 }

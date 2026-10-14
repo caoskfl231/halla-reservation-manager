@@ -7,13 +7,13 @@ import {
   getCashflowTypes,
   getCashflowItems,
   getAllLedgerTx,
-} from './db.js?v=app-20261014-history-labels-08';
-import { formatMoney, includesIgnoreCase, todayYMD, formatWeekdayLabel } from './common/util.js?v=app-20261014-history-labels-08';
-import { initDateFilter } from './common/date-filter.js?v=app-20261014-history-labels-08';
-import { openModalOverlay, closeModalOverlay, registerModalEscClose, applyAmountColoring, bindDblClickRowConfirm } from './common/ui-helpers.js?v=app-20261014-history-labels-08';
-import { bootstrapPageCommon } from './common/page-bootstrap.js?v=app-20261014-history-labels-08';
-import { getStoredJson, setStoredJson } from './common/storage.js?v=app-20261014-history-labels-08';
-import { installDbAutoRefresh } from './common/app-events.js?v=app-20261014-history-labels-08';
+} from './db.js?v=app-20261014-remove-history-09';
+import { formatMoney, includesIgnoreCase, todayYMD, formatWeekdayLabel } from './common/util.js?v=app-20261014-remove-history-09';
+import { initDateFilter } from './common/date-filter.js?v=app-20261014-remove-history-09';
+import { openModalOverlay, closeModalOverlay, registerModalEscClose, applyAmountColoring, bindDblClickRowConfirm } from './common/ui-helpers.js?v=app-20261014-remove-history-09';
+import { bootstrapPageCommon } from './common/page-bootstrap.js?v=app-20261014-remove-history-09';
+import { getStoredJson, setStoredJson } from './common/storage.js?v=app-20261014-remove-history-09';
+import { installDbAutoRefresh } from './common/app-events.js?v=app-20261014-remove-history-09';
 
 bootstrapPageCommon({ page: 'transaction-report', todayYMD, formatWeekdayLabel });
 

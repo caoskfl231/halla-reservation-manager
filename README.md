@@ -59,7 +59,7 @@ GitHub Pages는 화면과 프로그램 파일을 제공하고, Supabase는 로�
 | `js/ledger-read-cache.js` | 사용자별 다운로드 캐시·변경분 동기화 |
 | `js/home-pagination.js` | 홈 거래내역을 100건씩 표시 |
 | `js/home-compute.js`, `js/home-worker.js`, `js/home-worker-client.js` | 홈 자료의 계산·정렬·필터 작업 |
-| `js/ledger-backups.js`, `js/ledger-history.js` | 자동백업·수정 및 삭제 기록 화면 |
+| `js/ledger-backups.js` | 자동백업 화면 |
 | `js/vendor/` | 외부 라이브러리와 라이선스 |
 | `data/` | 기본 코드·마스터 JSON 및 장부 형식 정의 |
 | `docs/` | 운영 안내·DB 설정 SQL·화면별 설명 |

@@ -1,4 +1,4 @@
-import { getSalesCustomerRemainingBalance } from './common/sales-customer-balance.js?v=app-20261014-history-labels-08';
+import { getSalesCustomerRemainingBalance } from './common/sales-customer-balance.js?v=app-20261014-remove-history-09';
 import {
   getTransactions,
   addTransaction,
@@ -16,16 +16,16 @@ import {
   deleteLedgerTxById,
   getCashflowItems,
   getCashflowTypes,
-} from "./db.js?v=app-20261014-history-labels-08";
-import { sortByKey } from "./common/sortTable.js?v=app-20261014-history-labels-08";
-import { applySupplierGroupFilter } from "./common/supplier-group-filter.js?v=app-20261014-history-labels-08";
+} from "./db.js?v=app-20261014-remove-history-09";
+import { sortByKey } from "./common/sortTable.js?v=app-20261014-remove-history-09";
+import { applySupplierGroupFilter } from "./common/supplier-group-filter.js?v=app-20261014-remove-history-09";
 import {
   getStoredJson,
   setStoredJson,
   getStoredString,
   setStoredString,
-} from "./common/storage.js?v=app-20261014-history-labels-08";
-import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261014-history-labels-08";
+} from "./common/storage.js?v=app-20261014-remove-history-09";
+import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261014-remove-history-09";
 import {
   openModalOverlay,
   closeModalOverlay,
@@ -42,8 +42,8 @@ import {
   resetFieldsAndFocus,
   applyAmountColoring,
   createScrollToBottomOnce,
-} from "./common/ui-helpers.js?v=app-20261014-history-labels-08";
-import { createEntryTableManager } from "./common/entry-table-manager.js?v=app-20261014-history-labels-08";
+} from "./common/ui-helpers.js?v=app-20261014-remove-history-09";
+import { createEntryTableManager } from "./common/entry-table-manager.js?v=app-20261014-remove-history-09";
 import {
   todayYMD,
   formatWeekdayLabel,
@@ -55,34 +55,34 @@ import {
   stripCodePrefix,
   resolveDefaultCashflowNameByCode,
   buildLedgerMemoFields,
-} from "./common/util.js?v=app-20261014-history-labels-08";
-import { initDateFilter } from "./common/date-filter.js?v=app-20261014-history-labels-08";
-import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261014-history-labels-08";
-import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=app-20261014-history-labels-08";
-import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261014-history-labels-08";
-import { openLedgerPicker } from "./common/ledger-picker.js?v=app-20261014-history-labels-08";
+} from "./common/util.js?v=app-20261014-remove-history-09";
+import { initDateFilter } from "./common/date-filter.js?v=app-20261014-remove-history-09";
+import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261014-remove-history-09";
+import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=app-20261014-remove-history-09";
+import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261014-remove-history-09";
+import { openLedgerPicker } from "./common/ledger-picker.js?v=app-20261014-remove-history-09";
 import {
   isLockedByPaymentLedger,
   hasLockedPaymentEntries,
   deleteLinkedLedgerTxIfAny,
-} from "./common/payment-ledger-helpers.js?v=app-20261014-history-labels-08";
+} from "./common/payment-ledger-helpers.js?v=app-20261014-remove-history-09";
 import {
   isPaymentOnlyTransaction,
   makeSummaryKeyForTransaction,
-} from "./common/transaction-summary-key.js?v=app-20261014-history-labels-08";
-import { loadCashflowLedgerOptionsIntoSelects } from "./common/cashflow-ledger-options.js?v=app-20261014-history-labels-08";
-import { resolveCashflowItemSelectionOrThrow } from "./common/cashflow-item-helpers.js?v=app-20261014-history-labels-08";
-import { saveCashflowLedgerLinkedPaymentRecord } from "./common/cashflow-payment-record.js?v=app-20261014-history-labels-08";
+} from "./common/transaction-summary-key.js?v=app-20261014-remove-history-09";
+import { loadCashflowLedgerOptionsIntoSelects } from "./common/cashflow-ledger-options.js?v=app-20261014-remove-history-09";
+import { resolveCashflowItemSelectionOrThrow } from "./common/cashflow-item-helpers.js?v=app-20261014-remove-history-09";
+import { saveCashflowLedgerLinkedPaymentRecord } from "./common/cashflow-payment-record.js?v=app-20261014-remove-history-09";
 import {
   bindExcelDropdown,
   exportTableToXlsx,
   ymdCompact,
-} from "./common/excel-export.js?v=app-20261014-history-labels-08";
+} from "./common/excel-export.js?v=app-20261014-remove-history-09";
 import {
   getActiveCustomersByType,
   parseNumberLike,
   confirmDuplicateBatchBeforeSave,
-} from "./common/transaction-shared.js?v=app-20261014-history-labels-08";
+} from "./common/transaction-shared.js?v=app-20261014-remove-history-09";
 
 bootstrapPageCommon({ page: "sales", todayYMD, formatWeekdayLabel });
 

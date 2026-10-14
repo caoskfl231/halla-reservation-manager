@@ -1,4 +1,4 @@
-import { computeJob } from './home-compute.js?v=app-20261014-history-labels-08';
+import { computeJob } from './home-compute.js?v=app-20261014-remove-history-09';
 let worker, next=0;
 const pending=new Map();
 function failWorker(error) {
@@ -12,7 +12,7 @@ export async function runHomeJob(job) {
     return computeJob(job);
   }
   if (!worker) {
-    worker=new Worker(new URL('./home-worker.js?v=app-20261014-history-labels-08',import.meta.url),{type:'module'});
+    worker=new Worker(new URL('./home-worker.js?v=app-20261014-remove-history-09',import.meta.url),{type:'module'});
     worker.onmessage=({data})=>{
       const entry=pending.get(data.id); if (!entry) return;
       pending.delete(data.id); clearTimeout(entry.timer);
