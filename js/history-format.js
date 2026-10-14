@@ -39,7 +39,7 @@ export function formatHistoryValue(key, value, store) {
   const numeric = typeof value==='number' || (typeof value==='string' && /^-?\d+(\.\d+)?$/.test(value));
   if (numeric && (money.has(key)||percent.has(key))) return number.format(Number(value))+(percent.has(key)?'%':'원');
   if (typeof value==='number') return /id|code|number|no|fingerprint/i.test(key)?String(value):number.format(value);
-  if (['status','flow','eventType','paymentMethod','method','type'].includes(key)) return values[value] || String(value);
+  if (['status','flow','eventType','paymentMethod','method','type','source'].includes(key)) return values[value] || String(value);
   return String(value);
 }
 function canonical(value) {

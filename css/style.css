@@ -3844,3 +3844,42 @@ body[data-mode="home"] .page-home .home-tx-card .table-wrapper {
  .ledger-history-overlay .history-field-changed .history-after { font-size:16px; }
  .ledger-history-overlay .history-intro, .ledger-history-overlay .history-restore-note { font-size:13px; }
 }
+
+/* Keep the reference card's title and actions visible, even for long histories. */
+body .ledger-history-overlay { align-items:center; padding:14px; overflow:hidden !important; }
+body .ledger-history-overlay .modal-dialog { margin:0 auto !important; overflow:visible !important; max-height:none !important; }
+body .ledger-history-overlay .history-panel { display:flex; flex-direction:column; min-height:0; max-height:calc(100dvh - 48px); overflow:hidden; padding:20px; }
+.ledger-history-overlay .history-top, .ledger-history-overlay .history-footer { flex-shrink:0; }
+.ledger-history-overlay .history-scroll { min-height:0; overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; padding-right:2px; }
+.ledger-history-overlay .history-footer { background:#fff; padding-top:10px; }
+.ledger-history-overlay .history-record-meta { font-size:12px; }
+.ledger-history-overlay .history-deleted-field { background:#fffbed; }
+.ledger-history-overlay .history-delete-state { vertical-align:middle; background:#fff6da; }
+.ledger-history-overlay .history-delete-badge { color:#926b11; font-weight:700; display:inline-block; background:#ffedb5; border-radius:8px; padding:7px 8px; }
+.ledger-history-overlay .history-record-kind { font-size:21px; }
+.ledger-history-overlay .history-record-icon { flex-basis:54px; width:54px; height:58px; font-size:32px; }
+.ledger-history-overlay .history-change-summary { font-size:14px; line-height:1.4; padding:10px 12px; margin:12px 0; }
+.ledger-history-overlay .history-compare-table { font-size:14px; }
+.ledger-history-overlay .history-compare-table th, .ledger-history-overlay .history-compare-table td { padding:8px; line-height:1.4; }
+.ledger-history-overlay .history-field-changed .history-after { font-size:16px; }
+.ledger-history-overlay .history-restore-note { font-size:12px; padding:10px; margin:12px 0 4px; }
+.ledger-history-overlay .history-filter { margin:10px 0; }
+.ledger-history-overlay .history-recover, .ledger-history-overlay .history-close { min-height:46px; font-size:16px; padding:10px; }
+@media(max-width:600px) {
+ body .ledger-history-overlay .history-panel { padding:14px; max-height:calc(100dvh - 40px); }
+ .ledger-history-overlay .modal-header { margin-bottom:8px; }
+ .ledger-history-overlay .modal-header h2 { font-size:20px; }
+ .ledger-history-overlay .history-intro { margin-bottom:8px; font-size:12px; gap:8px; }
+ .ledger-history-overlay .history-intro-badge { padding:5px 8px; }
+ .ledger-history-overlay .history-back { font-size:12px; min-height:28px; margin-bottom:6px; }
+ .ledger-history-overlay .history-record-header { padding:10px; gap:10px; }
+ .ledger-history-overlay .history-record-kind { font-size:18px; }
+ .ledger-history-overlay .history-record-name { font-size:14px; }
+ .ledger-history-overlay .history-record-icon { flex-basis:46px; width:46px; height:52px; font-size:28px; }
+ .ledger-history-overlay .history-record-meta { font-size:11px; }
+ .ledger-history-overlay .history-compare-table { font-size:13px; }
+ .ledger-history-overlay .history-compare-table th, .ledger-history-overlay .history-compare-table td { padding:7px 5px; }
+ .ledger-history-overlay .history-field-changed .history-after { font-size:14px; }
+ .ledger-history-overlay .history-change-summary { font-size:13px; }
+ .ledger-history-overlay .history-summary-icon { flex-basis:22px; width:22px; height:22px; }
+}

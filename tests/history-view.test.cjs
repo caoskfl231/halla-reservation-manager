@@ -29,3 +29,13 @@ test('deleted rows show deletion state and legacy responses never pretend to hav
  assert(walk(container).find(n=>n.className==='history-filter').hidden);
  v.renderHistoryComparison(container,{store:'items',action:'update',data:{price:100}});assert(walk(container).some(n=>n.textContent==='확인 불가'));
 });
+test('deleted transaction shows a compact summary and one deletion badge while retaining full details',async()=>{
+ const v=await view(),container=new Node('div');
+ const data={id:1000000000751,date:'2026-10-14',supplierName:'남원 추어탕',itemName:'상품',quantity:1,amount:3000,unit:'팩',memo:'',type:'입금',itemCode:'250133',source:'sales',taxType:'없음',batchKey:1791931237703};
+ v.renderHistoryComparison(container,{store:'transactions',action:'delete',data,after_data:null});
+ const nodes=walk(container),body=nodes.find(n=>n.tagName==='tbody');
+ assert(body.children.length<=6,'main comparison remains compact');
+ assert.equal(nodes.filter(n=>n.textContent==='삭제됨').length,1,'do not repeat deletion state in every row');
+ assert(nodes.some(n=>n.tagName==='dd' && n.textContent==='1000000000751'),'full code remains available in additional information');
+ assert(nodes.some(n=>n.tagName==='dd' && n.textContent==='매출'),'source is translated');
+});

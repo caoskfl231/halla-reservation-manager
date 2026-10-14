@@ -11,7 +11,7 @@ import {
   getAllLedgerTx,
   getCashflowItems,
   getCashflowTypes,
-} from "./db.js?v=app-20261014-history-style-03";
+} from "./db.js?v=app-20261014-history-compact-04";
 import {
   openModalOverlay,
   closeModalOverlay,
@@ -24,7 +24,7 @@ import {
   bindDblClickRowConfirm,
   bindClickRowSelect,
   createScrollToBottomOnce,
-} from "./common/ui-helpers.js?v=app-20261014-history-style-03";
+} from "./common/ui-helpers.js?v=app-20261014-history-compact-04";
 import {
   todayYMD,
   formatWeekdayLabel,
@@ -33,24 +33,24 @@ import {
   stripCodePrefix,
   resolveDefaultCashflowNameByCode,
   buildLedgerMemoFields,
-} from "./common/util.js?v=app-20261014-history-style-03";
-import { applySupplierGroupFilter } from "./common/supplier-group-filter.js?v=app-20261014-history-style-03";
-import { getStoredString, setStoredString } from "./common/storage.js?v=app-20261014-history-style-03";
-import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261014-history-style-03";
-import { confirmDuplicateSimplePaymentTransactionBeforeSave } from "./common/transaction-shared.js?v=app-20261014-history-style-03";
-import { loadCashflowLedgerOptionsIntoSelects } from "./common/cashflow-ledger-options.js?v=app-20261014-history-style-03";
-import { initDateFilter } from "./common/date-filter.js?v=app-20261014-history-style-03";
-import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261014-history-style-03";
-import { openLedgerPicker } from "./common/ledger-picker.js?v=app-20261014-history-style-03";
-import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261014-history-style-03";
-import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=app-20261014-history-style-03";
-import { sortByKey } from "./common/sortTable.js?v=app-20261014-history-style-03";
+} from "./common/util.js?v=app-20261014-history-compact-04";
+import { applySupplierGroupFilter } from "./common/supplier-group-filter.js?v=app-20261014-history-compact-04";
+import { getStoredString, setStoredString } from "./common/storage.js?v=app-20261014-history-compact-04";
+import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261014-history-compact-04";
+import { confirmDuplicateSimplePaymentTransactionBeforeSave } from "./common/transaction-shared.js?v=app-20261014-history-compact-04";
+import { loadCashflowLedgerOptionsIntoSelects } from "./common/cashflow-ledger-options.js?v=app-20261014-history-compact-04";
+import { initDateFilter } from "./common/date-filter.js?v=app-20261014-history-compact-04";
+import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261014-history-compact-04";
+import { openLedgerPicker } from "./common/ledger-picker.js?v=app-20261014-history-compact-04";
+import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261014-history-compact-04";
+import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=app-20261014-history-compact-04";
+import { sortByKey } from "./common/sortTable.js?v=app-20261014-history-compact-04";
 import {
   inferLedgerPaymentMethod,
   isLockedByPaymentLedger,
-} from "./common/payment-ledger-helpers.js?v=app-20261014-history-style-03";
-import { resolveCashflowItemSelectionOrThrow } from "./common/cashflow-item-helpers.js?v=app-20261014-history-style-03";
-import { saveCashflowLedgerLinkedPaymentRecord } from "./common/cashflow-payment-record.js?v=app-20261014-history-style-03";
+} from "./common/payment-ledger-helpers.js?v=app-20261014-history-compact-04";
+import { resolveCashflowItemSelectionOrThrow } from "./common/cashflow-item-helpers.js?v=app-20261014-history-compact-04";
+import { saveCashflowLedgerLinkedPaymentRecord } from "./common/cashflow-payment-record.js?v=app-20261014-history-compact-04";
 
 bootstrapPageCommon({ page: "expense", todayYMD, formatWeekdayLabel });
 
