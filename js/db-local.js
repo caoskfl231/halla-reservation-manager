@@ -1,5 +1,5 @@
-import { emitAppEvent } from './common/app-events.js?v=app-20261014-history-spacing-07';
-import { createIndexedDbAdapter } from './indexeddb-adapter.js?v=app-20261014-history-spacing-07';
+import { emitAppEvent } from './common/app-events.js?v=app-20261014-history-labels-08';
+import { createIndexedDbAdapter } from './indexeddb-adapter.js?v=app-20261014-history-labels-08';
 
 const adapter = createIndexedDbAdapter({ databaseName: 'hallapa_db', emitAppEvent });
 export const {

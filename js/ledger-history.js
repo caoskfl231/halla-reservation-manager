@@ -1,5 +1,5 @@
-import { rpc, friendlyError } from './cloud-session.js?v=app-20261014-history-spacing-07';
-import { historyComparison } from './history-format.js?v=app-20261014-history-spacing-07';
+import { rpc, friendlyError } from './cloud-session.js?v=app-20261014-history-labels-08';
+import { historyComparison } from './history-format.js?v=app-20261014-history-labels-08';
 const names = {transactions:'거래',customers:'거래처',items:'품목',ledger_tx:'입출금',users:'사용자',customer_types:'거래처 구분',customer_groups:'거래처 분류',item_groups:'품목 분류',cashflow_items:'장부',cashflow_types:'장부 구분',cashflow_groups:'장부 분류'};
 function element(tag, className, text) {
   const node=document.createElement(tag);
@@ -80,13 +80,13 @@ export function installHistoryPanel(owner) {
   document.body.append(overlay);
   const list=overlay.querySelector('.history-list'), status=overlay.querySelector('.history-status'), more=overlay.querySelector('.history-more');
   const detail=overlay.querySelector('.history-selected'), back=overlay.querySelector('.history-back');
-  const footerNote=overlay.querySelector('.history-footer-note');
+  const footerNote=overlay.querySelector('.history-footer-note'),title=overlay.querySelector('#ledger-history-title');
   const recovery=overlay.querySelector('.history-recover-holder'),scroll=overlay.querySelector('.history-scroll'),dateLabel=overlay.querySelector('.history-action-date');
   let busy=false,cursor=null;
   const close=()=>{if(!busy){overlay.classList.remove('is-open');open.focus();}};
   overlay.querySelector('.modal-close-x').onclick=close;
   overlay.querySelector('.history-close').onclick=close;
-  back.onclick=()=>{if(busy)return;dateLabel.hidden=true;footerNote.replaceChildren();recovery.replaceChildren();scroll.scrollTop=0;detail.replaceChildren();detail.hidden=true;back.hidden=true;list.hidden=false;more.hidden=!cursor?.hasMore;};
+  back.onclick=()=>{if(busy)return;title.textContent='수정·삭제 기록';dateLabel.hidden=true;footerNote.replaceChildren();recovery.replaceChildren();scroll.scrollTop=0;detail.replaceChildren();detail.hidden=true;back.hidden=true;list.hidden=false;more.hidden=!cursor?.hasMore;};
   overlay.onclick=e=>{if(e.target===overlay)close();};
   overlay.addEventListener('keydown',e=>{
     if(e.key==='Escape')close();
@@ -116,7 +116,9 @@ export function installHistoryPanel(owner) {
       inspect.onclick=()=>work(async()=>{
         const fetched=await rpc('halla_ledger_history_record',{p_id:entry.id});
         const preview=element('div','history-detail');
-        dateLabel.textContent=new Date(fetched.changed_at || entry.changed_at).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});dateLabel.hidden=false;
+        const deleted=entry.action==='delete';
+        title.textContent=deleted?'삭제 기록':'수정 기록';
+        dateLabel.textContent=(deleted?'삭제일자 · ':'수정일자 · ')+new Date(fetched.changed_at || entry.changed_at).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});dateLabel.hidden=false;
         const grouped=element('div','history-batch-list');grouped.hidden=true;
         const controllers=[];let offset=0,loaded=false;
         const groupMore=element('button','btn-secondary history-batch-more','묶음 내역 더 보기');groupMore.type='button';groupMore.hidden=true;
@@ -170,7 +172,7 @@ export function installHistoryPanel(owner) {
   more.onclick=load;
   open.onclick=()=>{
     if(busy)return;
-    list.replaceChildren();list.hidden=false;dateLabel.hidden=true;footerNote.replaceChildren();recovery.replaceChildren();scroll.scrollTop=0;overlay.scrollTop=0;detail.replaceChildren();detail.hidden=true;back.hidden=true;cursor=null;more.hidden=true;
+    list.replaceChildren();list.hidden=false;title.textContent='수정·삭제 기록';dateLabel.hidden=true;footerNote.replaceChildren();recovery.replaceChildren();scroll.scrollTop=0;overlay.scrollTop=0;detail.replaceChildren();detail.hidden=true;back.hidden=true;cursor=null;more.hidden=true;
     overlay.classList.add('is-open');overlay.querySelector('.modal-close-x').focus();load();
   };
 }

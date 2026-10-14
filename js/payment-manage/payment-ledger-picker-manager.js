@@ -1,4 +1,4 @@
-import { warningDialog } from "../common/dialogs.js?v=app-20261014-history-spacing-07";
+import { warningDialog } from "../common/dialogs.js?v=app-20261014-history-labels-08";
 
 export function applyPaymentLedgerSelection(options = {}) {
   const {

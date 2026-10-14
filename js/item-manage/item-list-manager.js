@@ -1,10 +1,10 @@
-import { formatMoney } from "../common/util.js?v=app-20261014-history-spacing-07";
-import { sortItems, getItemProfitValues } from "./item-utils.js?v=app-20261014-history-spacing-07";
+import { formatMoney } from "../common/util.js?v=app-20261014-history-labels-08";
+import { sortItems, getItemProfitValues } from "./item-utils.js?v=app-20261014-history-labels-08";
 import {
   attachSearchInput,
   enableTableArrowNavigation,
   bindClickRowSelect,
-} from "../common/ui-helpers.js?v=app-20261014-history-spacing-07";
+} from "../common/ui-helpers.js?v=app-20261014-history-labels-08";
 
 export function createItemListManager(options) {
   const {

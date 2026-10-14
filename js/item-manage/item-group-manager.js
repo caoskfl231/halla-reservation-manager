@@ -7,9 +7,9 @@ import {
   enableTableArrowNavigation,
   bindDblClickRowEdit,
   bindClickRowSelect,
-} from "../common/ui-helpers.js?v=app-20261014-history-spacing-07";
-import { confirmDialog, warningDialog } from "../common/dialogs.js?v=app-20261014-history-spacing-07";
-import { getNextItemGroupCode } from "./item-utils.js?v=app-20261014-history-spacing-07";
+} from "../common/ui-helpers.js?v=app-20261014-history-labels-08";
+import { confirmDialog, warningDialog } from "../common/dialogs.js?v=app-20261014-history-labels-08";
+import { getNextItemGroupCode } from "./item-utils.js?v=app-20261014-history-labels-08";
 
 export function createItemGroupManager(options) {
   const {

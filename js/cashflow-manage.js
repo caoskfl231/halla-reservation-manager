@@ -14,7 +14,7 @@ import {
   bulkReplaceCashflowGroups,
   getAllLedgerTx,
   putLedgerTx,
-} from "./db.js?v=app-20261014-history-spacing-07";
+} from "./db.js?v=app-20261014-history-labels-08";
 import {
   openModalOverlay,
   closeModalOverlay,
@@ -25,11 +25,11 @@ import {
   attachSearchInput,
   bindDblClickRowEdit,
   bindClickRowSelect,
-} from "./common/ui-helpers.js?v=app-20261014-history-spacing-07";
-import { sortByKey } from "./common/sortTable.js?v=app-20261014-history-spacing-07";
-import { formatMoney } from "./common/util.js?v=app-20261014-history-spacing-07";
-import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261014-history-spacing-07";
-import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261014-history-spacing-07";
+} from "./common/ui-helpers.js?v=app-20261014-history-labels-08";
+import { sortByKey } from "./common/sortTable.js?v=app-20261014-history-labels-08";
+import { formatMoney } from "./common/util.js?v=app-20261014-history-labels-08";
+import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261014-history-labels-08";
+import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261014-history-labels-08";
 
 // 숫자 포맷 헬퍼
 const fmt = (n) => formatMoney(n, "ko-KR");

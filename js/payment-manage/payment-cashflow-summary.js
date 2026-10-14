@@ -1,4 +1,4 @@
-import { bindClickRowSelect } from "../common/ui-helpers.js?v=app-20261014-history-spacing-07";
+import { bindClickRowSelect } from "../common/ui-helpers.js?v=app-20261014-history-labels-08";
 
 let currentCashflowSummarySelectRef = null;
 
