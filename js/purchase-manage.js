@@ -14,11 +14,11 @@ import {
   deleteLedgerTxById,
   getCashflowItems,
   getCashflowTypes,
-} from "./db.js?v=app-20261014-history-compact-04";
-import { sortByKey } from "./common/sortTable.js?v=app-20261014-history-compact-04";
-import { applySupplierGroupFilter } from "./common/supplier-group-filter.js?v=app-20261014-history-compact-04";
-import { getStoredString, setStoredString } from "./common/storage.js?v=app-20261014-history-compact-04";
-import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261014-history-compact-04";
+} from "./db.js?v=app-20261014-history-batch-05";
+import { sortByKey } from "./common/sortTable.js?v=app-20261014-history-batch-05";
+import { applySupplierGroupFilter } from "./common/supplier-group-filter.js?v=app-20261014-history-batch-05";
+import { getStoredString, setStoredString } from "./common/storage.js?v=app-20261014-history-batch-05";
+import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261014-history-batch-05";
 import {
   openModalOverlay,
   closeModalOverlay,
@@ -34,7 +34,7 @@ import {
   applyPickedSupplierSelectionToContext,
   resetFieldsAndFocus,
   createScrollToBottomOnce,
-} from "./common/ui-helpers.js?v=app-20261014-history-compact-04";
+} from "./common/ui-helpers.js?v=app-20261014-history-batch-05";
 import {
   todayYMD,
   formatWeekdayLabel,
@@ -46,36 +46,36 @@ import {
   resolveDefaultCashflowNameByCode,
   buildLedgerMemoFields,
   amountClassBySign,
-} from "./common/util.js?v=app-20261014-history-compact-04";
-import { initDateFilter } from "./common/date-filter.js?v=app-20261014-history-compact-04";
-import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261014-history-compact-04";
-import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=app-20261014-history-compact-04";
-import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261014-history-compact-04";
-import { openLedgerPicker } from "./common/ledger-picker.js?v=app-20261014-history-compact-04";
+} from "./common/util.js?v=app-20261014-history-batch-05";
+import { initDateFilter } from "./common/date-filter.js?v=app-20261014-history-batch-05";
+import { bootstrapPageCommon } from "./common/page-bootstrap.js?v=app-20261014-history-batch-05";
+import { ensureLedgerTxKeys } from "./common/ledger-tx-normalizer.js?v=app-20261014-history-batch-05";
+import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261014-history-batch-05";
+import { openLedgerPicker } from "./common/ledger-picker.js?v=app-20261014-history-batch-05";
 import {
   isLockedByPaymentLedger,
   hasLockedPaymentEntries,
   deleteLinkedLedgerTxIfAny,
-} from "./common/payment-ledger-helpers.js?v=app-20261014-history-compact-04";
+} from "./common/payment-ledger-helpers.js?v=app-20261014-history-batch-05";
 import {
   isPaymentOnlyTransaction,
   makeSummaryKeyForTransaction,
-} from "./common/transaction-summary-key.js?v=app-20261014-history-compact-04";
-import { loadCashflowLedgerOptionsIntoSelects } from "./common/cashflow-ledger-options.js?v=app-20261014-history-compact-04";
-import { resolveCashflowItemSelectionOrThrow } from "./common/cashflow-item-helpers.js?v=app-20261014-history-compact-04";
-import { saveCashflowLedgerLinkedPaymentRecord } from "./common/cashflow-payment-record.js?v=app-20261014-history-compact-04";
+} from "./common/transaction-summary-key.js?v=app-20261014-history-batch-05";
+import { loadCashflowLedgerOptionsIntoSelects } from "./common/cashflow-ledger-options.js?v=app-20261014-history-batch-05";
+import { resolveCashflowItemSelectionOrThrow } from "./common/cashflow-item-helpers.js?v=app-20261014-history-batch-05";
+import { saveCashflowLedgerLinkedPaymentRecord } from "./common/cashflow-payment-record.js?v=app-20261014-history-batch-05";
 import {
   bindExcelDropdown,
   requireXLSXOrAlert,
   ymdCompact,
   safeSheetName,
-} from "./common/excel-export.js?v=app-20261014-history-compact-04";
+} from "./common/excel-export.js?v=app-20261014-history-batch-05";
 import {
   getActiveCustomersByType,
   parseNumberLike,
   confirmDuplicateBatchBeforeSave,
-} from "./common/transaction-shared.js?v=app-20261014-history-compact-04";
-import { createEntryTableManager } from "./common/entry-table-manager.js?v=app-20261014-history-compact-04";
+} from "./common/transaction-shared.js?v=app-20261014-history-batch-05";
+import { createEntryTableManager } from "./common/entry-table-manager.js?v=app-20261014-history-batch-05";
 
 bootstrapPageCommon({ page: "purchase", todayYMD, formatWeekdayLabel });
 

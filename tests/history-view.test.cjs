@@ -1,6 +1,7 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),test=require('node:test');
 class Node {
  constructor(tag){this.tagName=tag;this.children=[];this.hidden=false;this.textContent='';}
+ setAttribute(k,v){this[k]=v;}
  prepend(...nodes){this.children.unshift(...nodes);}
  append(...nodes){this.children.push(...nodes);}
  replaceChildren(...nodes){this.children=nodes;}
@@ -26,7 +27,7 @@ test('actual history renderer filters changes, expands all fields and safely dis
 test('deleted rows show deletion state and legacy responses never pretend to have an after value',async()=>{
  const v=await view(),container=new Node('div');v.renderHistoryComparison(container,{store:'items',action:'delete',data:{price:0},after_data:null});
  assert(walk(container).some(n=>n.textContent==='삭제됨'));
- assert(walk(container).find(n=>n.className==='history-filter').hidden);
+ assert.equal(walk(container).find(n=>n.className==='history-filter').hidden,false);
  v.renderHistoryComparison(container,{store:'items',action:'update',data:{price:100}});assert(walk(container).some(n=>n.textContent==='확인 불가'));
 });
 test('deleted transaction shows a compact summary and one deletion badge while retaining full details',async()=>{
@@ -38,4 +39,13 @@ test('deleted transaction shows a compact summary and one deletion badge while r
  assert.equal(nodes.filter(n=>n.textContent==='삭제됨').length,1,'do not repeat deletion state in every row');
  assert(nodes.some(n=>n.tagName==='dd' && n.textContent==='1000000000751'),'full code remains available in additional information');
  assert(nodes.some(n=>n.tagName==='dd' && n.textContent==='매출'),'source is translated');
+});
+
+test('change summary is clickable and top filter exposes a group synchronization callback',async()=>{
+ const v=await view(),container=new Node('div');let clicked=0,lastFilter;
+ const api=v.renderHistoryComparison(container,{store:'items',action:'update',data:{price:21000,unit:'kg'},after_data:{price:22000,unit:'kg'}},{onSummaryClick:()=>clicked++,onFilterChange:checked=>lastFilter=checked});
+ const nodes=walk(container),summary=nodes.find(n=>n.className==='history-change-summary');assert.equal(summary.tagName,'button');summary.onclick();assert.equal(clicked,1);
+ const toggle=nodes.find(n=>n.tagName==='input');toggle.checked=false;toggle.onchange();assert.equal(lastFilter,false);
+ api.setChangedOnly(true);assert.equal(api.isChangedOnly(),true);
+ const headings=nodes.find(n=>n.tagName==='thead').children[0].children.map(n=>n.textContent);assert.deepEqual(headings,['항목','수정 전','수정 후']);
 });

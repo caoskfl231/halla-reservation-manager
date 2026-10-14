@@ -3883,3 +3883,16 @@ body .ledger-history-overlay .history-panel { display:flex; flex-direction:colum
  .ledger-history-overlay .history-change-summary { font-size:13px; }
  .ledger-history-overlay .history-summary-icon { flex-basis:22px; width:22px; height:22px; }
 }
+
+.ledger-history-overlay .history-action-date { margin:0 0 12px; color:#596780; font-size:13px; line-height:1.5; font-variant-numeric:tabular-nums; }
+.ledger-history-overlay button.history-change-summary { width:100%; border:0; text-align:left; border-radius:12px; white-space:normal; box-shadow:none; cursor:pointer; }
+.ledger-history-overlay button.history-change-summary:hover { background:#fff0bc; }
+.ledger-history-overlay button.history-change-summary:focus-visible { outline:3px solid #8fbaff; outline-offset:2px; }
+.ledger-history-overlay .history-summary-arrow { margin-left:auto; color:#93700b; font-size:22px; line-height:1; }
+.ledger-history-overlay .history-batch-list { margin-top:16px; border-top:1px solid #dce4ef; padding-top:12px; }
+.ledger-history-overlay .history-batch-title { margin:0 0 12px; font-size:15px; color:#53627b; }
+.ledger-history-overlay .history-batch-entry { border:1px solid #dce4ef; border-radius:12px; padding:12px; margin:0 0 12px; }
+.ledger-history-overlay .history-batch-entry h4 { font-size:16px; margin:0 0 5px; }
+.ledger-history-overlay .history-batch-name { font-size:14px; margin:0; overflow-wrap:anywhere; }
+.ledger-history-overlay .history-batch-entry .history-restore-note { display:none; }
+.ledger-history-overlay .history-batch-more { width:100%; min-height:44px; color:#0969da; background:#fff; border:1px solid #0969da; border-radius:10px; }
