@@ -1,4 +1,4 @@
-import { bindClickRowSelect, bindDblClickRowConfirm } from "../common/ui-helpers.js?v=app-20261014-history-modal-06";
+import { bindClickRowSelect, bindDblClickRowConfirm } from "../common/ui-helpers.js?v=app-20261014-history-spacing-07";
 
 export async function renderPaymentLedgerModalTable(options = {}) {
   const {

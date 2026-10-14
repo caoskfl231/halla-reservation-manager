@@ -1,5 +1,5 @@
-import { getAllLedgerTx, getTransactions } from "../db.js?v=app-20261014-history-modal-06";
-import { confirmDialog } from "./dialogs.js?v=app-20261014-history-modal-06";
+import { getAllLedgerTx, getTransactions } from "../db.js?v=app-20261014-history-spacing-07";
+import { confirmDialog } from "./dialogs.js?v=app-20261014-history-spacing-07";
 
 export function getActiveCustomersByType(allCustomers, typeLabel) {
   const isActiveStatus = (v) => String(v || "active") === "active";
