@@ -1,7 +1,7 @@
-import { ensureCommonPickerModals } from "./picker-modals.js?v=app-20261014-save-cache-01";
-import { initDateWeekdayAuto } from "./date-weekday-box.js?v=app-20261014-save-cache-01";
-import { bindModalCloseX, bindModalHeaderDrag } from "./ui-helpers.js?v=app-20261014-save-cache-01";
-import { installGlobalDialogs } from "./dialogs.js?v=app-20261014-save-cache-01";
+import { ensureCommonPickerModals } from "./picker-modals.js?v=app-20261014-history-02";
+import { initDateWeekdayAuto } from "./date-weekday-box.js?v=app-20261014-history-02";
+import { bindModalCloseX, bindModalHeaderDrag } from "./ui-helpers.js?v=app-20261014-history-02";
+import { installGlobalDialogs } from "./dialogs.js?v=app-20261014-history-02";
 
 export function bootstrapPageCommon({
   page,
