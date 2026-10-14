@@ -2,7 +2,7 @@ import {
   openModalOverlay,
   closeModalOverlay,
   registerModalEscClose,
-} from "./ui-helpers.js?v=app-20261014-history-02";
+} from "./ui-helpers.js?v=app-20261014-history-style-03";
 
 let __toastStack = null;
 

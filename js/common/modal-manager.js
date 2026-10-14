@@ -4,7 +4,7 @@ import {
   registerModalEscClose,
   createFormDirtyTracker,
   wrapDirtyClose,
-} from "./ui-helpers.js?v=app-20261014-history-02";
+} from "./ui-helpers.js?v=app-20261014-history-style-03";
 
 export function createModalManager({
   modalEl,

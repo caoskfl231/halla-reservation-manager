@@ -1,4 +1,4 @@
-import { warningDialog } from "../common/dialogs.js?v=app-20261014-history-02";
+import { warningDialog } from "../common/dialogs.js?v=app-20261014-history-style-03";
 
 export function applyPaymentLedgerSelection(options = {}) {
   const {

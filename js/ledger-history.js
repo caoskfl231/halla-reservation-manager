@@ -1,5 +1,5 @@
-import { rpc, friendlyError } from './cloud-session.js?v=app-20261014-history-02';
-import { historyComparison } from './history-format.js?v=app-20261014-history-02';
+import { rpc, friendlyError } from './cloud-session.js?v=app-20261014-history-style-03';
+import { historyComparison } from './history-format.js?v=app-20261014-history-style-03';
 const names = {transactions:'거래',customers:'거래처',items:'품목',ledger_tx:'입출금',users:'사용자',customer_types:'거래처 구분',customer_groups:'거래처 분류',item_groups:'품목 분류',cashflow_items:'장부',cashflow_types:'장부 구분',cashflow_groups:'장부 분류'};
 function element(tag, className, text) {
   const node=document.createElement(tag);
@@ -13,10 +13,10 @@ export function renderHistoryComparison(container, record) {
   const summary=element('p','history-change-summary',!comparison.available?'수정 전 내용만 확인할 수 있습니다.':
     comparison.deleted?'삭제된 기록입니다. 아래 내용으로 복구할 수 있습니다.':
     changed.length?`${changed[0].label}${changed.length>1?' 등':''} ${changed.length}개 항목 변경`:'표시된 항목의 변경 내용이 없습니다.');
-  container.append(summary);
+  summary.prepend(element('span','history-summary-icon','!'));container.append(summary);
   const toggleLabel=element('label','history-filter');
   const toggle=element('input');toggle.type='checkbox';toggle.checked=true;
-  toggleLabel.append(toggle,element('span',null,'바뀐 항목만 보기'));
+  toggleLabel.append(element('span',null,'바뀐 항목만 보기'),toggle,element('span','history-switch'));
   toggleLabel.hidden=!comparison.available || comparison.deleted;
   container.append(toggleLabel);
   const box=element('div','history-table-box'), table=element('table','history-compare-table');
@@ -28,35 +28,49 @@ export function renderHistoryComparison(container, record) {
   head.append(headings);table.append(head);
   const body=element('tbody');table.append(body);box.append(table);container.append(box);
   const unchanged=comparison.rows.filter(row=>!row.changed);
-  const basics=element('details','history-basic-info'), basicsTitle=element('summary',null,`기본 정보 ${unchanged.length}개 보기`);
+  const basicKeys=record.store==='items'?['avgPrice','shrinkPercent','spec','unit']:['date','supplierName','customerName','itemName','unit'];
+  const basicsRows=unchanged.filter(row=>basicKeys.includes(row.key));
+  const otherRows=unchanged.filter(row=>!basicKeys.includes(row.key));
+  const basics=element('details','history-basic-info'), basicsTitle=element('summary',null,`추가 정보 ${otherRows.length}개 보기`);
   const definitions=element('dl');
-  for(const row of unchanged)definitions.append(element('dt',null,row.label),element('dd',null,row.before));
+  for(const row of otherRows)definitions.append(element('dt',null,row.label),element('dd',null,row.before));
   basics.append(basicsTitle,definitions);container.append(basics);
+  function appendRow(row) {
+    const tr=element('tr',row.changed?'history-field-changed':'');
+    const th=element('th',null,row.label);th.scope='row';
+    tr.append(th,element('td','history-before',row.before),element('td','history-after',row.after));body.append(tr);
+  }
   function draw() {
     body.replaceChildren();
-    const rows=comparison.available && !comparison.deleted && toggle.checked?changed:comparison.rows;
-    for(const row of rows){
-      const tr=element('tr',row.changed?'history-field-changed':'');
-      const th=element('th',null,row.label);th.scope='row';
-      tr.append(th,element('td','history-before',row.before),element('td','history-after',row.after));body.append(tr);
-    }
-    if(!rows.length){const tr=element('tr'),td=element('td',null,'변경된 항목이 없습니다. 기본 정보를 확인해 주세요.');td.colSpan=3;tr.append(td);body.append(tr);}
-    basics.hidden=!comparison.available || comparison.deleted || !toggle.checked || !unchanged.length;
+    if(comparison.available && !comparison.deleted){
+      changed.forEach(appendRow);
+      const visibleBasics=toggle.checked?basicsRows:unchanged;
+      if(visibleBasics.length){
+        const divider=element('tr','history-basic-divider'),title=element('th',null,'기본 정보');title.colSpan=3;
+        divider.append(title);body.append(divider);visibleBasics.forEach(appendRow);
+      }
+      if(!changed.length && !visibleBasics.length){
+        const tr=element('tr'),td=element('td',null,'변경된 항목이 없습니다. 추가 정보를 확인해 주세요.');td.colSpan=3;tr.append(td);body.append(tr);
+      }
+    }else comparison.rows.forEach(appendRow);
+    basics.hidden=!comparison.available || comparison.deleted || !toggle.checked || !otherRows.length;
   }
   toggle.onchange=draw;draw();
-  container.append(element('p','history-restore-note','복구하면 선택한 기록 하나가 수정·삭제 전 내용으로 돌아갑니다. 여러 기록을 함께 변경했다면 관련 기록도 확인해 주세요.'));
+  const note=element('p','history-restore-note');note.append(element('span','history-note-icon','i'),element('span',null,'복구하면 선택한 기록의 수정·삭제 전 내용으로 돌아갑니다.'));container.append(note);
 }
 export function installHistoryPanel(owner) {
   const open=element('button','btn-secondary','수정·삭제 기록');open.type='button';
   document.getElementById('ledger-cloud-bar').append(open);
   const overlay=element('div','modal-overlay ledger-history-overlay');
-  overlay.innerHTML='<div class="modal-dialog modal-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="ledger-history-title"><section class="card history-panel"><div class="modal-header"><h2 id="ledger-history-title">수정·삭제 기록</h2><button type="button" class="modal-close-x" aria-label="닫기">×</button></div><p class="history-intro">기록을 선택하면 당시의 수정 전·후 내용과 바뀐 항목을 확인할 수 있습니다.</p><div class="history-list"></div><button type="button" class="btn-secondary history-more" hidden>이전 기록 더 보기</button><p class="history-status" role="status"></p><button type="button" class="btn-secondary history-close">닫기</button></section></div>';
+  overlay.innerHTML='<div class="modal-dialog modal-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="ledger-history-title"><section class="card history-panel"><div class="modal-header"><h2 id="ledger-history-title">수정·삭제 기록</h2><button type="button" class="modal-close-x" aria-label="닫기">×</button></div><p class="history-intro"><span class="history-intro-badge">수정 기록</span><span>기록 당시의 내용을 비교합니다.</span></p><button type="button" class="history-back" hidden>← 다른 기록 보기</button><div class="history-list"></div><div class="history-selected" hidden></div><button type="button" class="btn-secondary history-more" hidden>이전 기록 더 보기</button><p class="history-status" role="status"></p><button type="button" class="btn-secondary history-close">닫기</button></section></div>';
   document.body.append(overlay);
   const list=overlay.querySelector('.history-list'), status=overlay.querySelector('.history-status'), more=overlay.querySelector('.history-more');
+  const detail=overlay.querySelector('.history-selected'), back=overlay.querySelector('.history-back');
   let busy=false,cursor=null;
   const close=()=>{if(!busy){overlay.classList.remove('is-open');open.focus();}};
   overlay.querySelector('.modal-close-x').onclick=close;
   overlay.querySelector('.history-close').onclick=close;
+  back.onclick=()=>{if(busy)return;detail.replaceChildren();detail.hidden=true;back.hidden=true;list.hidden=false;more.hidden=!cursor?.hasMore;};
   overlay.onclick=e=>{if(e.target===overlay)close();};
   overlay.addEventListener('keydown',e=>{
     if(e.key==='Escape')close();
@@ -70,9 +84,9 @@ export function installHistoryPanel(owner) {
   const work=async fn=>{
     if(busy)return;
     busy=true;status.textContent='확인 중…';
-    overlay.querySelectorAll('.history-list button,.history-more').forEach(b=>b.disabled=true);
+    overlay.querySelectorAll('.history-list button,.history-selected button,.history-back,.history-more').forEach(b=>b.disabled=true);
     try{await fn();status.textContent='';}catch(e){status.textContent=friendlyError(e);}
-    finally{busy=false;overlay.querySelectorAll('.history-list button,.history-more').forEach(b=>b.disabled=false);}
+    finally{busy=false;overlay.querySelectorAll('.history-list button,.history-selected button,.history-back,.history-more').forEach(b=>b.disabled=false);}
   };
   const load=()=>work(async()=>{
     const rows=await rpc('halla_ledger_history',cursor?{p_before:cursor.changed_at,p_before_id:cursor.id}:{});
@@ -82,36 +96,38 @@ export function installHistoryPanel(owner) {
       row.append(element('p','history-entry-kind',`${kind} ${entry.action==='delete'?'삭제':'수정'}`),
         element('h3','history-entry-title',entry.label || `${kind} ${String(entry.record_key)}`),
         element('p','history-entry-meta',`${kind} 코드 ${String(entry.record_key)} · ${new Date(entry.changed_at).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'})}`));
-      const preview=element('div','history-detail');preview.hidden=true;
-      const inspect=element('button','btn-secondary history-inspect','변경 내용 확인');inspect.type='button';inspect.setAttribute('aria-expanded','false');
-      let selected=null,recover=null;
-      inspect.onclick=()=>{
-        if(selected){preview.hidden=!preview.hidden;recover&&(recover.hidden=preview.hidden);inspect.setAttribute('aria-expanded',String(!preview.hidden));inspect.textContent=preview.hidden?'변경 내용 확인':'내용 접기';return;}
-        work(async()=>{
-          const fetched=await rpc('halla_ledger_history_record',{p_id:entry.id});
-          renderHistoryComparison(preview,fetched);selected=fetched;preview.hidden=false;
-          inspect.textContent='내용 접기';inspect.setAttribute('aria-expanded','true');
-          if(recover)recover.hidden=false;
-        });
-      };
-      row.append(inspect,preview);
-      if(owner){
-        recover=element('button','btn-primary history-recover','이 기록만 복구');recover.type='button';recover.hidden=true;
-        recover.onclick=()=>{
-          if(busy||!selected||!window.confirm('확인한 이전 내용으로 이 기록 하나를 복구할까요? 현재 내용도 수정 기록에 보관됩니다.'))return;
-          work(async()=>{await rpc('halla_ledger_recover_record',{p_id:entry.id,p_expected_version:selected.expected_version});location.reload();});
-        };
-        row.append(recover);
-      }
+      const inspect=element('button','btn-secondary history-inspect','변경 내용 확인');inspect.type='button';
+      inspect.onclick=()=>work(async()=>{
+        const fetched=await rpc('halla_ledger_history_record',{p_id:entry.id});
+        const preview=element('div','history-detail');
+        renderHistoryComparison(preview,fetched);
+        const header=element('div','history-record-header'), icon=element('span','history-record-icon',entry.store_name==='items'?'🥩':entry.store_name==='customers'?'🏪':'📒');
+        const info=element('div','history-record-info');
+        info.append(element('h3','history-record-kind',`${kind} ${entry.action==='delete'?'삭제':'수정'}`),
+          element('p','history-record-name',entry.label || `${kind} ${String(entry.record_key)}`),
+          element('p','history-record-meta',`${kind} 코드 ${String(entry.record_key)} · ${new Date(entry.changed_at).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'})}`));
+        header.append(icon,info);detail.replaceChildren(header,preview);
+        if(owner){
+          const recover=element('button','btn-primary history-recover','이 기록만 복구');recover.type='button';
+          recover.onclick=()=>{
+            if(busy||!window.confirm('확인한 이전 내용으로 이 기록 하나를 복구할까요? 현재 내용도 수정 기록에 보관됩니다. 여러 기록을 함께 변경했다면 관련 기록도 확인해 주세요.'))return;
+            work(async()=>{await rpc('halla_ledger_recover_record',{p_id:entry.id,p_expected_version:fetched.expected_version});location.reload();});
+          };
+          detail.append(recover);
+        }
+        list.hidden=true;more.hidden=true;detail.hidden=false;back.hidden=false;
+        overlay.querySelector('.modal-dialog').scrollTop=0;
+      });
+      row.append(inspect);
       list.append(row);
     }
     if(!rows.length&&!cursor)list.textContent='아직 수정·삭제 기록이 없습니다. 이 기능 적용 후 변경한 내용부터 보관됩니다.';
-    cursor=rows.at(-1)||cursor;more.hidden=rows.length<50;
+    cursor=rows.at(-1)||cursor;if(cursor)cursor.hasMore=rows.length>=50;more.hidden=rows.length<50;
   });
   more.onclick=load;
   open.onclick=()=>{
     if(busy)return;
-    list.replaceChildren();cursor=null;more.hidden=true;
+    list.replaceChildren();list.hidden=false;detail.replaceChildren();detail.hidden=true;back.hidden=true;cursor=null;more.hidden=true;
     overlay.classList.add('is-open');overlay.querySelector('.modal-close-x').focus();load();
   };
 }
