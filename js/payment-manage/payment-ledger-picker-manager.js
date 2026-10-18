@@ -1,4 +1,4 @@
-import { warningDialog } from "../common/dialogs.js?v=app-20261014-remove-history-09";
+import { warningDialog } from "../common/dialogs.js?v=app-20261018-working-rows-01";
 
 export function applyPaymentLedgerSelection(options = {}) {
   const {

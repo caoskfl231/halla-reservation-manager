@@ -1,10 +1,10 @@
-import { getCustomers, getTransactions, addCustomer, updateCustomer, deleteCustomer, bulkInsertCustomers, bulkReplaceCustomerTypes, bulkReplaceCustomerGroups, getCustomerTypes, addCustomerType, updateCustomerType, deleteCustomerType, getCustomerGroups, addCustomerGroup, updateCustomerGroup, deleteCustomerGroup, renameCustomerTypeNameEverywhere, renameCustomerGroupNameEverywhere } from './db.js?v=app-20261014-remove-history-09';
-import { installDbAutoRefresh } from './common/app-events.js?v=app-20261014-remove-history-09';
-import { sortByKey } from './common/sortTable.js?v=app-20261014-remove-history-09';
-import { getStoredJson, setStoredJson } from './common/storage.js?v=app-20261014-remove-history-09';
-import { openModalOverlay, closeModalOverlay, registerModalEscClose, createFormDirtyTracker, wrapDirtyClose, enableTableArrowNavigation, bindDblClickRowEdit, bindClickRowSelect, attachSearchInput } from './common/ui-helpers.js?v=app-20261014-remove-history-09';
-import { bootstrapPageCommon } from './common/page-bootstrap.js?v=app-20261014-remove-history-09';
-import { escapeHtml } from './common/util.js?v=app-20261014-remove-history-09';
+import { getCustomers, getTransactions, addCustomer, updateCustomer, deleteCustomer, bulkInsertCustomers, bulkReplaceCustomerTypes, bulkReplaceCustomerGroups, getCustomerTypes, addCustomerType, updateCustomerType, deleteCustomerType, getCustomerGroups, addCustomerGroup, updateCustomerGroup, deleteCustomerGroup, renameCustomerTypeNameEverywhere, renameCustomerGroupNameEverywhere } from './db.js?v=app-20261018-working-rows-01';
+import { installDbAutoRefresh } from './common/app-events.js?v=app-20261018-working-rows-01';
+import { sortByKey } from './common/sortTable.js?v=app-20261018-working-rows-01';
+import { getStoredJson, setStoredJson } from './common/storage.js?v=app-20261018-working-rows-01';
+import { openModalOverlay, closeModalOverlay, registerModalEscClose, createFormDirtyTracker, wrapDirtyClose, enableTableArrowNavigation, bindDblClickRowEdit, bindClickRowSelect, attachSearchInput } from './common/ui-helpers.js?v=app-20261018-working-rows-01';
+import { bootstrapPageCommon } from './common/page-bootstrap.js?v=app-20261018-working-rows-01';
+import { escapeHtml } from './common/util.js?v=app-20261018-working-rows-01';
 
 bootstrapPageCommon({
   page: 'customer',

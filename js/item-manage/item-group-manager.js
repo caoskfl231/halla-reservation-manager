@@ -7,9 +7,9 @@ import {
   enableTableArrowNavigation,
   bindDblClickRowEdit,
   bindClickRowSelect,
-} from "../common/ui-helpers.js?v=app-20261014-remove-history-09";
-import { confirmDialog, warningDialog } from "../common/dialogs.js?v=app-20261014-remove-history-09";
-import { getNextItemGroupCode } from "./item-utils.js?v=app-20261014-remove-history-09";
+} from "../common/ui-helpers.js?v=app-20261018-working-rows-01";
+import { confirmDialog, warningDialog } from "../common/dialogs.js?v=app-20261018-working-rows-01";
+import { getNextItemGroupCode } from "./item-utils.js?v=app-20261018-working-rows-01";
 
 export function createItemGroupManager(options) {
   const {

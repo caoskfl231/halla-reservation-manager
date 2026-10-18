@@ -43,7 +43,7 @@ async function initGlobalSearchIfEnabled() {
       : "";
   if (enabled !== "1") return;
 
-  const mod = await import("./global-search.js?v=app-20261014-remove-history-09");
+  const mod = await import("./global-search.js?v=app-20261018-working-rows-01");
   if (mod && typeof mod.initGlobalSearch === "function") {
     mod.initGlobalSearch();
   }

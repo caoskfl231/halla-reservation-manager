@@ -1,4 +1,4 @@
-import { bindClickRowSelect } from "../common/ui-helpers.js?v=app-20261014-remove-history-09";
+import { bindClickRowSelect } from "../common/ui-helpers.js?v=app-20261018-working-rows-01";
 
 let currentCashflowSummarySelectRef = null;
 

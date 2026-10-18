@@ -1,4 +1,4 @@
-import { rpc, friendlyError } from './cloud-session.js?v=app-20261014-remove-history-09';
+import { rpc, friendlyError } from './cloud-session.js?v=app-20261018-working-rows-01';
 
 export function installBackupPanel(restore, owner) {
   if (document.body.dataset.mode !== 'home') return;

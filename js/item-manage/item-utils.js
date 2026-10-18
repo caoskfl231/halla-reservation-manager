@@ -1,6 +1,6 @@
-import { sortByKey } from "../common/sortTable.js?v=app-20261014-remove-history-09";
-import { parseNumber } from "../common/util.js?v=app-20261014-remove-history-09";
-import { calcShrinkPrice, getCostBase } from "./price-utils.js?v=app-20261014-remove-history-09";
+import { sortByKey } from "../common/sortTable.js?v=app-20261018-working-rows-01";
+import { parseNumber } from "../common/util.js?v=app-20261018-working-rows-01";
+import { calcShrinkPrice, getCostBase } from "./price-utils.js?v=app-20261018-working-rows-01";
 
 export function generateItemId(existing) {
   const nums = (existing || [])
