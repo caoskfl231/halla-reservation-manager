@@ -14,7 +14,7 @@ import {
   bulkReplaceCashflowGroups,
   getAllLedgerTx,
   putLedgerTx,
-} from "./db.js?v=app-20261018-working-rows-01";
+} from "./db.js?v=app-20261018-working-mobile-02";
 import {
   openModalOverlay,
   closeModalOverlay,
@@ -25,11 +25,11 @@ import {
   attachSearchInput,
   bindDblClickRowEdit,
   bindClickRowSelect,
-} from "./common/ui-helpers.js?v=app-20261018-working-rows-01";
-import { sortByKey } from "./common/sortTable.js?v=app-20261018-working-rows-01";
-import { formatMoney } from "./common/util.js?v=app-20261018-working-rows-01";
-import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261018-working-rows-01";
-import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261018-working-rows-01";
+} from "./common/ui-helpers.js?v=app-20261018-working-mobile-02";
+import { sortByKey } from "./common/sortTable.js?v=app-20261018-working-mobile-02";
+import { formatMoney } from "./common/util.js?v=app-20261018-working-mobile-02";
+import { installDbAutoRefresh } from "./common/app-events.js?v=app-20261018-working-mobile-02";
+import { repairLedgerTxCashflowItemFieldsIfNeeded } from "./common/ledger-tx-cashflowitem-repair.js?v=app-20261018-working-mobile-02";
 
 // 숫자 포맷 헬퍼
 const fmt = (n) => formatMoney(n, "ko-KR");

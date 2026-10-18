@@ -1,4 +1,4 @@
-import { confirmDialog, warningDialog } from "../common/dialogs.js?v=app-20261018-working-rows-01";
+import { confirmDialog, warningDialog } from "../common/dialogs.js?v=app-20261018-working-mobile-02";
 
 export function createItemActionsManager(options = {}) {
   const {

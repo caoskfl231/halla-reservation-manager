@@ -2996,11 +2996,13 @@ body[data-mode="home"] .page-home .home-tx-card .table-wrapper {
   width: 100%;
 }
 
-/* 홈 > 운전자금: 장부현황처럼 항목 하나를 가로 한 줄로 표시 */
+/* 홈 > 운전자금: PC는 기존 가로 4칸, 모바일 배치는 mobile.css에서 재정의 */
 .page-home .home-working-status .home-summary-cards {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
   gap: 0.55rem;
+  overflow-x: auto;
+  padding-bottom: 0.15rem;
 }
 
 /* 홈 > 운전자금: 제목 오른쪽에 빠른 날짜 버튼(한 줄) */
@@ -3218,6 +3220,9 @@ body[data-mode="home"] .page-home .home-tx-card .table-wrapper {
 }
 
 @media (max-width: 720px) {
+  .page-home .home-working-status .home-summary-cards {
+    grid-template-columns: repeat(4, minmax(200px, 1fr));
+  }
   .page-home .home-ledger-status .home-summary-cards,
   .page-home .home-summary .home-summary-cards {
     grid-template-columns: 1fr;
