@@ -1,3 +1,4 @@
+import { mountCollectionConfirmation } from './collection-confirm.js?v=app-20261018-working-mobile-02';
 import { parseCommand, findCustomers, buildPreview } from './common/command-rules.js?v=app-20261018-working-mobile-02';
 const form = document.querySelector('#command-form');
 const input = document.querySelector('#command');
@@ -33,6 +34,7 @@ form.addEventListener('submit', async event => {
         if (command.intent === 'customer_lookup') { p.textContent = `선택한 거래처: ${customer.name} (${customer.id})`; return; }
         try {
           const preview = buildPreview(command, customer);
+          mountCollectionConfirmation(section, preview, () => request === generation);
           p.textContent = `수금 미리보기 · ${preview.date}${command.dateDefaulted ? ' (오늘 자동 적용)' : ''} · ${preview.supplierName} (${preview.supplierId}) · ${preview.payment.toLocaleString('ko-KR')}원 · ${preview.paymentMethod || '결제수단 미지정'} · 입금 장부/계좌 미선택 · 저장되지 않았습니다.`;
         } catch (error) { p.textContent = error.message; }
       });
