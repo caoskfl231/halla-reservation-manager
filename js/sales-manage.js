@@ -1,3 +1,4 @@
+import { consumeDraft, fillCollectionFields } from './common/collection-draft.js?v=app-20261018-working-mobile-02';
 import { getSalesCustomerRemainingBalance } from './common/sales-customer-balance.js?v=app-20261018-working-mobile-02';
 import {
   getTransactions,
@@ -6209,6 +6210,23 @@ async function init() {
   });
   await reloadPurchaseList();
   entryTableManager.bind();
+
+  try {
+    const draft = consumeDraft();
+    if (draft) {
+      const customer = suppliers.find(c => String(c.id) === draft.supplierId);
+      const accounts = await getCashflowItems();
+      const account = accounts.find(a => String(a.code) === draft.accountCode && String(a.status || 'active') === 'active');
+      if (!customer || !account) throw new Error('거래처 또는 입금 장부가 변경됐습니다. 업무명령에서 다시 선택해 주세요.');
+      currentSelectedSupplierId = customer.id;
+      currentSelectedSupplierGroupName = customer.group || '미분류';
+      await openPurchasePaymentModal();
+      fillCollectionFields(purchasePaymentModal, draft);
+      syncSalesPaymentAccountEnablement();
+      purchasePaymentDateInput?.dispatchEvent(new Event('change', { bubbles: true }));
+      purchasePaymentAmountInput?.focus();
+    }
+  } catch (error) { alert(error.message || '수금 입력창을 준비하지 못했습니다.'); }
 
   installDbAutoRefresh({
     refresh: async () => {

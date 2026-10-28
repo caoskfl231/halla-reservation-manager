@@ -1,3 +1,4 @@
+import { storeDraft } from './common/collection-draft.js?v=app-20261018-working-mobile-02';
 import { inspectCollection, createCollectionWorkflow } from './common/collection-workflow.js?v=app-20261018-working-mobile-02';
 import { readSnapshot } from './collection-read.js?v=app-20261018-working-mobile-02';
 export async function mountCollectionConfirmation(section, draft, isCurrent) {
@@ -26,10 +27,11 @@ export async function mountCollectionConfirmation(section, draft, isCurrent) {
     const button=document.createElement('button');button.type='button';button.textContent='최종 확인 테스트 (저장 안 함)';button.disabled=true;result.append(button);
     check.addEventListener('change',()=>{button.disabled=!check.checked;});
     const submit=createCollectionWorkflow({readSnapshot,enabled:false});
+    button.textContent='수금 입력창 열기 (저장 안 함)';
     button.addEventListener('click',async()=>{
      if(!isCurrent() || request!==version)return;
      button.disabled=true;check.disabled=true;select.disabled=true;
-     try {const response=await submit(working,check.checked);if(!isCurrent() || !section.isConnected)return;message.textContent=response.simulated?'최종 검증 완료 · 실제 수금은 저장하지 않았습니다.':'저장 완료';button.remove();}
+     try {const response=await submit(working,check.checked);if(!isCurrent() || !section.isConnected)return;storeDraft(response.checked);location.assign('sales-manage.html');}
      catch(error){if(isCurrent() && section.isConnected)message.textContent=error.message+' 다시 장부를 선택해 확인해 주세요.';}
      finally {select.disabled=false;}
     });
