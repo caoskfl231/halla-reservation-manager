@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI 업무명령 - 할라 장부관리</title>
+<link rel="stylesheet" href="css/style.css?v=app-20261018-working-mobile-02">
+<link rel="stylesheet" href="css/mobile.css?v=app-20261018-working-mobile-02">
+<style>#command-form{display:grid;gap:12px;max-width:760px}#command{width:100%;box-sizing:border-box;padding:12px}#command-result{margin-top:24px;max-width:900px}#command-result button{display:block;margin:8px 0;white-space:normal;text-align:left}#command-result section{padding:16px;border:1px solid #ccc;border-radius:8px}</style>
+</head>
+<body data-title="AI 업무명령">
+<div id="global-nav-include"><!-- navigation:start -->
+<!-- 공통 네비게이션: hallapa/common/nav.html -->
+<header class="top-bar">
+  <h1 id="global-page-title">AI 업무명령</h1>
+  <div class="global-search-container" aria-label="검색">
+    <span class="search-wrapper global-search-wrapper">
+      <input
+        type="text"
+        id="global-search-input"
+        placeholder="검색"
+        class="customer-search-input"
+        autocomplete="off"
+      />
+      <span class="search-icon" aria-hidden="true"></span>
+    </span>
+  </div>
+  <nav>
+    <a href="index.html?v=app-20261018-working-mobile-02">홈</a>
+    <a href="customer-manage.html?v=app-20261018-working-mobile-02">거래처 관리</a>
+    <a href="item-manage.html?v=app-20261018-working-mobile-02">품목 관리</a>
+    <a href="sales-manage.html?v=app-20261018-working-mobile-02">매출 관리</a>
+    <a href="purchase-manage.html?v=app-20261018-working-mobile-02">매입 관리</a>
+    <a href="expense-manage.html?v=app-20261018-working-mobile-02">지출 관리</a>
+    <a href="payment-manage.html?v=app-20261018-working-mobile-02">결제 관리</a>
+    <a href="cashflow-manage.html?v=app-20261018-working-mobile-02">장부관리</a>
+    <a href="transaction-report.html?v=app-20261018-working-mobile-02">거래 조회</a>
+    <a href="work-command.html?v=app-20261018-working-mobile-02">AI 업무명령</a>
+  </nav>
+</header>
+<!-- navigation:end --></div>
+<main class="page">
+<h2>AI 업무명령 · 규칙 기반</h2>
+<p>AI API 사용료 없이 정해진 문장을 분석합니다. 현재는 조회와 미리보기만 제공하며 수금 내역을 저장하지 않습니다.</p>
+<form id="command-form">
+<label for="command">업무명령</label>
+<input id="command" maxlength="300" autocomplete="off" placeholder="오늘 연경 30만원 이체 수금" aria-describedby="command-help" required>
+<p id="command-help">예: 오늘 연경 30만원 이체 수금 / 2026-10-28 연경 300,000원 현금 수금 / 거래처 연경 조회<br>날짜 생략 시 한국 시간 기준 오늘을 적용합니다. 거래처는 조회 결과에서 직접 선택합니다.</p>
+<button type="submit">분석·조회</button>
+</form>
+<div id="command-result" role="status" aria-live="polite"></div>
+</main>
+<script type="module">import {loadGlobalNav} from './js/common/nav-include.js?v=app-20261018-working-mobile-02';loadGlobalNav();</script>
+<script type="module" src="js/work-command.js?v=app-20261018-working-mobile-02"></script>
+</body></html>
