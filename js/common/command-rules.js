@@ -16,10 +16,18 @@ export function parseCommand(input, today = seoulToday()) {
   const lookup = text.match(/^거래처\s+(.+?)\s+조회$/u);
   if (lookup) return { ok:true, intent:'customer_lookup', customerQuery:lookup[1] };
   // Explicit grammar prevents partial interpretation of compound or negated commands.
-  const match = text.match(/^(?:(오늘|어제|\d{4}-\d{2}-\d{2})\s+)?(.+?)\s+([\d,]+(?:\.\d+)?)(만)?원?\s+(?:(현금|이체|계좌이체|카드)\s+)?수금(?:\s*미리보기)?$/u);
-  if (!match) return fail('예: 오늘 연경 30만원 이체 수금 / 거래처 연경 조회');
+  let match = text.match(/^(?:(오늘|어제|\d{4}-\d{2}-\d{2})\s+)?(.+?)\s+([\d,]+(?:\.\d+)?)(만)?원?\s+(?:(현금|이체|계좌이체|카드)\s*)?수금(?:\s*미리보기)?$/u);
+  // Also accept the customer's natural shorthand, with explicit anchors.
+  if (!match) {
+    const alternate = text.match(/^(?:(오늘|어제|\d{4}-\d{2}-\d{2})\s+)?(.+?)\s+(현금|이체|계좌이체|카드)\s*(?:수금|결제)\s+([\d,]+(?:\.\d+)?)(만)?원?$/u);
+    if (alternate) match = [alternate[0], alternate[1], alternate[2], alternate[4], alternate[5], alternate[3]];
+  }
+  if (!match) {
+    match = text.match(/^(?:(오늘|어제|\d{4}-\d{2}-\d{2})\s+)?(.+?)\s+([\d,]+(?:\.\d+)?)(만)?원?\s+(현금|이체|계좌이체|카드)\s*결제$/u);
+  }
+  if (!match) return fail('입력 예: 연경 카드수금 20만 / 연경 20만원 카드 수금 / 거래처 연경 조회');
   const [, dateToken, customerQuery, number, man, method] = match;
-  if (/수금|지불|삭제|취소|말고|하지|등록|원|[;\n]/u.test(customerQuery)) return fail('한 번에 한 거래처의 수금만 입력해 주세요.');
+  if (/수금|결제|지불|삭제|취소|말고|하지|등록|원|\d+(?:만|원)|[;\n]/u.test(customerQuery)) return fail('한 번에 한 거래처의 수금만 입력해 주세요.');
   if (!/^(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d+)?$/.test(number)) return fail('금액의 쉼표 위치를 확인해 주세요.');
   const amount = Number(number.replaceAll(',', '')) * (man ? 10000 : 1);
   if (!Number.isSafeInteger(amount) || amount <= 0) return fail('금액은 1원 이상의 정수여야 합니다.');

@@ -32,3 +32,10 @@ test('command page has no write/model dependency', () => {
  assert.match(source,/getCustomers/);
  assert.match(source,/request !== generation/);
 });
+test('accept shorthand payment order while rejecting compound commands',async()=>{
+ const r=await rules;
+ for(const text of ['연경 카드수금 20만','연경 카드 수금 20만원','연경 20만 카드결제','연경 20만원 카드수금','오늘 연경 카드결제 200,000원']){
+  const parsed=r.parseCommand(text,'2026-10-28');assert.equal(parsed.ok,true,text);assert.equal(parsed.customerQuery,'연경');assert.equal(parsed.amount,200000);assert.equal(parsed.paymentMethod,'카드');
+ }
+ for(const text of ['연경 20만 카드수금 30만','연경 카드수금 20만 취소','연경 카드수금 -20만','연경 카드수금 20만 현금수금 10만'])assert.equal(r.parseCommand(text).ok,false,text);
+});
