@@ -14,7 +14,7 @@ import {
   renameItemGroupNameInItems,
 } from "./db.js?v=app-20261018-working-mobile-02";
 import { createItemGroupManager } from "./item-manage/item-group-manager.js?v=app-20261018-working-mobile-02";
-import { createItemListManager } from "./item-manage/item-list-manager.js?v=app-20261018-working-mobile-02";
+import { createItemListManager } from "./item-manage/item-list-manager.js?v=ledger-price-source-01";
 import { createItemFormManager } from "./item-manage/item-form-manager.js?v=app-20261018-working-mobile-02";
 import { createItemActionsManager } from "./item-manage/item-actions-manager.js?v=app-20261018-working-mobile-02";
 import { createModalManager } from "./common/modal-manager.js?v=app-20261018-working-mobile-02";
@@ -151,6 +151,7 @@ const itemListManager = createItemListManager({
   tableHeaderEl: tableHeader,
   searchInput,
   getItems,
+  getTransactions,
   getItemGroups,
   onSelectItem: (item) => itemFormManager?.loadToForm(item),
 });
