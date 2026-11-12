@@ -1205,90 +1205,6 @@ async function recomputeItemAveragePrice(itemId) {
   if (itemId) await recomputeItemAveragePrices([itemId]);
 }
 
-// 매입에서 사용된 최종 단가를 품목 마스터(품목관리)에도 반영한다.
-// - purchase.itemId 가 있는 경우에만 동작
-// - 단가가 0 이하이거나 기존 값과 동일하면 갱신하지 않음
-// - 단가가 바뀌면 감량가/소매가/납품가도 현재 감량율·마진율을 기준으로 다시 계산한다.
-async function applyPurchasePriceToItemMaster(purchase, averagePrices) {
-  if (!purchase || !purchase.itemId) return;
-
-  const itemId = String(purchase.itemId);
-  const unitPrice = Number(purchase.unitPrice || 0);
-  if (!Number.isFinite(unitPrice) || unitPrice <= 0) return;
-
-  const idx = items.findIndex((it) => String(it.id) === itemId);
-  if (idx === -1) return;
-
-  const current = items[idx];
-  const currentPrice = Number(current.price ?? 0);
-  const purchaseShrinkPercentRaw =
-    purchase.shrinkPercent != null ? Number(purchase.shrinkPercent) : null;
-  const purchaseShrinkPriceRaw =
-    purchase.shrinkPrice != null ? Number(purchase.shrinkPrice) : null;
-
-  // 단가/감량값이 모두 동일하면 갱신하지 않는다.
-  // (단, purchase에 감량값이 들어온 경우에는 감량 반영을 위해 단가가 같아도 갱신할 수 있다.)
-  const hasIncomingShrink =
-    purchase.shrinkPercent != null || purchase.shrinkPrice != null;
-  if (currentPrice === unitPrice && !hasIncomingShrink && !averagePrices) return;
-
-  // purchase에서 감량율/감량가를 같이 저장하도록 확장했기 때문에,
-  // 저장된 값이 있으면 그것을 우선 반영하고, 없으면 기존 마스터 값을 유지한다.
-  let shrinkPercent = Number(current.shrinkPercent ?? 0) || 0;
-  if (purchaseShrinkPercentRaw != null && Number.isFinite(purchaseShrinkPercentRaw)) {
-    // 0은 유효한 값이므로 null/undefined만 제외
-    shrinkPercent = purchaseShrinkPercentRaw;
-  }
-
-  // 감량가: purchase에 명시값이 있으면 우선, 아니면 (단가, 감량율)로 계산
-  let shrinkPrice;
-  if (purchaseShrinkPriceRaw != null && Number.isFinite(purchaseShrinkPriceRaw) && purchaseShrinkPriceRaw > 0) {
-    shrinkPrice = Math.round(purchaseShrinkPriceRaw);
-  } else if (
-    Number.isFinite(shrinkPercent) &&
-    shrinkPercent > 0 &&
-    shrinkPercent < 100
-  ) {
-    const ratio = 1 - shrinkPercent / 100;
-    shrinkPrice = Math.round(unitPrice / ratio);
-  } else {
-    shrinkPrice = unitPrice;
-  }
-
-  const costBase = shrinkPrice > 0 ? shrinkPrice : unitPrice;
-
-  const saleMargin = Number(current.saleMargin ?? 0) || 0;
-  const deliveryMargin = Number(current.deliveryMargin ?? 0) || 0;
-
-  const calcPriceFromMargin = (base, margin) => {
-    const b = Number(base || 0);
-    const m = Number(margin || 0);
-    if (!Number.isFinite(b) || b <= 0) return 0;
-    if (!Number.isFinite(m)) return b;
-    return Math.round(b * (1 + m / 100));
-  };
-
-  const salePrice = calcPriceFromMargin(costBase, saleMargin);
-  const deliveryPrice = calcPriceFromMargin(costBase, deliveryMargin);
-
-  const updated = {
-    ...current,
-    price: unitPrice,
-    shrinkPercent,
-    shrinkPrice,
-    salePrice,
-    deliveryPrice,
-  };
-
-  // 최근 매입가와 평균가를 한 번의 품목 저장에 반영한다.
-  const averages = averagePrices || calculatePurchaseAveragePrices(
-    await getTransactions(), new Set([itemId]),
-  );
-  updated.avgPrice = averages.get(itemId) ?? 0;
-  await updateItem(updated);
-  items[idx] = updated;
-}
-
 // 특정 거래처의 현재 잔액(기초잔액 + 모든 매입/결제 반영)을 계산한다.
 // 매입 금액은 잔액을 증가(+), 결제 금액은 감소(-)시키는 규칙을 사용한다.
 function getSupplierCurrentBalance(supplierId) {
@@ -4317,34 +4233,6 @@ function addEntryRowFromInputs() {
     memo: memoInput ? memoInput.value.trim() : "",
   };
 
-  // 매입 등록에서 입력한 단가/감량율/감량가를 품목 마스터(품목 관리)에 반영
-  // - itemId가 없으면 itemCode로 fallback
-  // - 단가가 0 이하인 경우는 업데이트하지 않음
-  (async () => {
-    try {
-      const itemId = String(row.itemId || row.itemCode || "").trim();
-      if (!itemId) return;
-      const price = Number(row.unitPrice || 0) || 0;
-      if (price <= 0) return;
-
-      const idx = items.findIndex((it) => String(it?.id || "") === itemId);
-      if (idx < 0) return;
-
-      const current = items[idx] || {};
-      const updated = {
-        ...current,
-        id: current.id,
-        price,
-        shrinkPercent: Number(row.shrinkPercent ?? 0) || 0,
-        shrinkPrice: Number(row.shrinkPrice ?? 0) || 0,
-      };
-      await updateItem(updated);
-      items[idx] = updated;
-    } catch {
-      // 품목 마스터 반영 실패는 입력 UX를 막지 않음
-    }
-  })();
-
   pendingEntries.push(row);
 
   // 신규행(draft) 초기화
@@ -4857,42 +4745,15 @@ function calculatePurchaseAveragePrices(transactions, itemIds) {
   }));
 }
 
-async function applySavedBatchPrices(rows) {
+async function refreshSavedPurchaseAverages(itemIds) {
   try {
-    // 같은 품목은 마지막 유효 단가를 사용하되, 앞 행의 명시된 감량값도 유지한다.
-    const latest = new Map();
-    for (const purchase of rows || []) {
-      const id = String(purchase?.itemId || "");
-      const price = Number(purchase?.unitPrice || 0);
-      if (!id || !Number.isFinite(price) || price <= 0) continue;
-      const previous = latest.get(id);
-      const next = { ...purchase };
-      for (const field of ["shrinkPercent", "shrinkPrice"]) {
-        if (next[field] == null && previous?.[field] != null) next[field] = previous[field];
-      }
-      latest.set(id, next);
-    }
-    // 변경이 없는 품목은 서버 쓰기를 하지 않는다.
-    const currentById = new Map(items.map(item => [String(item.id), item]));
-    for (const [id, purchase] of latest) {
-      const current = currentById.get(id);
-      const changedInBatch = (rows || []).some(row => String(row?.itemId || "") === id
-        && Number.isFinite(Number(row?.unitPrice)) && Number(row.unitPrice) > 0
-        && (Number(current?.price ?? 0) !== Number(row.unitPrice)
-          || row.shrinkPercent != null || row.shrinkPrice != null));
-      if (!current || !changedInBatch) latest.delete(id);
-    }
-    if (!latest.size) return;
-    const allTransactions = await getTransactions();
-    const averages = calculatePurchaseAveragePrices(allTransactions, new Set(latest.keys()));
-    for (const purchase of latest.values()) {
-      await applyPurchasePriceToItemMaster(purchase, averages);
-    }
+    await recomputeItemAveragePrices(itemIds.filter(Boolean));
   } catch (error) {
-    console.error("매입 품목가격 갱신 중 오류:", error);
-    alert('매입 전표는 모두 저장됐지만 품목의 최근 매입가 갱신에 실패했습니다. 전표를 다시 저장하지 말고 최신 불러오기로 확인해 주세요.');
+    console.error("매입 평균가 갱신 중 오류:", error);
+    alert("매입 전표는 저장됐지만 품목의 평균 매입가를 갱신하지 못했습니다.");
   }
 }
+
 async function guardTransactionSave(work) {
   if (transactionSaveBusy) return;
   transactionSaveBusy = true;
@@ -5067,6 +4928,7 @@ async function saveCurrentPurchaseImpl({ keepOpen = false } = {}) {
     };
 
     await updateTransaction(purchase);
+    await refreshSavedPurchaseAverages([existing?.itemId, purchase.itemId]);
     
   } else {
     // 신규 등록일 때는 엔터로 쌓인 여러 행을 한 번에 저장
@@ -5165,7 +5027,7 @@ async function saveCurrentPurchaseImpl({ keepOpen = false } = {}) {
 
   if (batchAdd.length || batchRemove.length) {
     await saveTransactionBatch({ add: batchAdd, remove: batchRemove });
-    await applySavedBatchPrices(batchAdd);
+    await refreshSavedPurchaseAverages(batchAdd.map(row => row.itemId));
   }
   // 매입 전표 저장과 동시에, 상단 인라인 지불 박스에
   // 통장/금액이 입력되어 있으면 같은 조건으로 지불 전표도 함께 저장한다.
@@ -6570,7 +6432,7 @@ async function saveImportRecordsImpl(options = {}) {
   }
 
   await saveTransactionBatch({ add: batchAdd });
-  await applySavedBatchPrices(batchAdd);
+  await refreshSavedPurchaseAverages(batchAdd.map(row => row.itemId));
   setImportStatus(`인식된 ${batchAdd.length}건을 저장했습니다.`);
   await reloadPurchaseList();
 
