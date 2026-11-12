@@ -6,12 +6,33 @@ import {
   bindClickRowSelect,
 } from "../common/ui-helpers.js?v=app-20261018-working-mobile-02";
 
+export function indexLatestPurchases(transactions) {
+  const latest = new Map();
+  for (const tx of transactions || []) {
+    if (tx?.category !== "purchase") continue;
+    const id = String(tx.itemId ?? "").trim() || String(tx.itemCode ?? "").trim();
+    const unit = String(tx.unit ?? "").trim().toLowerCase();
+    const date = String(tx.date ?? "");
+    const price = Number(tx.unitPrice);
+    if (!id || !unit || !/^\d{4}-\d{2}-\d{2}$/.test(date)
+      || !(Number(tx.quantity) > 0) || !Number.isFinite(price) || price <= 0) continue;
+    const key = JSON.stringify([id, unit]);
+    const previous = latest.get(key);
+    if (!previous || date > previous.date
+      || (date === previous.date && Number(tx.id) > Number(previous.id))) {
+      latest.set(key, tx);
+    }
+  }
+  return latest;
+}
+
 export function createItemListManager(options) {
   const {
     listEl,
     tableHeaderEl,
     searchInput,
     getItems,
+    getTransactions,
     getItemGroups,
     onSelectItem,
   } =
@@ -47,7 +68,7 @@ export function createItemListManager(options) {
     return (Math.round(n * 10) / 10).toFixed(1);
   }
 
-  function renderList(items, keyword) {
+  function renderList(items, keyword, latest) {
     if (!listEl) return;
     listEl.innerHTML = "";
     itemById = new Map();
@@ -125,7 +146,7 @@ export function createItemListManager(options) {
           <td class="col-name">${it.name || ""}</td>
           <td class="col-origin">${it.spec || ""}</td>
           <td class="col-unit">${it.unit || ""}</td>
-          <td class="col-price right">${formatMoney(it.price ?? 0)}</td>
+          <td class="col-price right">${Number(it.price) > 0 ? formatMoney(it.price) : "미등록"}<br><small data-purchase-price></small></td>
           <td class="col-shrink-percent right">${formatMoney(it.shrinkPercent ?? 0)}</td>
           <td class="col-shrink-price right">${formatMoney(it.shrinkPrice ?? 0)}</td>
           <td class="col-sale-margin right">${formatMoney(it.saleMargin ?? 0)}</td>
@@ -137,6 +158,12 @@ export function createItemListManager(options) {
           <td class="col-profit-price right">${formatMoney(deliveryProfit)}</td>
           <td class="col-delivery-profit-rate right">${formatRatePercent(deliveryProfitRateSales)}%</td>
         `;
+        const key = JSON.stringify([String(it.id ?? "").trim(), String(it.unit ?? "").trim().toLowerCase()]);
+        const tx = latest?.get(key);
+        const detail = tr.querySelector("[data-purchase-price]");
+        detail.textContent = tx
+          ? `최근 ${formatMoney(tx.unitPrice)}원 / ${tx.unit} · ${tx.date} · ${tx.supplierName || tx.supplierId || "거래처 미등록"}`
+          : latest ? "같은 단위의 매입 기록 없음" : "최근 매입 단가 조회 실패";
         listEl.appendChild(tr);
       });
   }
@@ -144,10 +171,16 @@ export function createItemListManager(options) {
   async function reloadList() {
     if (!getItems) return;
     await ensureGroupCodeMap();
-    const items = await getItems();
+    const [items, latest] = await Promise.all([
+      getItems(),
+      getTransactions().then(indexLatestPurchases).catch(error => {
+        console.error("최근 매입 단가 조회 실패:", error);
+        return null;
+      }),
+    ]);
     const keyword = searchInput ? searchInput.value.trim() : "";
     const sorted = sortItems(items, currentSort);
-    renderList(sorted, keyword);
+    renderList(sorted, keyword, latest);
     return items;
   }
 
