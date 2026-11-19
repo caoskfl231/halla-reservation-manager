@@ -15,6 +15,7 @@ function render(){
  values.forEach((v,i)=>{const td=document.createElement('td');td.textContent=v;if(i>=5)td.className='num';tr.append(td)});$('rows').append(tr)}
  $('count').textContent=shown.length+'건';$('total').textContent=money(total);$('empty').hidden=shown.length>0;$('status').textContent='식당에 저장된 매입내역을 조회했습니다.';
 }
+$('refresh').onclick=()=>location.reload();
 $('filters').onsubmit=e=>{e.preventDefault();render()};
 $('group').onchange=render;$('search').oninput=render;
 try{
