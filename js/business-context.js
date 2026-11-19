@@ -1,7 +1,7 @@
 const KEY='halla_business_v1';
 const url=new URL(location.href);
 let saved;try{saved=localStorage.getItem(KEY)}catch{}
-if(/\/restaurant-(margin|menus)\.html$/.test(location.pathname))url.searchParams.set('business','restaurant');
+if(/\/restaurant-(margin|menus|forecast)\.html$/.test(location.pathname))url.searchParams.set('business','restaurant');
 export const business=url.searchParams.get('business')==='restaurant'?'restaurant':url.searchParams.get('business')==='butcher'?'butcher':saved==='restaurant'?'restaurant':'butcher';
 export const businessName=business==='restaurant'?'할라정육식당관리':'할라정육점관리';
 try{localStorage.setItem(KEY,business)}catch{}
