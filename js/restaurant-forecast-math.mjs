@@ -10,3 +10,16 @@ export function forecast(rows,days,fixed){
  if(![revenue,materials,fees,contribution,monthlyRevenue,profit].every(Number.isFinite))throw Error('입력값이 너무 큽니다.');
  return {revenue,materials,fees,contribution,monthlyRevenue,monthlyMaterials:materials*days,monthlyFees:fees*days,profit,margin:monthlyRevenue?profit/monthlyRevenue*100:null,breakEven:contribution>0?fixed/(contribution/revenue):null};
 }
+
+export function directForecast(v,days,fixed){
+ const values=[v.sales,v.meatPurchase,v.vegPurchase,v.foodPurchase,v.monthlyFee];
+ if(!values.every(n=>Number.isFinite(n)&&n>=0))throw Error('매출·매입·수수료 금액은 0 이상으로 입력해 주세요.');
+ forecast([],days,fixed);
+ const monthlyMaterials=v.meatPurchase+v.vegPurchase+v.foodPurchase,contribution=v.sales-monthlyMaterials-v.monthlyFee,profit=contribution-fixed;
+ if(![monthlyMaterials,contribution,profit].every(Number.isFinite))throw Error('입력값이 너무 큽니다.');
+ return {revenue:v.sales/days,materials:monthlyMaterials/days,fees:v.monthlyFee/days,contribution:contribution/days,monthlyRevenue:v.sales,monthlyMaterials,monthlyFees:v.monthlyFee,profit,margin:v.sales?profit/v.sales*100:null,breakEven:contribution>0?fixed/(contribution/v.sales):null};
+}
+export function afterSavings(profit,savings){
+ if(!Number.isFinite(savings)||savings<0)throw Error('적금은 0 이상으로 입력해 주세요.');
+ return profit-savings;
+}
