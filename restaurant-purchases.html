@@ -11,6 +11,11 @@ h1{font-size:27px;margin:0;letter-spacing:-.7px}.heading-total{display:flex;alig
 .filters{display:grid;grid-template-columns:170px 170px 130px minmax(180px,1fr) 68px 104px;gap:10px;align-items:end}
 label{display:grid;gap:6px;min-width:0;font-size:13px;font-weight:600}
 input,select,button{font:inherit;height:38px;border:1px solid #bdcdc2;border-radius:5px;padding:7px 10px;min-width:0;width:100%;background:white;color:#20382d}
+/* Keep native date controls inside their grid cells on iOS Safari. */
+#filters > label{min-width:0;max-width:100%}
+#filters input[type="date"]{-webkit-appearance:none;appearance:none;display:block;box-sizing:border-box;width:100%;min-width:0;max-width:100%;height:38px;min-height:0;padding:7px 8px;overflow:hidden}
+#filters input[type="date"]::-webkit-date-and-time-value{min-width:0;margin:0;text-align:left}
+#filters input[type="date"]::-webkit-datetime-edit{min-width:0;padding:0}
 button{background:#14633e;color:white;cursor:pointer;font-weight:600}
 #refresh{background:white;color:#22533a}
 input:focus,select:focus,button:focus-visible{outline:2px solid #32845a;outline-offset:2px}
