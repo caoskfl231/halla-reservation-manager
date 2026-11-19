@@ -12,7 +12,7 @@ export function installBusinessSwitch(){
  for(const [id,title] of [['butcher','할라정육점관리'],['restaurant','할라정육식당관리']]){
  const a=document.createElement('a');a.textContent=title;a.href='index.html?business='+id;a.style.cssText='flex:1;text-align:center;padding:12px;border-radius:8px;text-decoration:none;font:bold 16px system-ui;background:'+(business===id?'#08764e;color:white':'#edf2ef;color:#234');
  if(business===id)a.setAttribute('aria-current','page');
- a.onclick=e=>{if(business!==id&&!confirm('입력 중인 내용은 저장되지 않습니다. 사업장을 전환할까요?'))e.preventDefault()};
+ a.onclick=e=>{if(business!==id&&!confirm('이미 저장한 장부 내역은 그대로 유지됩니다.\n아직 저장하지 않은 입력이 있다면 취소 후 저장해 주세요.\n\n다른 사업장으로 이동할까요?'))e.preventDefault()};
  bar.append(a)}
  for(const a of document.querySelectorAll('a[href*="restaurant-margin.html"]')){if(business!=='restaurant')a.remove();else a.href='restaurant-margin.html?business=restaurant';}
  document.body.prepend(bar);document.title=businessName+' · '+document.title;
