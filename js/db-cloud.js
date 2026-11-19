@@ -1,3 +1,4 @@
+import { business, businessName, installBusinessSwitch } from './business-context.js';
 import * as cache from './db-cloud-cache.js?v=app-20261018-working-mobile-02';
 import { rpc, requireLedgerSession, friendlyError, signOut, sessionIdentity, sessionRejected } from './cloud-session.js?v=app-20261018-working-mobile-02';
 import { loadSyncedLedger, clearReadCache, saveConfirmedLedger } from './ledger-read-cache.js?v=app-20261018-working-mobile-02';
@@ -75,6 +76,7 @@ function notice(text, warning = false) {
   if (el) { el.textContent = text; el.style.color = warning ? '#b42318' : '#126537'; }
 }
 function validate(snapshot) {
+  if ((snapshot?.meta?.business || 'butcher') !== business) throw new Error('다른 사업장의 백업입니다. 해당 사업장으로 전환해 주세요.');
   if (snapshot?.meta?.dbName !== 'hallapa_db' || !snapshot?.meta?.dbVersion || !snapshot?.meta?.exportedAt ||
       !snapshot.stores || typeof snapshot.stores !== 'object' || Array.isArray(snapshot.stores))
     throw new Error('할라 장부 전체백업 JSON 파일을 선택해 주세요.');
@@ -96,7 +98,7 @@ function validate(snapshot) {
 async function cloudCall(name, args) {
   const restore = name === 'restoreHallapaDbSnapshot';
   if (restore && restoring) throw new Error('자료 가져오기가 진행 중입니다. 완료될 때까지 기다려 주세요.');
-  if (restore) restoring = true;
+  if (restore) { validate(args[0]); restoring = true; }
   const schedule = name.startsWith('get') || name === 'exportHallapaDbSnapshot' ? parallelRead : serial;
   const operation = schedule(async () => {
     await cacheReady;
@@ -222,6 +224,8 @@ bar.id = 'ledger-cloud-bar';
 bar.style.cssText = 'display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:#eef6ff;border-bottom:1px solid #c6d7ea;padding:12px 18px;font:14px system-ui;position:relative;z-index:10';
 bar.innerHTML = '<strong>공용 장부</strong><span id="ledger-cloud-status" role="status" style="flex:1;min-width:160px">인터넷 연결됨</span><button type="button" id="ledger-cloud-reload">최신 불러오기</button><button type="button" id="ledger-cloud-logout">로그아웃</button>';
 document.body.prepend(bar);
+bar.querySelector('strong').textContent=businessName;
+installBusinessSwitch();
 installBackupPanel(snapshot => cloudCall('restoreHallapaDbSnapshot', [snapshot]), state.role === 'owner');
 document.getElementById('ledger-cloud-reload').onclick = () => {
   if (window.confirm('입력 중인 내용은 사라질 수 있습니다. 최신 장부를 불러올까요?')) location.reload();

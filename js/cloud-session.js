@@ -1,3 +1,4 @@
+import { business, businessName, installBusinessSwitch } from './business-context.js';
 const BASE = 'https://xmsadsxzfoamgmghrkey.supabase.co';
 const KEY = 'sb_publishable_03ezjt9WvjmI0d7qtt99Iw_JlHjy7i_';
 const SESSION_KEY = 'hallapa_ledger_session_v1';
@@ -134,7 +135,8 @@ export async function accessToken() {
   return refreshing;
 }
 export async function rpc(name, body = {}) {
-  return request('/rest/v1/rpc/' + name, body, await accessToken(), ['halla_ledger_save','halla_ledger_import_finish','halla_ledger_patch_compact','halla_ledger_read','halla_ledger_sync'].includes(name) ? 120000 : 30000);
+  const endpoint=business==='restaurant' ? name.replace(/^halla_ledger_/, 'halla_restaurant_') : name;
+  return request('/rest/v1/rpc/' + endpoint, body, await accessToken(), ['halla_ledger_save','halla_ledger_import_finish','halla_ledger_patch_compact','halla_ledger_read','halla_ledger_sync'].includes(name) ? 120000 : 30000);
 }
 export async function signOut() {
   const current = session();

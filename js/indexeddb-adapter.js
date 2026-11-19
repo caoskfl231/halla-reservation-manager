@@ -1,3 +1,4 @@
+import { business, businessName, installBusinessSwitch } from './business-context.js';
 // Shared IndexedDB implementation. Each adapter owns its connection and event state.
 // Public wrappers keep their original database names, APIs and backup error policies.
 export function createIndexedDbAdapter({
@@ -1365,6 +1366,7 @@ export function createIndexedDbAdapter({
     return {
       meta: {
         dbName: DB_NAME,
+        business,
         dbVersion: DB_VERSION,
         exportedAt: new Date().toISOString(),
         app: "hallapa",

@@ -1,12 +1,13 @@
+import { business, businessName, installBusinessSwitch } from './business-context.js';
 import { createIndexedDbAdapter } from './indexeddb-adapter.js?v=app-20261018-working-mobile-02';
 
-const CACHE_PREFIX = 'hallapa_cloud_cache_';
+const CACHE_PREFIX = 'hallapa_cloud_cache_' + business + '_';
 // 잠금 프로토콜을 쓰는 DB만 자동 정리한다. 구버전 탭의 캐시는 건드리지 않는다.
 const MANAGED_CACHE_PREFIX = CACHE_PREFIX + 'locked_v1_';
 const locks = globalThis.navigator?.locks;
 let releaseCacheLock = () => {};
-const PAGE_CACHE_KEY = 'hallapa_page_cache_v1';
-const CACHE_STAMP_KEY = 'hallapa_page_cache_ready_v1';
+const PAGE_CACHE_KEY = 'hallapa_page_cache_v1_' + business;
+const CACHE_STAMP_KEY = 'hallapa_page_cache_ready_v1_' + business;
 function sessionValue(key) { try { return sessionStorage.getItem(key); } catch { return null; } }
 function saveSessionValue(key, value) { try { if (value === null) sessionStorage.removeItem(key); else sessionStorage.setItem(key, value); } catch {} }
 

@@ -1,5 +1,6 @@
-const APP_EVENT_CHANNEL = "hallapa_app_events_v1";
-const APP_EVENT_STORAGE_KEY = "hallapa_app_events_v1";
+import { business, businessName, installBusinessSwitch } from '../business-context.js';
+const APP_EVENT_CHANNEL = "hallapa_app_events_v1_" + business;
+const APP_EVENT_STORAGE_KEY = "hallapa_app_events_v1_" + business;
 
 function nowTs() {
   return Date.now();

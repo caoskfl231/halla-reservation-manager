@@ -1,5 +1,6 @@
+import { business, businessName, installBusinessSwitch } from './business-context.js';
 // A disposable, user-scoped download cache. Never an authority or a backup.
-const NAME = 'hallapa_ledger_download_v1';
+const NAME = 'hallapa_ledger_download_v1_' + business;
 const CODES = new Set(['customer_types','customer_groups','item_groups','cashflow_items','cashflow_types','cashflow_groups']);
 async function storage(mode, work) {
   const db = await new Promise((resolve,reject) => {
