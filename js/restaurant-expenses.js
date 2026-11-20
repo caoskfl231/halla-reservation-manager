@@ -4,6 +4,7 @@ const today=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul'}).format(new 
 let db,records=[],editing=null,busy=false;
 const defaults=[['인건비','직원급여'],['인건비','일당'],['임대료','월세'],['임대료','관리비'],['공과금','전기요금'],['공과금','수도요금'],['공과금','가스요금'],['소모품','세제'],['소모품','휴지'],['소모품','청소용품']].map(([group,name],i)=>({code:'restaurant-expense-default-'+i,group,name,source:'restaurant-expense-items'}));
 let expenseItems=[],masterEditing=null,masterBusy=false,expenseGroups=[],groupBusy=false;
+let itemCategory='';
 async function loadItems(){const saved=(await db.getCashflowItems()).filter(r=>r.source==='restaurant-expense-items');const map=new Map(defaults.map(r=>[r.code,r]));for(const r of saved)map.set(r.code,r);expenseItems=[...map.values()].filter(r=>!r.archived);fillItems();await loadGroups()}
 
 function groupNames(){return [...new Set(['인건비','임대료','공과금','소모품','수수료','기타',...expenseGroups.map(r=>r.name),...expenseItems.map(r=>r.group),...records.map(r=>r.expenseGroup)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko'))}
@@ -12,7 +13,7 @@ async function loadGroups(){expenseGroups=(await db.getCashflowGroups()).filter(
 $('group-add').onclick=()=>{$('group-form').reset();$('group-error').textContent='';$('group-dialog').showModal()};
 $('group-cancel').onclick=()=>{if(!groupBusy)$('group-dialog').close()};
 $('group-dialog').addEventListener('cancel',e=>{if(groupBusy)e.preventDefault()});
-$('group-form').onsubmit=async e=>{e.preventDefault();if(groupBusy)return;const name=$('group-name').value.trim().normalize('NFC');if(!name){$('group-error').textContent='분류명을 입력해 주세요.';return}if(groupNames().some(n=>n.normalize('NFC').toLowerCase()===name.toLowerCase())){$('group-error').textContent='이미 등록된 분류입니다.';return}groupBusy=true;$('group-save').disabled=true;$('group-cancel').disabled=true;try{await db.addCashflowGroup({code:'restaurant-expense-group-'+encodeURIComponent(name.toLowerCase()),name,source:'restaurant-expense-groups'});await loadGroups();fillGroups(name);$('group-dialog').close();$('item-name').focus()}catch(error){$('group-error').textContent=error.message}finally{groupBusy=false;$('group-save').disabled=false;$('group-cancel').disabled=false}};
+$('group-form').onsubmit=async e=>{e.preventDefault();if(groupBusy)return;const name=$('group-name').value.trim().normalize('NFC');if(!name){$('group-error').textContent='분류명을 입력해 주세요.';return}if(groupNames().some(n=>n.normalize('NFC').toLowerCase()===name.toLowerCase())){$('group-error').textContent='이미 등록된 분류입니다.';return}groupBusy=true;$('group-save').disabled=true;$('group-cancel').disabled=true;try{await db.addCashflowGroup({code:'restaurant-expense-group-'+encodeURIComponent(name.toLowerCase()),name,source:'restaurant-expense-groups'});await loadGroups();fillGroups(name);$('group-dialog').close();drawItems();$('group-add').focus()}catch(error){$('group-error').textContent=error.message}finally{groupBusy=false;$('group-save').disabled=false;$('group-cancel').disabled=false}};
 
 function fillItems(selected=''){const select=$('entry-item');select.replaceChildren(new Option('항목 선택',''));for(const r of expenseItems)select.add(new Option(r.group+' · '+r.name,r.code));if(selected&&!expenseItems.some(r=>r.code===selected)&&editing)select.add(new Option((editing.expenseGroup||'기타')+' · '+(editing.expenseItemName||editing.itemName)+' (기존 항목)',selected));select.value=selected}
 function itemTotal(item){
@@ -23,10 +24,34 @@ function itemTotal(item){
  return sum+(matches?(Number(r.amount)||0):0);
  },0);
 }
+function filteredExpenseItems(){const q=$('items-search').value.trim().toLocaleLowerCase('ko-KR');return expenseItems.filter(r=>(!itemCategory||r.group===itemCategory)&&(!q||(r.group+' '+r.name).toLocaleLowerCase('ko-KR').includes(q)))}
+function drawItemCategories(){
+ const host=$('items-categories');host.replaceChildren();
+ for(const group of ['',...groupNames()]){
+  const button=element('button','', 'category-choice');button.type='button';button.disabled=masterBusy;
+  const members=expenseItems.filter(r=>!group||r.group===group);
+  button.append(element('span',group||'전체보기'),element('small',members.length+'개'));
+  button.setAttribute('aria-pressed',String(itemCategory===group));
+  button.onclick=()=>{itemCategory=group;drawItems()};host.append(button);
+ }
+}
+function openItemEditor(item=null){
+ masterEditing=item;$('item-form').reset();fillGroups(item?.group||itemCategory);
+ $('item-name').value=item?.name||'';$('item-title').textContent=item?'항목 수정':'항목 추가';
+ $('item-error').textContent='';$('item-editor').showModal();
+}
+$('item-new').onclick=()=>{if(!masterBusy)openItemEditor()};
+$('items-search').oninput=drawItems;
+$('item-close').onclick=()=>{if(!masterBusy)$('item-editor').close()};
+$('item-editor').addEventListener('cancel',e=>{if(masterBusy)e.preventDefault()});
 function drawItems(){
+ drawItemCategories();
+ const visible=filteredExpenseItems();
+ $('items-count').textContent=visible.length+'개 항목';
+ $('items-total').textContent='합계 '+money(visible.reduce((sum,item)=>sum+itemTotal(item),0));
  $('items-list').replaceChildren();
  $('items-period').textContent=$('from').value+' ~ '+$('to').value+' · 지출 합계';
- for(const r of expenseItems){
+ for(const r of visible){
  const row=element('div','','item-swipe'),front=element('div','','item-front'),label=element('div','','item-label');
  label.append(element('small',r.group),element('strong',r.name));
  front.append(label,element('strong',money(itemTotal(r)),'item-amount'));
@@ -43,17 +68,18 @@ function drawItems(){
  front.onpointercancel=()=>{origin=null};
  front.onclick=()=>{if(!masterBusy&&!moved)reveal(!row.classList.contains('revealed'));moved=false};
  front.onkeydown=e=>{if(['Enter',' ','ArrowLeft','ArrowRight','Escape'].includes(e.key)){e.preventDefault();reveal(e.key==='ArrowRight'||e.key==='Escape'?false:e.key==='ArrowLeft'?true:!row.classList.contains('revealed'))}};
- edit.onclick=()=>{masterEditing=r;$('item-group').value=r.group;$('item-name').value=r.name;$('item-title').textContent='항목 수정';reveal(false);$('item-name').focus()};
+ edit.onclick=()=>{reveal(false);openItemEditor(r)};
  remove.onclick=()=>{if(confirm('항목을 삭제할까요? 기존 지출내역은 유지됩니다.'))saveItem({...r,archived:true})};
  row.append(actions,front);$('items-list').append(row);
  }
+ if(!visible.length)$('items-list').append(element('p','등록된 항목이 없습니다.','items-empty'));
 }
-async function saveItem(row){if(masterBusy)return;masterBusy=true;drawItems();for(const b of $('item-form').querySelectorAll('button'))b.disabled=true;try{await db.updateCashflowItem(row);await loadItems();masterEditing=null;$('item-form').reset();$('item-title').textContent='항목 추가';$('items-error').textContent='저장되었습니다.'}catch(e){$('items-error').textContent=e.message}finally{masterBusy=false;drawItems();for(const b of $('item-form').querySelectorAll('button'))b.disabled=false}}
+async function saveItem(row){if(masterBusy)return;masterBusy=true;drawItems();for(const b of $('item-form').querySelectorAll('button'))b.disabled=true;try{await db.updateCashflowItem(row);await loadItems();masterEditing=null;$('item-form').reset();$('item-title').textContent='항목 추가';$('items-error').textContent='저장되었습니다.';if($('item-editor').open)$('item-editor').close()}catch(e){($('item-editor').open?$('item-error'):$('items-error')).textContent=e.message}finally{masterBusy=false;drawItems();for(const b of $('item-form').querySelectorAll('button'))b.disabled=false}}
 $('manage-items').onclick=()=>{if(!$('filters').reportValidity()||$('from').value>$('to').value){$('status').textContent='조회 기간을 확인해 주세요.';return}fillGroups();drawItems();$('items-error').textContent='';$('items-dialog').showModal()};
 $('items-close').onclick=()=>{if(!masterBusy)$('items-dialog').close()};
 $('items-dialog').addEventListener('cancel',e=>{if(masterBusy)e.preventDefault()});
 $('item-reset').onclick=()=>{masterEditing=null;$('item-form').reset();$('item-title').textContent='항목 추가'};
-$('item-form').onsubmit=e=>{e.preventDefault();const group=$('item-group').value.trim(),name=$('item-name').value.trim();if(!group||!name)return;if(expenseItems.some(r=>r.code!==masterEditing?.code&&r.group===group&&r.name===name)){$('items-error').textContent='같은 항목이 이미 있습니다.';return}saveItem({...masterEditing,code:masterEditing?.code||'restaurant-expense-'+crypto.randomUUID(),group,name,source:'restaurant-expense-items',archived:false})};
+$('item-form').onsubmit=e=>{e.preventDefault();const group=$('item-group').value.trim(),name=$('item-name').value.trim();if(!group||!name)return;if(expenseItems.some(r=>r.code!==masterEditing?.code&&r.group===group&&r.name===name)){$('item-error').textContent='같은 항목이 이미 있습니다.';return}saveItem({...masterEditing,code:masterEditing?.code||'restaurant-expense-'+crypto.randomUUID(),group,name,source:'restaurant-expense-items',archived:false})};
 function selectedExpenseGroup(){const code=$('entry-item').value;const item=expenseItems.find(r=>r.code===code);return item?.group||(editing&&code===(editing.expenseItemCode||'legacy-'+editing.id)?editing.expenseGroup:'')||''}
 function showExpenseGroup(){$('entry-group-label').textContent=selectedExpenseGroup()}
 $('entry-item').onchange=showExpenseGroup;
