@@ -3,8 +3,17 @@ const $=id=>document.getElementById(id),money=n=>Number(n||0).toLocaleString('ko
 const today=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul'}).format(new Date());
 let db,records=[],editing=null,busy=false;
 const defaults=[['인건비','직원급여'],['인건비','일당'],['임대료','월세'],['임대료','관리비'],['공과금','전기요금'],['공과금','수도요금'],['공과금','가스요금'],['소모품','세제'],['소모품','휴지'],['소모품','청소용품']].map(([group,name],i)=>({code:'restaurant-expense-default-'+i,group,name,source:'restaurant-expense-items'}));
-let expenseItems=[],masterEditing=null,masterBusy=false;
-async function loadItems(){const saved=(await db.getCashflowItems()).filter(r=>r.source==='restaurant-expense-items');const map=new Map(defaults.map(r=>[r.code,r]));for(const r of saved)map.set(r.code,r);expenseItems=[...map.values()].filter(r=>!r.archived);fillItems()}
+let expenseItems=[],masterEditing=null,masterBusy=false,expenseGroups=[],groupBusy=false;
+async function loadItems(){const saved=(await db.getCashflowItems()).filter(r=>r.source==='restaurant-expense-items');const map=new Map(defaults.map(r=>[r.code,r]));for(const r of saved)map.set(r.code,r);expenseItems=[...map.values()].filter(r=>!r.archived);fillItems();await loadGroups()}
+
+function groupNames(){return [...new Set(['인건비','임대료','공과금','소모품','수수료','기타',...expenseGroups.map(r=>r.name),...expenseItems.map(r=>r.group),...records.map(r=>r.expenseGroup)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko'))}
+function fillGroups(selected=$('item-group').value){$('item-group').replaceChildren(new Option('분류 선택',''));for(const name of groupNames())$('item-group').add(new Option(name,name));$('item-group').value=selected}
+async function loadGroups(){expenseGroups=(await db.getCashflowGroups()).filter(r=>r.source==='restaurant-expense-groups');fillGroups()}
+$('group-add').onclick=()=>{$('group-form').reset();$('group-error').textContent='';$('group-dialog').showModal()};
+$('group-cancel').onclick=()=>{if(!groupBusy)$('group-dialog').close()};
+$('group-dialog').addEventListener('cancel',e=>{if(groupBusy)e.preventDefault()});
+$('group-form').onsubmit=async e=>{e.preventDefault();if(groupBusy)return;const name=$('group-name').value.trim().normalize('NFC');if(!name){$('group-error').textContent='분류명을 입력해 주세요.';return}if(groupNames().some(n=>n.normalize('NFC').toLowerCase()===name.toLowerCase())){$('group-error').textContent='이미 등록된 분류입니다.';return}groupBusy=true;$('group-save').disabled=true;$('group-cancel').disabled=true;try{await db.addCashflowGroup({code:'restaurant-expense-group-'+encodeURIComponent(name.toLowerCase()),name,source:'restaurant-expense-groups'});await loadGroups();fillGroups(name);$('group-dialog').close();$('item-name').focus()}catch(error){$('group-error').textContent=error.message}finally{groupBusy=false;$('group-save').disabled=false;$('group-cancel').disabled=false}};
+
 function fillItems(selected=''){const select=$('entry-item');select.replaceChildren(new Option('항목 선택',''));for(const r of expenseItems)select.add(new Option(r.group+' · '+r.name,r.code));if(selected&&!expenseItems.some(r=>r.code===selected)&&editing)select.add(new Option((editing.expenseGroup||'기타')+' · '+(editing.expenseItemName||editing.itemName)+' (기존 항목)',selected));select.value=selected}
 function itemTotal(item){
  return records.reduce((sum,r)=>{
@@ -40,7 +49,7 @@ function drawItems(){
  }
 }
 async function saveItem(row){if(masterBusy)return;masterBusy=true;drawItems();for(const b of $('item-form').querySelectorAll('button'))b.disabled=true;try{await db.updateCashflowItem(row);await loadItems();masterEditing=null;$('item-form').reset();$('item-title').textContent='항목 추가';$('items-error').textContent='저장되었습니다.'}catch(e){$('items-error').textContent=e.message}finally{masterBusy=false;drawItems();for(const b of $('item-form').querySelectorAll('button'))b.disabled=false}}
-$('manage-items').onclick=()=>{if(!$('filters').reportValidity()||$('from').value>$('to').value){$('status').textContent='조회 기간을 확인해 주세요.';return}drawItems();$('items-error').textContent='';$('items-dialog').showModal()};
+$('manage-items').onclick=()=>{if(!$('filters').reportValidity()||$('from').value>$('to').value){$('status').textContent='조회 기간을 확인해 주세요.';return}fillGroups();drawItems();$('items-error').textContent='';$('items-dialog').showModal()};
 $('items-close').onclick=()=>{if(!masterBusy)$('items-dialog').close()};
 $('items-dialog').addEventListener('cancel',e=>{if(masterBusy)e.preventDefault()});
 $('item-reset').onclick=()=>{masterEditing=null;$('item-form').reset();$('item-title').textContent='항목 추가'};
