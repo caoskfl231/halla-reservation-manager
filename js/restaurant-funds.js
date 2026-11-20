@@ -1,6 +1,6 @@
 import {business} from './business-context.js';
 import {requireLedgerSession} from './cloud-session.js?v=app-20261018-working-mobile-02';
-import {loadFunds,fundWrite,won,today,el,fillAccountSelect} from './restaurant-fund-api.js?v=funds-01';
+import {loadFunds,fundWrite,won,today,el,fillAccountSelect} from './restaurant-fund-api.js?v=receipt-sync-01';
 const $=id=>document.getElementById(id);let state,editing=null,accountId=null,entryId=null,busy=false;
 const kinds={in:'입금',out:'출금·카드사용',transfer:'계좌이체·카드대금 납부',purchase:'매입대금 지불'};
 $('fund-from').value=today().slice(0,7)+'-01';$('fund-to').value=today();
@@ -26,13 +26,17 @@ function draw(){
  for(const e of entries){
   const row=el('article','','fund-row'+(e.cancelled_at?' cancelled':''));
   const name=el('div',kinds[e.kind]);name.append(el('small',(accounts.get(e.account_id)?.name||'계좌')+(e.to_account_id?' → '+(accounts.get(e.to_account_id)?.name||'계좌'):'')+(e.memo?' · '+e.memo:'')));
-  if(e.kind==='purchase')name.append(el('small','정육점 수금 연결'));
+  if(e.kind==='purchase')name.append(el('small',e.linked_source==='butcher'?'정육점 수금 자동 반영':'이전 지불 기록'));
+  if(e.before_opening)name.append(el('small','시작일 이전 내역 · 현재 잔액에서 제외'));
+  if(e.linked_source==='butcher'&&!e.account_id)name.append(el('small','결제수단 확인 필요 · 계좌 잔액에서 제외'));
+  if(Number(e.discount_amount))name.append(el('small','할인 '+won(e.discount_amount)));
   row.append(el('time',e.date),name,el('strong',won(e.amount)));
   if(e.cancelled_at)row.append(el('small','취소됨'));
+  else if(e.linked_source==='butcher')row.append(el('small','정육점에서 수정·취소'));
   else {const cancel=el('button','취소');cancel.type='button';cancel.disabled=busy;cancel.onclick=()=>cancelEntry(e);row.append(cancel)}
   $('fund-list').append(row);
  }
- $('fund-status').textContent=entries.length?entries.length+'건 · 금액 수정은 취소 후 다시 등록해 주세요.':'조회 기간에 내역이 없습니다.';
+ $('fund-status').textContent=entries.length?entries.length+'건 · 자동 반영된 지불은 정육점에서 수정·취소해 주세요.':'조회 기간에 내역이 없습니다.';
 }
 function openAccount(a=null){
  if(busy)return;editing=a;accountId=a?.id||crypto.randomUUID();$('account-form').reset();

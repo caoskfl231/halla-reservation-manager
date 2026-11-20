@@ -40,7 +40,7 @@ td.num,th.num{text-align:right;white-space:nowrap}td:last-child{font-weight:600}
 <div class="fund-summary" id="fund-total">자금내역을 불러오는 중입니다.</div>
 <p class="fund-note">현금·통장은 보유잔액, 카드는 미결제금을 관리합니다. 실제 송금·카드 결제 후 장부에 기록해 주세요.</p>
 <div class="fund-toolbar"><button id="account-new" disabled>+ 계좌·카드 등록</button><button id="entry-new" disabled>입금·출금 등록</button><button id="transfer-new" disabled>계좌이체·카드대금 납부</button></div>
-<section class="fund-cards" id="fund-accounts"></section>
+<p class="fund-note">정육점 수금 자동 연결: 통장 → 국민통장 · 카드 → 국민카드 · 현금 → 매장현금. 연결된 지불은 정육점에서 수정·취소하세요.</p><section class="fund-cards" id="fund-accounts"></section>
 <h2 style="font-size:20px">입출금·지불내역</h2>
 <form id="fund-filter" class="fund-filter"><label>시작일<input id="fund-from" type="date" required></label><label>종료일<input id="fund-to" type="date" required></label><label>계좌<select id="fund-account-filter"><option value="">전체</option></select></label><button>조회</button></form>
 <p id="fund-status" role="status"></p><section class="fund-list" id="fund-list"></section>
@@ -63,4 +63,4 @@ td.num,th.num{text-align:right;white-space:nowrap}td:last-child{font-weight:600}
 <label>내용·메모<input id="fund-memo" maxlength="1000" placeholder="예: 운영자금 입금"></label></div>
 <p class="fund-note">자금 이동만 기록합니다. 매입 지불은 매입내역에서 등록하세요.</p>
 <p id="fund-error" role="alert"></p><div class="fund-actions"><button>저장</button><button id="fund-close" type="button" class="secondary">닫기</button></div></form></dialog>
-<script type="module" src="js/restaurant-funds.js?v=funds-01"></script></body></html>
+<script type="module" src="js/restaurant-funds.js?v=receipt-sync-01"></script></body></html>

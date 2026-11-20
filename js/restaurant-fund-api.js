@@ -4,7 +4,7 @@ export const today=()=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul'}).
 const pendingKey=()=> 'halla_restaurant_fund_pending:'+sessionIdentity();
 export async function loadFunds(){
  const raw=sessionStorage.getItem(pendingKey());
- if(raw){const pending=JSON.parse(raw);try{const result=await rpc('halla_restaurant_funds',pending);sessionStorage.removeItem(pendingKey());return result}catch(e){if(e.status>=400&&e.status<500)sessionStorage.removeItem(pendingKey());throw e}}
+ if(raw){const pending=JSON.parse(raw);if(pending.p_action==='post'&&pending.p_data?.kind==='purchase'){sessionStorage.removeItem(pendingKey());return rpc('halla_restaurant_funds')}try{const result=await rpc('halla_restaurant_funds',pending);sessionStorage.removeItem(pendingKey());return result}catch(e){if(e.status>=400&&e.status<500)sessionStorage.removeItem(pendingKey());throw e}}
  return rpc('halla_restaurant_funds');
 }
 export async function fundWrite(action,data){
