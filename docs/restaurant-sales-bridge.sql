@@ -24,7 +24,7 @@ begin
  target_key:=to_jsonb(target_id);
  select c.customer_key into customer_key from halla_restaurant_private.sales_bridge_config c where id;
  select r.row_data into s from halla_ledger_private.records r where store_name='transactions' and record_key=p_key;
- if s->>'category'='sales' and s->>'type'='income' and s->'supplierId'=customer_key then
+ if s->>'source' is distinct from 'restaurant-finance' and s->>'category'='sales' and s->>'type'='income' and s->'supplierId'=customer_key then
   select row_data into item from halla_ledger_private.records where store_name='items' and record_key=s->'itemId';
   destination:=jsonb_build_object(
    'id',target_id,'type','expense','category','purchase','source','butcher-sales',

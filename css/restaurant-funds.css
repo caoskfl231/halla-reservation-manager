@@ -1,0 +1,27 @@
+
+.restaurant-tabs a{white-space:nowrap;padding:12px 16px}.restaurant-tabs{overflow-x:auto}
+.fund-dialog{width:min(520px,calc(100% - 24px));max-height:90dvh;border:1px solid #ccdacf;border-radius:14px;padding:22px;overflow:auto;color:#20382d}
+.fund-dialog::backdrop{background:#0007}.fund-dialog h2{font-size:22px;margin:0 0 16px}.fund-dialog h2:focus{outline:none}
+.fund-fields{display:grid;gap:14px}.fund-fields input,.fund-fields select{height:44px;font-size:16px}
+.fund-fields input[type=date]{appearance:none;min-width:0;max-width:100%}
+.fund-actions{display:flex;gap:10px;margin:18px 0}.secondary{background:white;color:#22533a}
+.fund-note{font-size:13px;color:#65766b;line-height:1.6}.fund-summary{background:#e7f3e9;border-radius:8px;padding:12px;font-weight:700}
+.fund-dialog [role=alert]{color:#a42f2f;font-size:14px;white-space:pre-wrap}
+.fund-dialog a{color:#14633e;font-size:13px}
+.fund-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:18px 0}
+.fund-card{border:1px solid #d6e2d9;border-radius:12px;padding:16px;background:#fff}
+.fund-card h3{margin:0 0 8px;font-size:17px}.fund-card strong{display:block;font-size:25px;margin-bottom:10px}
+.fund-card small{color:#6c7c70}.fund-card button{width:auto;height:32px;padding:4px 10px;margin-left:10px;background:white;color:#245739}
+.fund-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}.fund-toolbar button{width:auto}
+.fund-filter{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;background:#edf5ef;padding:14px;border-radius:8px}
+.fund-list{margin-top:16px}.fund-row{display:grid;grid-template-columns:100px minmax(0,1fr) auto auto;gap:12px;align-items:center;border-bottom:1px solid #dde6df;padding:14px 0}
+.fund-row small{display:block;color:#65786b;margin-top:5px;overflow-wrap:anywhere}.fund-row strong{white-space:nowrap}.fund-row button{width:auto;background:white;color:#9c3030}
+.fund-row.cancelled{opacity:.55}.fund-row.cancelled strong{text-decoration:line-through}
+.purchase-payment-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#f0f6f1;padding:12px;font-size:14px}
+.purchase-payment-bar button{width:auto;margin-left:auto}
+.purchase-payment-summary{display:flex;gap:14px;flex-wrap:wrap;padding:12px;background:#edf5ef;border-radius:8px;margin-bottom:14px}
+.purchase-payment-summary strong{color:#14633e}
+@media(max-width:600px){.fund-filter{grid-template-columns:1fr 1fr}.fund-cards{grid-template-columns:1fr 1fr}.fund-card{padding:12px}.fund-card strong{font-size:20px}.fund-row{grid-template-columns:1fr auto}.fund-row>time{grid-column:1/-1}.fund-row button{grid-column:2}.fund-dialog{padding:18px}.restaurant-tabs a{padding:12px}.purchase-payment-bar{gap:8px}}
+@media(max-width:380px){.fund-cards{grid-template-columns:1fr}}
+
+.fund-fields [hidden]{display:none!important}.fund-filter input[type=date]{appearance:none;min-width:0;max-width:100%;font-size:16px}button:disabled{opacity:.5;cursor:default}
