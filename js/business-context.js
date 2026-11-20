@@ -9,7 +9,8 @@ url.searchParams.set('business',business);history.replaceState(null,'',url);
 if(business==='restaurant' && !/\/(restaurant-purchases|restaurant-expenses|login)\.html$/.test(location.pathname))location.replace('restaurant-purchases.html?business=restaurant');
 export function installBusinessSwitch(){
  if(document.getElementById('business-switch'))return;
- const bar=document.createElement('nav');bar.id='business-switch';bar.setAttribute('aria-label','사업장 선택');bar.style.cssText='display:flex;gap:8px;padding:12px;background:#fff;border-bottom:1px solid #ddd;position:sticky;top:0;z-index:100001';
+ // Keep the sticky switch above page content and below the shared modal overlay (1000).
+ const bar=document.createElement('nav');bar.id='business-switch';bar.setAttribute('aria-label','사업장 선택');bar.style.cssText='display:flex;gap:8px;padding:12px;background:#fff;border-bottom:1px solid #ddd;position:sticky;top:0;z-index:100';
  for(const [id,title] of [['butcher','할라정육점관리'],['restaurant','할라정육식당관리']]){
  const a=document.createElement('a');a.textContent=title;a.href=(id==='restaurant'?'restaurant-purchases.html':'index.html')+'?business='+id;a.style.cssText='flex:1;text-align:center;padding:12px;border-radius:8px;text-decoration:none;font:bold 16px system-ui;background:'+(business===id?'#08764e;color:white':'#edf2ef;color:#234');
  if(business===id)a.setAttribute('aria-current','page');
