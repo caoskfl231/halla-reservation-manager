@@ -4,7 +4,7 @@ const today=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul'}).format(new 
 let db,records=[],editing=null,busy=false;
 const defaults=[['인건비','직원급여'],['인건비','일당'],['임대료','월세'],['임대료','관리비'],['공과금','전기요금'],['공과금','수도요금'],['공과금','가스요금'],['소모품','세제'],['소모품','휴지'],['소모품','청소용품']].map(([group,name],i)=>({code:'restaurant-expense-default-'+i,group,name,source:'restaurant-expense-items'}));
 let expenseItems=[],masterEditing=null,masterBusy=false,expenseGroups=[],groupBusy=false;
-let itemCategory='';
+const itemGroupOpen=new Map();
 async function loadItems(){const saved=(await db.getCashflowItems()).filter(r=>r.source==='restaurant-expense-items');const map=new Map(defaults.map(r=>[r.code,r]));for(const r of saved)map.set(r.code,r);expenseItems=[...map.values()].filter(r=>!r.archived);fillItems();await loadGroups()}
 
 function groupNames(){return [...new Set(['인건비','임대료','공과금','소모품','수수료','기타',...expenseGroups.map(r=>r.name),...expenseItems.map(r=>r.group),...records.map(r=>r.expenseGroup)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko'))}
@@ -24,19 +24,9 @@ function itemTotal(item){
  return sum+(matches?(Number(r.amount)||0):0);
  },0);
 }
-function filteredExpenseItems(){const q=$('items-search').value.trim().toLocaleLowerCase('ko-KR');return expenseItems.filter(r=>(!itemCategory||r.group===itemCategory)&&(!q||(r.group+' '+r.name).toLocaleLowerCase('ko-KR').includes(q)))}
-function drawItemCategories(){
- const host=$('items-categories');host.replaceChildren();
- for(const group of ['',...groupNames()]){
-  const button=element('button','', 'category-choice');button.type='button';button.disabled=masterBusy;
-  const members=expenseItems.filter(r=>!group||r.group===group);
-  button.append(element('span',group||'전체보기'),element('small',members.length+'개'));
-  button.setAttribute('aria-pressed',String(itemCategory===group));
-  button.onclick=()=>{itemCategory=group;drawItems()};host.append(button);
- }
-}
+function filteredExpenseItems(){const q=$('items-search').value.trim().toLocaleLowerCase('ko-KR');return expenseItems.filter(r=>!q||(r.group+' '+r.name).toLocaleLowerCase('ko-KR').includes(q))}
 function openItemEditor(item=null){
- masterEditing=item;$('item-form').reset();fillGroups(item?.group||itemCategory);
+ masterEditing=item;$('item-form').reset();fillGroups(item?.group||'');
  $('item-name').value=item?.name||'';$('item-title').textContent=item?'항목 수정':'항목 추가';
  $('item-error').textContent='';$('item-editor').showModal();
 }
@@ -45,15 +35,28 @@ $('items-search').oninput=drawItems;
 $('item-close').onclick=()=>{if(!masterBusy)$('item-editor').close()};
 $('item-editor').addEventListener('cancel',e=>{if(masterBusy)e.preventDefault()});
 function drawItems(){
- drawItemCategories();
- const visible=filteredExpenseItems();
+ const visible=filteredExpenseItems(),query=$('items-search').value.trim().toLocaleLowerCase('ko-KR');
  $('items-count').textContent=visible.length+'개 항목';
  $('items-total').textContent='합계 '+money(visible.reduce((sum,item)=>sum+itemTotal(item),0));
  $('items-list').replaceChildren();
  $('items-period').textContent=$('from').value+' ~ '+$('to').value+' · 지출 합계';
- for(const r of visible){
+ const names=groupNames().filter(name=>!query||name.toLocaleLowerCase('ko-KR').includes(query)||visible.some(r=>r.group===name));
+ for(const [index,name] of names.entries()){
+  const members=visible.filter(r=>r.group===name);
+  const details=element('details','','item-category'),summary=element('summary','');
+  details.open=query?true:(itemGroupOpen.get(name)??(index<2));
+  details.ontoggle=()=>{if(!query)itemGroupOpen.set(name,details.open)};
+  summary.append(element('span',name,'item-category-name'),element('strong',money(members.reduce((sum,item)=>sum+itemTotal(item),0)),'item-category-total'));
+  details.append(summary);
+  for(const item of members)details.append(makeItemRow(item));
+  if(!members.length)details.append(element('p','등록된 항목이 없습니다. 아래에서 항목을 추가하세요.','items-empty'));
+  $('items-list').append(details);
+ }
+ if(!names.length)$('items-list').append(element('p','검색 결과가 없습니다.','items-empty'));
+}
+function makeItemRow(r){
  const row=element('div','','item-swipe'),front=element('div','','item-front'),label=element('div','','item-label');
- label.append(element('small',r.group),element('strong',r.name));
+ label.append(element('strong',r.name));
  front.append(label,element('strong',money(itemTotal(r)),'item-amount'));
  front.tabIndex=0;front.setAttribute('role','button');front.setAttribute('aria-label',r.name+' 수정·삭제 버튼 보기');front.setAttribute('aria-expanded','false');
  const actions=element('div','','item-swipe-actions'),edit=element('button','수정'),remove=element('button','삭제');
@@ -70,9 +73,7 @@ function drawItems(){
  front.onkeydown=e=>{if(['Enter',' ','ArrowLeft','ArrowRight','Escape'].includes(e.key)){e.preventDefault();reveal(e.key==='ArrowRight'||e.key==='Escape'?false:e.key==='ArrowLeft'?true:!row.classList.contains('revealed'))}};
  edit.onclick=()=>{reveal(false);openItemEditor(r)};
  remove.onclick=()=>{if(confirm('항목을 삭제할까요? 기존 지출내역은 유지됩니다.'))saveItem({...r,archived:true})};
- row.append(actions,front);$('items-list').append(row);
- }
- if(!visible.length)$('items-list').append(element('p','등록된 항목이 없습니다.','items-empty'));
+ row.append(actions,front);return row;
 }
 async function saveItem(row){if(masterBusy)return;masterBusy=true;drawItems();for(const b of $('item-form').querySelectorAll('button'))b.disabled=true;try{await db.updateCashflowItem(row);await loadItems();masterEditing=null;$('item-form').reset();$('item-title').textContent='항목 추가';$('items-error').textContent='저장되었습니다.';if($('item-editor').open)$('item-editor').close()}catch(e){($('item-editor').open?$('item-error'):$('items-error')).textContent=e.message}finally{masterBusy=false;drawItems();for(const b of $('item-form').querySelectorAll('button'))b.disabled=false}}
 $('manage-items').onclick=()=>{if(!$('filters').reportValidity()||$('from').value>$('to').value){$('status').textContent='조회 기간을 확인해 주세요.';return}fillGroups();drawItems();$('items-error').textContent='';$('items-dialog').showModal()};
