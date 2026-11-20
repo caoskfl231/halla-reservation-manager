@@ -13,8 +13,8 @@ export async function openPurchasePayment(rows){
  if(!selected.length)throw Error('선택한 매입내역에 미지급금이 없습니다.');
  requestId=crypto.randomUUID();$('pay-form').reset();
  const amount=selected.reduce((sum,r)=>sum+dueFor(state,r),0);
- $('pay-selection').textContent=selected.length===1?selected[0].date+' · '+selected[0].itemName:selected[0].date+' · '+selected.length+'개 매입항목';
- $('pay-summary').textContent='선택 미지급금 '+won(amount);
+ $('pay-selection').textContent=selected.length===1?selected[0].date+' · '+selected[0].itemName:selected[0].date+' ~ '+selected[selected.length-1].date+' · '+selected.length+'개 매입항목';
+ $('pay-summary').textContent='조회 미지급금 '+won(amount)+' · 일부 금액만 입력할 수도 있습니다.';
  $('pay-date').value=today();$('pay-date').max=today();$('pay-date').min=selected.reduce((max,r)=>r.date>max?r.date:max,'');
  fillAccountSelect($('pay-account'),state.accounts);
  $('pay-butcher').replaceChildren(new Option('정육점에서 입금받은 통장 선택',''));
