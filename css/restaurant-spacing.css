@@ -1,0 +1,64 @@
+/* Consistent compact spacing across restaurant pages, without shrinking controls. */
+main { margin: 10px auto; padding: 16px; }
+main h1 { margin: 0 0 12px; }
+main h2 { margin: 0 0 10px; }
+main > section > h2 { margin-top: 14px; }
+.restaurant-tabs { margin-bottom: 14px; }
+.restaurant-tabs a { padding: 10px 12px; }
+.page-heading { margin-bottom: 12px; gap: 10px; }
+.page-heading h1 { margin: 0; }
+.panel { padding: 14px; margin-top: 12px; }
+.grid, .editor-grid, .fund-fields, .columns { gap: 10px; }
+label { gap: 5px; }
+.price { padding: 10px 0; }
+.line { padding: 6px 0; }
+.note, .fund-note, #status { margin-block: 8px; line-height: 1.5; }
+.note:empty, [role="alert"]:empty { margin: 0; padding: 0; }
+.filters, .filter-panel, .fund-filter { padding: 10px; gap: 8px; }
+.filter-panel > .filters { padding: 0; }
+.list-meta { margin: 10px 0 6px; gap: 8px; }
+.heading-total { padding: 8px 12px; gap: 12px; }
+.cards, .sales-totals, .fund-cards { gap: 10px; margin: 12px 0; }
+.card, .metric, .fund-card { padding: 12px; }
+.card strong { margin: 8px 0; }
+.metric strong { margin-top: 6px; }
+.fund-card strong { margin-bottom: 6px; }
+.detail-row { padding: 8px 0; gap: 10px; }
+.result-line { padding: 10px 0; }
+.sale-row { padding: 12px; }
+.sale-row p { margin: 8px 0; }
+.sale-breakdown { margin: 8px 0; }
+.expense-row { padding: 10px 12px; gap: 10px; }
+.fund-toolbar { margin: 10px 0; gap: 8px; }
+.fund-list { margin-top: 10px; }
+.fund-row { padding: 10px 0; gap: 10px; }
+.purchase-payment-summary { padding: 10px; gap: 10px; margin-bottom: 10px; }
+.preview { padding: 10px; margin-top: 10px; }
+.menu-row { padding: 10px 0; }
+.menu-row p { margin: 6px 0; }
+.menu-category-section { margin: 12px 0; padding-top: 6px; }
+.menu-category-section h3 { margin: 10px 0; }
+details[open] summary { margin-bottom: 10px; }
+.menu-swipe-front { padding: 12px; min-height: 52px; }
+dialog[data-save-dialog] .save-dialog-content { padding: 14px; }
+dialog[data-save-dialog] .save-dialog-content > h2,
+dialog[data-save-dialog] .save-dialog-content > h3 { margin: 0 0 12px; }
+dialog[data-save-dialog] .save-dialog-actions { padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px)); }
+.items-header { padding: 14px 14px 8px; }
+#items-period { margin: 0 14px 8px; padding: 8px 10px; }
+.items-toolbar, #items-list { padding-left: 14px; padding-right: 14px; }
+.items-hint { margin: 8px 14px; }
+.item-category { margin-bottom: 8px; }
+.items-summary { padding: 8px 10px; margin-bottom: 8px; }
+.items-bottom { padding: 10px 14px max(10px, env(safe-area-inset-bottom, 0px)); }
+.footnote { margin-top: 12px; }
+@media (max-width: 650px) {
+ main { margin: 6px; padding: 12px 10px; }
+ .restaurant-tabs { margin-bottom: 10px; }
+ .restaurant-tabs a { padding: 10px 8px; }
+ .panel { padding: 12px; margin-top: 10px; }
+ .cards, .sales-totals, .fund-cards { gap: 8px; }
+ .card, .metric, .fund-card { padding: 10px; }
+ .columns { gap: 0; }
+ .detail-row { gap: 8px; }
+}
