@@ -2,6 +2,7 @@ import {business} from './business-context.js';
 import {menuPrice,actualMargin,latestKgPurchases} from './restaurant-menu-calc.js?v=menu-02';
 const $=id=>document.getElementById(id),money=n=>Math.round(n).toLocaleString('ko-KR')+'원',SOURCE='restaurant-menu-prices';
 const listPage=location.pathname.endsWith('/restaurant-menus.html');
+const menuCategories=["한우구이류","한돈구이류","수입구이류","술안주","식사류","주류"];
 let db,menus=[],purchases=[],editing=null,busy=false,manualPrice=false,last=null,linked=null;
 const el=(tag,text='',cls='')=>{const e=document.createElement(tag);e.textContent=text;e.className=cls;return e};
 function per100g(price,grams){const p=Number(price),g=Number(grams);return Number.isFinite(p)&&p>0&&Number.isFinite(g)&&g>0?money(p*100/g):'—'}
@@ -13,17 +14,19 @@ function calculate(){
  catch(e){last=null;for(const k of ['result-cost','without-vat','price','price-per100g'])$(k).textContent='—';clearActual();$('error').textContent=$('cost').value?e.message:''}
 }
 function reset(){if(busy)return;editing=null;linked=null;manualPrice=false;$('calculator').reset();$('form-title').textContent='판매가 계산';$('source-note').textContent='';calculate()}
-function open(r){if(busy)return;editing=r;linked=r.linkedPurchase||null;$('purchase').value='';$('item-name').value=r.ingredientName||'';$('menu-name').value=r.name||'';for(const [id,key] of [['cost','costPerKg'],['grams','grams'],['margin','margin']])$(id).value=r[key]??3;$('applied').value=r.sellingPrice;manualPrice=true;$('form-title').textContent='메뉴 수정';$('source-note').textContent=linked?'저장 당시 매입단가입니다. 최신 단가는 매입품목에서 다시 선택해 주세요.':'';calculate();$('calculator').scrollIntoView({behavior:'smooth'})}
+function open(r){if(busy)return;editing=r;linked=r.linkedPurchase||null;$('purchase').value='';$('item-name').value=r.ingredientName||'';$('menu-name').value=r.name||'';$('menu-category').value=menuCategories.includes(r.menuCategory)?r.menuCategory:'';for(const [id,key] of [['cost','costPerKg'],['grams','grams'],['margin','margin']])$(id).value=r[key]??3;$('applied').value=r.sellingPrice;manualPrice=true;$('form-title').textContent='메뉴 수정';$('source-note').textContent=linked?'저장 당시 매입단가입니다. 최신 단가는 매입품목에서 다시 선택해 주세요.':'';calculate();$('calculator').scrollIntoView({behavior:'smooth'})}
 async function reload(){menus=(await db.getItems()).filter(r=>r.source===SOURCE);draw()}
 function draw(){
  if(!listPage)return;
  $('menus').replaceChildren();
  if(!menus.length){$('menus').append(el('p','저장한 메뉴가 없습니다. 계산 후 메뉴 저장을 눌러 주세요.','note'));return}
+ const sections=new Map();
+ for(const category of [...menuCategories,'미분류']){const members=menus.filter(r=>(menuCategories.includes(r.menuCategory)?r.menuCategory:'미분류')===category);if(!members.length)continue;const section=el('section','','menu-category-section');section.append(el('h3',category+' · '+members.length+'개'));sections.set(category,section);$('menus').append(section)}
  for(const r of menus){
   const row=el('details','','menu-row'),top=el('summary','','menu-top');top.append(el('strong',r.name),el('strong',money(r.sellingPrice)));
   row.append(top,el('p','100g당 판매가 '+per100g(r.sellingPrice,r.grams),'note'),el('p',(r.ingredientName||'')+' · '+r.grams+'g · 매입단가 '+money(r.costPerKg)+'/kg','note'));
   try{const c=menuPrice({costPerKg:r.costPerKg,grams:r.grams,margin:r.margin});const a=actualMargin(r.sellingPrice,c.cost);row.append(el('p','원가 = '+money(r.costPerKg)+' × '+r.grams+'g ÷ 1,000 = '+money(c.cost),'note'),el('p','기준 판매가 = '+money(c.cost)+' ÷ (1 − '+r.margin+'%) = '+money(c.withoutVat),'note'),el('p','부가세 포함 권장가 = '+money(c.withoutVat)+' × 1.1 = '+money(c.price),'note'),el('p','적용 판매가 '+money(r.sellingPrice)+' ÷ 1.1 = 부가세 제외 '+money(a.supply)+' · 부가세 '+money(a.vat),'note'),el('p','남는 금액 = '+money(a.supply)+' − '+money(c.cost)+' = '+money(a.profit),'note'),el('p','실제 마진율 = 남는 금액 ÷ 부가세 제외 매출 × 100','note'),el('p','목표 '+r.margin+'% · 실제 '+a.actualMargin.toFixed(2)+'% · 남는 금액 '+money(a.profit),'note'))}catch{row.append(el('p','계산값을 확인해 주세요.','note'))}
-  const actions=el('div','','actions'),edit=el('button','수정'),remove=el('button','삭제','secondary');edit.type=remove.type='button';edit.disabled=remove.disabled=busy;edit.onclick=()=>location.href='restaurant-menu-prices.html?business=restaurant&edit='+encodeURIComponent(r.id);remove.onclick=()=>{if(!busy&&confirm('저장한 메뉴를 삭제할까요?'))mutate(()=>db.deleteItem(r.id),r.id)};actions.append(edit,remove);installMenuSwipe(top,actions);$('menus').append(row);
+  const actions=el('div','','actions'),edit=el('button','수정'),remove=el('button','삭제','secondary');edit.type=remove.type='button';edit.disabled=remove.disabled=busy;edit.onclick=()=>location.href='restaurant-menu-prices.html?business=restaurant&edit='+encodeURIComponent(r.id);remove.onclick=()=>{if(!busy&&confirm('저장한 메뉴를 삭제할까요?'))mutate(()=>db.deleteItem(r.id),r.id)};actions.append(edit,remove);installMenuSwipe(top,actions);sections.get(menuCategories.includes(r.menuCategory)?r.menuCategory:'미분류').append(row);
  }
 }
 async function mutate(fn,removeId=null){
@@ -41,7 +44,8 @@ $('calculator').onsubmit=e=>{
  try{
  const c=menuPrice(input()),sellingPrice=Number($('applied').value);if(!Number.isSafeInteger(sellingPrice))throw Error('판매가는 원 단위로 입력해 주세요.');
  actualMargin(sellingPrice,c.cost);const name=$('menu-name').value.trim(),ingredientName=$('item-name').value.trim();if(!name||!ingredientName)throw Error('품명과 메뉴명을 입력해 주세요.');
- const row={...editing,id:editing?.id||'restaurant-menu-'+crypto.randomUUID(),source:SOURCE,group:'식당 메뉴',name,ingredientName,...input(),sellingPrice,linkedPurchase:linked,updatedAt:new Date().toISOString()};
+ const menuCategory=$('menu-category').value;if(!menuCategories.includes(menuCategory))throw Error('메뉴 분류를 선택해 주세요.');
+ const row={...editing,menuCategory,id:editing?.id||'restaurant-menu-'+crypto.randomUUID(),source:SOURCE,group:'식당 메뉴',name,ingredientName,...input(),sellingPrice,linkedPurchase:linked,updatedAt:new Date().toISOString()};
  delete row.configuredCardRate;delete row.useCard;delete row.cardRate;
  mutate(()=>editing?db.updateItem(row):db.addItemMaster(row));
  }catch(e){$('error').textContent=e.message}
