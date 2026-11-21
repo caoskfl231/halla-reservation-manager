@@ -3,19 +3,20 @@ const $=id=>document.getElementById(id),money=n=>Number(n||0).toLocaleString('ko
 const today=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul'}).format(new Date());
 let db,records=[],editing=null,busy=false;
 const defaults=[['인건비','직원급여'],['인건비','일당'],['임대료','월세'],['임대료','관리비'],['공과금','전기요금'],['공과금','수도요금'],['공과금','가스요금'],['소모품','세제'],['소모품','휴지'],['소모품','청소용품']].map(([group,name],i)=>({code:'restaurant-expense-default-'+i,group,name,source:'restaurant-expense-items'}));
-let expenseItems=[],masterEditing=null,masterBusy=false,expenseGroups=[],groupBusy=false;
+let expenseItems=[],masterEditing=null,masterBusy=false,expenseGroups=[],groupBusy=false,groupEditing=null;
 const itemGroupOpen=new Map();
 async function loadItems(){const saved=(await db.getCashflowItems()).filter(r=>r.source==='restaurant-expense-items');const map=new Map(defaults.map(r=>[r.code,r]));for(const r of saved)map.set(r.code,r);expenseItems=[...map.values()].filter(r=>!r.archived);fillItems();await loadGroups()}
 
 function groupNames(){const hidden=new Set(expenseGroups.filter(r=>r.archived).map(r=>r.name));return [...new Set(['인건비','임대료','공과금','소모품','수수료','기타',...expenseGroups.filter(r=>!r.archived).map(r=>r.name),...expenseItems.map(r=>r.group),...records.map(r=>r.expenseGroup)].filter(name=>name&&!hidden.has(name)))].sort((a,b)=>a.localeCompare(b,'ko'))}
-function fillGroups(selected=$('item-group').value){$('item-group').replaceChildren(new Option('분류 선택',''));for(const name of groupNames())$('item-group').add(new Option(name,name));$('item-group').value=selected}
+function groupLabel(name){return expenseGroups.find(r=>r.name===name)?.displayName||name}
+function fillGroups(selected=$('item-group').value){$('item-group').replaceChildren(new Option('분류 선택',''));for(const name of groupNames())$('item-group').add(new Option(groupLabel(name),name));$('item-group').value=selected}
 async function loadGroups(){expenseGroups=(await db.getCashflowGroups()).filter(r=>r.source==='restaurant-expense-groups');fillGroups()}
-$('group-add').onclick=()=>{$('group-form').reset();$('group-error').textContent='';$('group-dialog').showModal()};
+$('group-add').onclick=()=>{groupEditing=null;$('group-form').querySelector('h2').textContent='분류 추가';$('group-form').reset();$('group-error').textContent='';$('group-dialog').showModal()};
 $('group-cancel').onclick=()=>{if(!groupBusy)$('group-dialog').close()};
 $('group-dialog').addEventListener('cancel',e=>{if(groupBusy)e.preventDefault()});
-$('group-form').onsubmit=async e=>{e.preventDefault();if(groupBusy)return;const name=$('group-name').value.trim().normalize('NFC');if(!name){$('group-error').textContent='분류명을 입력해 주세요.';return}if(groupNames().some(n=>n.normalize('NFC').toLowerCase()===name.toLowerCase())){$('group-error').textContent='이미 등록된 분류입니다.';return}groupBusy=true;$('group-save').disabled=true;$('group-cancel').disabled=true;try{await db.updateCashflowGroup({archived:false,code:'restaurant-expense-group-'+encodeURIComponent(name.toLowerCase()),name,source:'restaurant-expense-groups'});await loadGroups();fillGroups(name);$('group-dialog').close();drawItems();$('group-add').focus()}catch(error){$('group-error').textContent=error.message}finally{groupBusy=false;$('group-save').disabled=false;$('group-cancel').disabled=false}};
+$('group-form').onsubmit=async e=>{e.preventDefault();if(groupBusy)return;const name=$('group-name').value.trim().normalize('NFC');if(!name){$('group-error').textContent='분류명을 입력해 주세요.';return}if(groupNames().some(n=>n!==groupEditing&&groupLabel(n).normalize('NFC').toLowerCase()===name.toLowerCase())){$('group-error').textContent='이미 등록된 분류입니다.';return}groupBusy=true;$('group-save').disabled=true;$('group-cancel').disabled=true;try{const key=groupEditing||name;const existing=expenseGroups.find(r=>r.name===key);await db.updateCashflowGroup({...existing,archived:false,code:existing?.code||'restaurant-expense-group-'+encodeURIComponent(key.toLowerCase()),name:key,displayName:name,source:'restaurant-expense-groups'});await loadGroups();fillGroups(groupEditing||name);fillItems();render();$('group-dialog').close();drawItems();$('group-add').focus()}catch(error){$('group-error').textContent=error.message}finally{groupBusy=false;$('group-save').disabled=false;$('group-cancel').disabled=false}};
 
-function fillItems(selected=''){const select=$('entry-item');select.replaceChildren(new Option('항목 선택',''));for(const r of expenseItems)select.add(new Option(r.group+' · '+r.name,r.code));if(selected&&!expenseItems.some(r=>r.code===selected)&&editing)select.add(new Option((editing.expenseGroup||'기타')+' · '+(editing.expenseItemName||editing.itemName)+' (기존 항목)',selected));select.value=selected}
+function fillItems(selected=''){const select=$('entry-item');select.replaceChildren(new Option('항목 선택',''));for(const r of expenseItems)select.add(new Option(groupLabel(r.group)+' · '+r.name,r.code));if(selected&&!expenseItems.some(r=>r.code===selected)&&editing)select.add(new Option((editing.expenseGroup||'기타')+' · '+(editing.expenseItemName||editing.itemName)+' (기존 항목)',selected));select.value=selected}
 function itemTotal(item){
  return records.reduce((sum,r)=>{
  if(r.date<$('from').value||r.date>$('to').value)return sum;
@@ -24,7 +25,7 @@ function itemTotal(item){
  return sum+(matches?(Number(r.amount)||0):0);
  },0);
 }
-function filteredExpenseItems(){const q=$('items-search').value.trim().toLocaleLowerCase('ko-KR');return expenseItems.filter(r=>!q||(r.group+' '+r.name).toLocaleLowerCase('ko-KR').includes(q))}
+function filteredExpenseItems(){const q=$('items-search').value.trim().toLocaleLowerCase('ko-KR');return expenseItems.filter(r=>!q||(groupLabel(r.group)+' '+r.name).toLocaleLowerCase('ko-KR').includes(q))}
 function openItemEditor(item=null){
  masterEditing=item;$('item-form').reset();fillGroups(item?.group||'');
  $('item-name').value=item?.name||'';$('item-title').textContent=item?'항목 수정':'항목 추가';
@@ -40,19 +41,15 @@ function drawItems(){
  $('items-total').textContent='합계 '+money(visible.reduce((sum,item)=>sum+itemTotal(item),0));
  $('items-list').replaceChildren();
  $('items-period').textContent=$('from').value+' ~ '+$('to').value+' · 지출 합계';
- const names=groupNames().filter(name=>!query||name.toLocaleLowerCase('ko-KR').includes(query)||visible.some(r=>r.group===name));
+ const names=groupNames().filter(name=>!query||groupLabel(name).toLocaleLowerCase('ko-KR').includes(query)||visible.some(r=>r.group===name));
  for(const [index,name] of names.entries()){
   const members=visible.filter(r=>r.group===name);
   const details=element('details','','item-category'),summary=element('summary','');
   details.open=query?true:(itemGroupOpen.get(name)??(index<2));
   details.ontoggle=()=>{if(!query)itemGroupOpen.set(name,details.open)};
-  summary.append(element('span',name,'item-category-name'),element('strong',money(members.reduce((sum,item)=>sum+itemTotal(item),0)),'item-category-total'));
+  summary.append(element('span',groupLabel(name),'item-category-name'),element('strong',money(members.reduce((sum,item)=>sum+itemTotal(item),0)),'item-category-total'));
   details.append(summary);
-  const controls=element('div','','category-controls'),remove=element('button','분류 삭제','item-delete');
-  remove.type='button';remove.disabled=groupBusy||masterBusy;
-  remove.setAttribute('aria-label',name+' 분류 삭제');
-  remove.onclick=()=>deleteExpenseGroup(name);
-  controls.append(remove);details.append(controls);
+  installCategorySwipe(summary,name);
   for(const item of members)details.append(makeItemRow(item));
   if(!members.length)details.append(element('p','등록된 항목이 없습니다. 아래에서 항목을 추가하세요.','items-empty'));
   $('items-list').append(details);
@@ -72,6 +69,24 @@ async function deleteExpenseGroup(name){
  await loadGroups();itemGroupOpen.delete(name);$('items-error').textContent='분류를 삭제했습니다. 기존 지출내역은 유지됩니다.';
  }catch(e){$('items-error').textContent=e.message}
  finally{groupBusy=false;drawItems()}
+}
+function installCategorySwipe(summary,name){
+ summary.classList.add('category-swipe');
+ const front=element('span','','category-front');while(summary.firstChild)front.append(summary.firstChild);
+ const actions=element('span','','category-actions'),edit=element('button','수정'),remove=element('button','삭제','item-delete');
+ for(const b of [edit,remove]){b.type='button';b.tabIndex=-1;b.disabled=groupBusy||masterBusy}
+ actions.append(edit,remove);summary.append(actions,front);
+ let origin=null,dragged=false;
+ function reveal(on){summary.classList.toggle('revealed',on);actions.setAttribute('aria-hidden',String(!on));for(const b of [edit,remove])b.tabIndex=on?0:-1}
+ reveal(false);front.style.touchAction='pan-y';
+ summary.onpointerdown=e=>{if(e.target.closest('button')||groupBusy||masterBusy)return;origin={x:e.clientX,y:e.clientY};dragged=false};
+ summary.onpointermove=e=>{if(!origin)return;const dx=e.clientX-origin.x,dy=e.clientY-origin.y;if(Math.abs(dx)>24&&Math.abs(dx)>Math.abs(dy)*1.3){dragged=true;reveal(dx<0)}};
+ summary.onpointerup=()=>{origin=null};summary.onpointercancel=()=>{origin=null};
+ summary.onclick=e=>{if(dragged){e.preventDefault();dragged=false}else if(summary.classList.contains('revealed')&&!e.target.closest('button')){e.preventDefault();reveal(false)}};
+ summary.onkeydown=e=>{if(e.target===summary&&['ArrowLeft','ArrowRight','Escape'].includes(e.key)){e.preventDefault();reveal(e.key==='ArrowLeft')}};
+ summary.setAttribute('aria-label',groupLabel(name)+' · 왼쪽으로 밀거나 왼쪽 화살표 키로 수정·삭제');
+ edit.onclick=e=>{e.preventDefault();e.stopPropagation();groupEditing=name;$('group-form').reset();$('group-form').querySelector('h2').textContent='분류 수정';$('group-name').value=groupLabel(name);$('group-error').textContent='';reveal(false);$('group-dialog').showModal()};
+ remove.onclick=e=>{e.preventDefault();e.stopPropagation();deleteExpenseGroup(name)};
 }
 function makeItemRow(r){
  const row=element('div','','item-swipe'),front=element('div','','item-front'),label=element('div','','item-label');
@@ -106,7 +121,7 @@ $('entry-item').onchange=showExpenseGroup;
 
 $('from').value=today.slice(0,7)+'-01';$('to').value=today;
 function element(tag,text,cls){const e=document.createElement(tag);e.textContent=text;if(cls)e.className=cls;return e}
-async function reload(){records=(await db.getTransactions()).filter(r=>r.category==='expense');const selected=$('group').value;$('group').replaceChildren(new Option('전체',''));for(const g of [...new Set(records.map(r=>r.expenseGroup||'기타'))].sort())$('group').add(new Option(g,g));$('group').value=selected;render()}
+async function reload(){records=(await db.getTransactions()).filter(r=>r.category==='expense');const selected=$('group').value;$('group').replaceChildren(new Option('전체',''));for(const g of [...new Set(records.map(r=>r.expenseGroup||'기타'))].sort())$('group').add(new Option(groupLabel(g),g));$('group').value=selected;render()}
 function render(){
  if(!$('filters').reportValidity()||$('from').value>$('to').value){$('status').textContent='조회 기간을 확인해 주세요.';return}
  const q=$('search').value.trim().toLowerCase(),g=$('group').value;
@@ -114,7 +129,7 @@ function render(){
  const opened=new Set([...$('rows').querySelectorAll('details[open]')].map(e=>e.dataset.date));$('rows').replaceChildren();
  const days=new Map();for(const r of rows){if(!days.has(r.date))days.set(r.date,[]);days.get(r.date).push(r)}
  for(const [date,list] of days){const d=element('details','','purchase-day');d.dataset.date=date;d.open=opened.has(date);const s=element('summary','');s.append(element('span',date,'day-date'),element('span',list.length+'건','day-count'),element('span',money(list.reduce((n,r)=>n+Number(r.amount),0)),'day-total'));d.append(s);
- for(const r of list){const row=element('div','','expense-row'),name=element('div',r.itemName||r.supplierName||'—');name.append(element('small',(r.expenseGroup||'기타')+' · '+(r.expenseItemName||'')+' · '+(r.paymentMethod||'기타')+(r.memo?' · '+r.memo:'')));const edit=element('button','수정');edit.type='button';edit.onclick=()=>open(r);row.append(element('div',r.expenseGroup||'기타','classification'),name,element('div',r.paymentMethod||'기타','payment'),element('div',money(r.amount),'amount'),edit);d.append(row)}$('rows').append(d)}
+ for(const r of list){const row=element('div','','expense-row'),name=element('div',r.itemName||r.supplierName||'—');name.append(element('small',groupLabel(r.expenseGroup||'기타')+' · '+(r.expenseItemName||'')+' · '+(r.paymentMethod||'기타')+(r.memo?' · '+r.memo:'')));const edit=element('button','수정');edit.type='button';edit.onclick=()=>open(r);row.append(element('div',groupLabel(r.expenseGroup||'기타'),'classification'),name,element('div',r.paymentMethod||'기타','payment'),element('div',money(r.amount),'amount'),edit);d.append(row)}$('rows').append(d)}
  $('total').textContent=money(rows.reduce((n,r)=>n+Number(r.amount),0));$('count').textContent=rows.length+'건';$('empty').hidden=!!rows.length;$('status').textContent='날짜를 누르면 상세내역이 펼쳐집니다.';
 }
 function open(r=null){editing=r;$('entry').reset();fillItems(r?.expenseItemCode||(r?'legacy-'+r.id:''));$('entry-date').value=r?.date||today;showExpenseGroup();$('entry-amount').value=r?.amount||'';$('entry-payment').value=r?.paymentMethod||'계좌이체';$('entry-memo').value=r?.memo||'';$('remove').hidden=!r;$('entry-error').textContent='';$('editor-title').textContent=r?'지출 수정':'지출 등록';$('editor').showModal()}
