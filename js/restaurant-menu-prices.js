@@ -1,0 +1,54 @@
+import {business} from './business-context.js';
+import {menuPrice,actualMargin,latestKgPurchases} from './restaurant-menu-calc.js?v=menu-01';
+const $=id=>document.getElementById(id),money=n=>Math.round(n).toLocaleString('ko-KR')+'원',SOURCE='restaurant-menu-prices';
+let db,menus=[],purchases=[],editing=null,busy=false,manualPrice=false,last=null,linked=null;
+const el=(tag,text='',cls='')=>{const e=document.createElement(tag);e.textContent=text;e.className=cls;return e};
+function input(){return {costPerKg:Number($('cost').value),grams:Number($('grams').value),margin:Number($('margin').value),cardRate:$('use-card').checked?Number($('card-rate').value):0}}
+function actual(){if(!last)return;const a=actualMargin(Number($('applied').value),last.cost,last.cardRate);for(const key of ['supply','vat','fee','profit'])$(key).textContent=money(a[key]);$('actual-margin').textContent=a.actualMargin.toFixed(2)+'%';$('actual-margin').classList.toggle('negative',a.actualMargin+1e-8<last.margin);return a}
+function clearActual(){for(const k of ['supply','vat','fee','profit','actual-margin'])$(k).textContent='—'}
+function calculate(){
+ $('card-rate').disabled=busy||!$('use-card').checked;
+ try{last=menuPrice(input());$('result-cost').textContent=money(last.cost);$('without-vat').textContent=money(last.withoutVat);$('price').textContent=money(last.price);if(!manualPrice)$('applied').value=last.price;actual();$('error').textContent=''}
+ catch(e){last=null;for(const k of ['result-cost','without-vat','price'])$(k).textContent='—';clearActual();$('error').textContent=$('cost').value?e.message:''}
+}
+function reset(){if(busy)return;editing=null;linked=null;manualPrice=false;$('calculator').reset();$('form-title').textContent='판매가 계산';$('source-note').textContent='';calculate()}
+function open(r){if(busy)return;editing=r;linked=r.linkedPurchase||null;$('purchase').value='';$('item-name').value=r.ingredientName||'';$('menu-name').value=r.name||'';for(const [id,key] of [['cost','costPerKg'],['grams','grams'],['margin','margin'],['card-rate','configuredCardRate']])$(id).value=r[key]??3;$('use-card').checked=!!r.useCard;$('applied').value=r.sellingPrice;manualPrice=true;$('form-title').textContent='메뉴 수정';$('source-note').textContent=linked?'저장 당시 매입단가입니다. 최신 단가는 매입품목에서 다시 선택해 주세요.':'';calculate();$('calculator').scrollIntoView({behavior:'smooth'})}
+async function reload(){menus=(await db.getItems()).filter(r=>r.source===SOURCE);draw()}
+function draw(){
+ $('menus').replaceChildren();
+ if(!menus.length){$('menus').append(el('p','저장한 메뉴가 없습니다. 계산 후 메뉴 저장을 눌러 주세요.','note'));return}
+ for(const r of menus){
+  const row=el('article','','menu-row'),top=el('div','','menu-top');top.append(el('strong',r.name),el('strong',money(r.sellingPrice)));
+  row.append(top,el('p',(r.ingredientName||'')+' · '+r.grams+'g · 매입단가 '+money(r.costPerKg)+'/kg','note'));
+  try{const c=menuPrice({costPerKg:r.costPerKg,grams:r.grams,margin:r.margin,cardRate:r.useCard?r.configuredCardRate:0});const a=actualMargin(r.sellingPrice,c.cost,c.cardRate);row.append(el('p','목표 '+r.margin+'% · 실제 '+a.actualMargin.toFixed(2)+'% · 남는 금액 '+money(a.profit)+(r.useCard?' · 카드수수료 '+r.configuredCardRate+'% 반영':''),'note'))}catch{row.append(el('p','계산값을 확인해 주세요.','note'))}
+  const actions=el('div','','actions'),edit=el('button','수정'),remove=el('button','삭제','secondary');edit.type=remove.type='button';edit.disabled=remove.disabled=busy;edit.onclick=()=>open(r);remove.onclick=()=>{if(!busy&&confirm('저장한 메뉴를 삭제할까요?'))mutate(()=>db.deleteItem(r.id),r.id)};actions.append(edit,remove);row.append(actions);$('menus').append(row);
+ }
+}
+async function mutate(fn,removeId=null){
+ if(busy)return;busy=true;for(const c of $('calculator').querySelectorAll('input,select,button'))c.disabled=true;draw();let saved=false;
+ try{await fn();saved=true;if(!removeId||editing?.id===removeId){editing=null;linked=null;manualPrice=false;$('calculator').reset();$('form-title').textContent='판매가 계산';$('source-note').textContent=''}await reload();$('status').textContent=removeId?'메뉴를 삭제했습니다.':'메뉴를 저장했습니다. 아래 저장한 메뉴에서 확인할 수 있습니다.'}
+ catch(e){$('status').textContent=saved?'저장은 완료되었으나 목록을 불러오지 못했습니다. 새로고침해 주세요.':e.message}
+ finally{busy=false;for(const c of $('calculator').querySelectorAll('input,select,button'))c.disabled=false;calculate();draw()}
+}
+$('purchase').onchange=()=>{const r=purchases[Number($('purchase').value)];if($('purchase').value===''||!r){linked=null;$('source-note').textContent='';return}linked={id:r.id,date:r.date,itemId:r.itemId||null};$('item-name').value=r.itemName||'';if(!$('menu-name').value)$('menu-name').value=r.itemName||'';$('cost').value=Number(r.unitPrice);$('source-note').textContent=r.date+' 매입 · '+(r.supplierName||'')+' · 1kg '+money(Number(r.unitPrice));calculate()};
+for(const id of ['cost','grams','margin','card-rate','use-card'])$(id).addEventListener('input',calculate);
+$('applied').oninput=()=>{manualPrice=true;calculate()};
+$('use-price').onclick=()=>{manualPrice=false;calculate()};$('reset').onclick=reset;
+$('calculator').onsubmit=e=>{
+ e.preventDefault();if(busy||!db||!$('calculator').reportValidity())return;
+ try{
+ const c=menuPrice(input()),sellingPrice=Number($('applied').value);if(!Number.isSafeInteger(sellingPrice))throw Error('판매가는 원 단위로 입력해 주세요.');
+ actualMargin(sellingPrice,c.cost,c.cardRate);const name=$('menu-name').value.trim(),ingredientName=$('item-name').value.trim();if(!name||!ingredientName)throw Error('품명과 메뉴명을 입력해 주세요.');
+ const row={...editing,id:editing?.id||'restaurant-menu-'+crypto.randomUUID(),source:SOURCE,group:'식당 메뉴',name,ingredientName,...input(),configuredCardRate:Number($('card-rate').value),useCard:$('use-card').checked,sellingPrice,linkedPurchase:linked,updatedAt:new Date().toISOString()};
+ mutate(()=>editing?db.updateItem(row):db.addItemMaster(row));
+ }catch(e){$('error').textContent=e.message}
+};
+try{
+ if(business!=='restaurant')throw Error('식당 사업장을 선택해 주세요.');
+ db=await import('./db.js?v=app-20261018-working-mobile-02');
+ const [items,transactions]=await Promise.all([db.getItems(),db.getTransactions()]);
+ menus=items.filter(r=>r.source===SOURCE);purchases=latestKgPurchases(transactions);
+ for(const [i,r] of purchases.entries())$('purchase').add(new Option((r.itemGroup?r.itemGroup+' · ':'')+r.itemName+' · '+money(Number(r.unitPrice))+'/kg',String(i)));
+ draw();$('save').disabled=false;$('status').textContent='계산한 메뉴는 아래 저장한 메뉴 목록에서 확인할 수 있습니다.';
+}catch(e){$('status').textContent='메뉴를 불러오지 못했습니다. '+e.message}
+calculate();
