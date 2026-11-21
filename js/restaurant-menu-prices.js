@@ -23,7 +23,7 @@ function draw(){
   const row=el('details','','menu-row'),top=el('summary','','menu-top');top.append(el('strong',r.name),el('strong',money(r.sellingPrice)));
   row.append(top,el('p','100g당 판매가 '+per100g(r.sellingPrice,r.grams),'note'),el('p',(r.ingredientName||'')+' · '+r.grams+'g · 매입단가 '+money(r.costPerKg)+'/kg','note'));
   try{const c=menuPrice({costPerKg:r.costPerKg,grams:r.grams,margin:r.margin});const a=actualMargin(r.sellingPrice,c.cost);row.append(el('p','원가 = '+money(r.costPerKg)+' × '+r.grams+'g ÷ 1,000 = '+money(c.cost),'note'),el('p','기준 판매가 = '+money(c.cost)+' ÷ (1 − '+r.margin+'%) = '+money(c.withoutVat),'note'),el('p','부가세 포함 권장가 = '+money(c.withoutVat)+' × 1.1 = '+money(c.price),'note'),el('p','적용 판매가 '+money(r.sellingPrice)+' ÷ 1.1 = 부가세 제외 '+money(a.supply)+' · 부가세 '+money(a.vat),'note'),el('p','남는 금액 = '+money(a.supply)+' − '+money(c.cost)+' = '+money(a.profit),'note'),el('p','실제 마진율 = 남는 금액 ÷ 부가세 제외 매출 × 100','note'),el('p','목표 '+r.margin+'% · 실제 '+a.actualMargin.toFixed(2)+'% · 남는 금액 '+money(a.profit),'note'))}catch{row.append(el('p','계산값을 확인해 주세요.','note'))}
-  const actions=el('div','','actions'),edit=el('button','수정'),remove=el('button','삭제','secondary');edit.type=remove.type='button';edit.disabled=remove.disabled=busy;edit.onclick=()=>location.href='restaurant-menu-prices.html?business=restaurant&edit='+encodeURIComponent(r.id);remove.onclick=()=>{if(!busy&&confirm('저장한 메뉴를 삭제할까요?'))mutate(()=>db.deleteItem(r.id),r.id)};actions.append(edit,remove);row.append(actions);$('menus').append(row);
+  const actions=el('div','','actions'),edit=el('button','수정'),remove=el('button','삭제','secondary');edit.type=remove.type='button';edit.disabled=remove.disabled=busy;edit.onclick=()=>location.href='restaurant-menu-prices.html?business=restaurant&edit='+encodeURIComponent(r.id);remove.onclick=()=>{if(!busy&&confirm('저장한 메뉴를 삭제할까요?'))mutate(()=>db.deleteItem(r.id),r.id)};actions.append(edit,remove);installMenuSwipe(top,actions);$('menus').append(row);
  }
 }
 async function mutate(fn,removeId=null){
@@ -55,3 +55,25 @@ try{
  draw();const editId=new URL(location.href).searchParams.get('edit');if(!listPage&&editId){const row=menus.find(r=>String(r.id)===editId);if(row)open(row)}$('save').disabled=false;$('status').textContent='저장한 메뉴 페이지에서 메뉴를 누르면 계산 상세가 펼쳐집니다.';
 }catch(e){$('status').textContent='메뉴를 불러오지 못했습니다. '+e.message}
 calculate();
+
+function installMenuSwipe(summary,actions){
+ const front=el('span','','menu-swipe-front');
+ front.append(...summary.childNodes);summary.append(front,actions);
+ summary.classList.add('menu-swipe');actions.className='menu-swipe-actions';
+ actions.inert=true;let start=null,dragged=false,suppressUntil=0;
+ function reveal(value){
+  if(value)for(const other of document.querySelectorAll('.menu-swipe.revealed'))if(other!==summary){other.classList.remove('revealed');other.querySelector('.menu-swipe-actions').inert=true}
+  summary.classList.toggle('revealed',value);actions.inert=!value;
+ }
+ summary.setAttribute('aria-label',front.textContent+' · 상세 보기. 왼쪽으로 밀거나 왼쪽 화살표 키로 수정·삭제');
+ front.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;start={x:e.clientX,y:e.clientY};dragged=false});
+ front.addEventListener('pointermove',e=>{
+  if(!start)return;const dx=e.clientX-start.x,dy=e.clientY-start.y;
+  if(!dragged&&Math.abs(dy)>12&&Math.abs(dy)>Math.abs(dx)){start=null;return}
+  if(Math.abs(dx)>24&&Math.abs(dx)>Math.abs(dy)*1.3){dragged=true;reveal(dx<0);suppressUntil=Date.now()+500}
+ });
+ const end=()=>{if(dragged)suppressUntil=Date.now()+500;start=null;dragged=false};
+ front.addEventListener('pointerup',end);front.addEventListener('pointercancel',end);front.addEventListener('pointerleave',end);
+ summary.addEventListener('click',e=>{if(actions.contains(e.target)){e.preventDefault();return}if(Date.now()<suppressUntil){e.preventDefault();return}if(summary.classList.contains('revealed')){e.preventDefault();reveal(false)}});
+ summary.addEventListener('keydown',e=>{if(e.target!==summary)return;if(e.key==='ArrowLeft'){e.preventDefault();reveal(true)}if(e.key==='ArrowRight'||e.key==='Escape'){e.preventDefault();reveal(false)}});
+}
