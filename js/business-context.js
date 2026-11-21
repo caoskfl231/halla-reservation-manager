@@ -1,12 +1,12 @@
 const KEY='halla_business_v1';
 const url=new URL(location.href);
 let saved;try{saved=localStorage.getItem(KEY)}catch{}
-if(/\/restaurant-(purchases|expenses|funds|sales)\.html$/.test(location.pathname))url.searchParams.set('business','restaurant');
+if(/\/restaurant-(purchases|expenses|funds|sales|statistics)\.html$/.test(location.pathname))url.searchParams.set('business','restaurant');
 export const business=url.searchParams.get('business')==='restaurant'?'restaurant':url.searchParams.get('business')==='butcher'?'butcher':saved==='restaurant'?'restaurant':'butcher';
 export const businessName=business==='restaurant'?'할라정육식당관리':'할라정육점관리';
 try{localStorage.setItem(KEY,business)}catch{}
 url.searchParams.set('business',business);history.replaceState(null,'',url);
-if(business==='restaurant' && !/\/(restaurant-purchases|restaurant-expenses|restaurant-funds|restaurant-sales|login)\.html$/.test(location.pathname))location.replace('restaurant-purchases.html?business=restaurant');
+if(business==='restaurant' && !/\/(restaurant-purchases|restaurant-expenses|restaurant-funds|restaurant-sales|restaurant-statistics|login)\.html$/.test(location.pathname))location.replace('restaurant-purchases.html?business=restaurant');
 export function installBusinessSwitch(){
  if(document.getElementById('business-switch'))return;
  // Keep the sticky switch above page content and below the shared modal overlay (1000).
