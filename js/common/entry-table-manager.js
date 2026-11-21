@@ -45,6 +45,7 @@ export function createEntryTableManager(options = {}) {
     onAfterRenderActive,
     onUpdateSummary,
     onHistoryPayload,
+    onMarginPriceChange,
 
     // draft 자동 확정(신규행에서 다른 행으로 이동 시)
     getIsBatchEditMode,
@@ -443,6 +444,8 @@ export function createEntryTableManager(options = {}) {
       tr.classList.add('purchase-entry-row');
       tr.dataset.entryIndex = String(index);
 
+      // Calculate before filling both the display text and edit controls.
+      applyDerivedFields(row, null);
       const viewItemCode = tr.querySelector('[data-view="itemCode"]');
       const viewItemName = tr.querySelector('[data-view="itemName"]');
       const viewSpec = tr.querySelector('[data-view="spec"]');
@@ -588,6 +591,20 @@ export function createEntryTableManager(options = {}) {
           : '');
 
       const fields = getFieldsFromRow(tr);
+      const editingSalesMargin = derivedMode === 'purchaseCost' && editedKey === 'marginRate';
+      if (editingSalesMargin) {
+        const rawRate = fields.marginRate.value.trim();
+        const rate = Number(rawRate);
+        const cost = Number(fields.shrinkPercent?.value || 0);
+        const error = rawRate === '' || !Number.isFinite(rate) || rate < 0 || rate >= 100
+          ? '마진율은 0 이상 100 미만으로 입력해 주세요.'
+          : !Number.isFinite(cost) || cost <= 0 ? '매입가를 먼저 입력해 주세요.' : '';
+        fields.marginRate.setCustomValidity(error);
+        if (error) {
+          fields.marginRate.reportValidity();
+          return;
+        }
+      }
       row.itemCode = fields.itemCode ? fields.itemCode.value.trim() : '';
       row.itemName = fields.itemName ? fields.itemName.value.trim() : '';
       row.itemSpec = fields.spec ? fields.spec.value.trim() : '';
@@ -639,6 +656,16 @@ export function createEntryTableManager(options = {}) {
       if (fields.marginRate) {
         row.marginRate = Number(fields.marginRate.value || '0') || 0;
       }
+
+      if (editingSalesMargin) {
+        // Selling price is based only on cost and sales margin, without VAT or fees.
+        row.unitPrice = Math.ceil(row.shrinkPercent / (1 - row.marginRate / 100));
+        row.taxType = '면세';
+        row._amountManual = false;
+        if (fields.unitPrice) fields.unitPrice.value = String(row.unitPrice);
+        if (typeof onMarginPriceChange === 'function') onMarginPriceChange(row);
+      }
+      if (fields.marginRate) fields.marginRate.setCustomValidity('');
 
       // 매출합계(row.amount)를 먼저 재계산한 뒤 파생값(매입합계/마진)을 계산한다.
       // (purchaseCost 모드의 마진은 row.amount(매출합계)에 의존)

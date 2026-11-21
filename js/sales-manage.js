@@ -43,7 +43,7 @@ import {
   applyAmountColoring,
   createScrollToBottomOnce,
 } from "./common/ui-helpers.js?v=app-20261018-working-mobile-02";
-import { createEntryTableManager } from "./common/entry-table-manager.js?v=app-20261018-working-mobile-02";
+import { createEntryTableManager } from "./common/entry-table-manager.js?v=app-20261018-working-mobile-02&feature=sales-margin-20261121";
 import {
   todayYMD,
   formatWeekdayLabel,
@@ -984,6 +984,9 @@ const entryTableManager = createEntryTableManager({
   entryBody,
   entryRowTemplate,
   derivedMode: 'purchaseCost',
+  onMarginPriceChange: () => {
+    if (taxTypeSelect) taxTypeSelect.value = '면세';
+  },
   getPendingEntries: () => pendingEntries,
   getEntryDraftRow: () => entryDraftRow,
   setEntryDraftRow: (v) => {
