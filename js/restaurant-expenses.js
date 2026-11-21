@@ -7,13 +7,13 @@ let expenseItems=[],masterEditing=null,masterBusy=false,expenseGroups=[],groupBu
 const itemGroupOpen=new Map();
 async function loadItems(){const saved=(await db.getCashflowItems()).filter(r=>r.source==='restaurant-expense-items');const map=new Map(defaults.map(r=>[r.code,r]));for(const r of saved)map.set(r.code,r);expenseItems=[...map.values()].filter(r=>!r.archived);fillItems();await loadGroups()}
 
-function groupNames(){return [...new Set(['인건비','임대료','공과금','소모품','수수료','기타',...expenseGroups.map(r=>r.name),...expenseItems.map(r=>r.group),...records.map(r=>r.expenseGroup)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko'))}
+function groupNames(){const hidden=new Set(expenseGroups.filter(r=>r.archived).map(r=>r.name));return [...new Set(['인건비','임대료','공과금','소모품','수수료','기타',...expenseGroups.filter(r=>!r.archived).map(r=>r.name),...expenseItems.map(r=>r.group),...records.map(r=>r.expenseGroup)].filter(name=>name&&!hidden.has(name)))].sort((a,b)=>a.localeCompare(b,'ko'))}
 function fillGroups(selected=$('item-group').value){$('item-group').replaceChildren(new Option('분류 선택',''));for(const name of groupNames())$('item-group').add(new Option(name,name));$('item-group').value=selected}
 async function loadGroups(){expenseGroups=(await db.getCashflowGroups()).filter(r=>r.source==='restaurant-expense-groups');fillGroups()}
 $('group-add').onclick=()=>{$('group-form').reset();$('group-error').textContent='';$('group-dialog').showModal()};
 $('group-cancel').onclick=()=>{if(!groupBusy)$('group-dialog').close()};
 $('group-dialog').addEventListener('cancel',e=>{if(groupBusy)e.preventDefault()});
-$('group-form').onsubmit=async e=>{e.preventDefault();if(groupBusy)return;const name=$('group-name').value.trim().normalize('NFC');if(!name){$('group-error').textContent='분류명을 입력해 주세요.';return}if(groupNames().some(n=>n.normalize('NFC').toLowerCase()===name.toLowerCase())){$('group-error').textContent='이미 등록된 분류입니다.';return}groupBusy=true;$('group-save').disabled=true;$('group-cancel').disabled=true;try{await db.addCashflowGroup({code:'restaurant-expense-group-'+encodeURIComponent(name.toLowerCase()),name,source:'restaurant-expense-groups'});await loadGroups();fillGroups(name);$('group-dialog').close();drawItems();$('group-add').focus()}catch(error){$('group-error').textContent=error.message}finally{groupBusy=false;$('group-save').disabled=false;$('group-cancel').disabled=false}};
+$('group-form').onsubmit=async e=>{e.preventDefault();if(groupBusy)return;const name=$('group-name').value.trim().normalize('NFC');if(!name){$('group-error').textContent='분류명을 입력해 주세요.';return}if(groupNames().some(n=>n.normalize('NFC').toLowerCase()===name.toLowerCase())){$('group-error').textContent='이미 등록된 분류입니다.';return}groupBusy=true;$('group-save').disabled=true;$('group-cancel').disabled=true;try{await db.updateCashflowGroup({archived:false,code:'restaurant-expense-group-'+encodeURIComponent(name.toLowerCase()),name,source:'restaurant-expense-groups'});await loadGroups();fillGroups(name);$('group-dialog').close();drawItems();$('group-add').focus()}catch(error){$('group-error').textContent=error.message}finally{groupBusy=false;$('group-save').disabled=false;$('group-cancel').disabled=false}};
 
 function fillItems(selected=''){const select=$('entry-item');select.replaceChildren(new Option('항목 선택',''));for(const r of expenseItems)select.add(new Option(r.group+' · '+r.name,r.code));if(selected&&!expenseItems.some(r=>r.code===selected)&&editing)select.add(new Option((editing.expenseGroup||'기타')+' · '+(editing.expenseItemName||editing.itemName)+' (기존 항목)',selected));select.value=selected}
 function itemTotal(item){
@@ -48,11 +48,30 @@ function drawItems(){
   details.ontoggle=()=>{if(!query)itemGroupOpen.set(name,details.open)};
   summary.append(element('span',name,'item-category-name'),element('strong',money(members.reduce((sum,item)=>sum+itemTotal(item),0)),'item-category-total'));
   details.append(summary);
+  const controls=element('div','','category-controls'),remove=element('button','분류 삭제','item-delete');
+  remove.type='button';remove.disabled=groupBusy||masterBusy;
+  remove.setAttribute('aria-label',name+' 분류 삭제');
+  remove.onclick=()=>deleteExpenseGroup(name);
+  controls.append(remove);details.append(controls);
   for(const item of members)details.append(makeItemRow(item));
   if(!members.length)details.append(element('p','등록된 항목이 없습니다. 아래에서 항목을 추가하세요.','items-empty'));
   $('items-list').append(details);
  }
  if(!names.length)$('items-list').append(element('p','검색 결과가 없습니다.','items-empty'));
+}
+async function deleteExpenseGroup(name){
+ if(groupBusy||masterBusy)return;
+ if(expenseItems.some(r=>r.group===name)){$('items-error').textContent='이 분류에 지출항목이 있습니다. 항목을 다른 분류로 옮기거나 삭제한 뒤 분류를 삭제해 주세요.';return}
+ if(!confirm('「'+name+'」 분류를 삭제할까요? 기존 지출내역은 유지됩니다.'))return;
+ groupBusy=true;drawItems();
+ try{
+ await loadItems();
+ if(expenseItems.some(r=>r.group===name))throw Error('이 분류에 지출항목이 있습니다. 먼저 항목을 옮기거나 삭제해 주세요.');
+ const existing=expenseGroups.find(r=>r.name===name);
+ await db.updateCashflowGroup({...existing,code:existing?.code||'restaurant-expense-group-'+encodeURIComponent(name.toLowerCase()),name,source:'restaurant-expense-groups',archived:true});
+ await loadGroups();itemGroupOpen.delete(name);$('items-error').textContent='분류를 삭제했습니다. 기존 지출내역은 유지됩니다.';
+ }catch(e){$('items-error').textContent=e.message}
+ finally{groupBusy=false;drawItems()}
 }
 function makeItemRow(r){
  const row=element('div','','item-swipe'),front=element('div','','item-front'),label=element('div','','item-label');
