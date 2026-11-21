@@ -1,0 +1,14 @@
+.menu-picker-trigger { display:flex;align-items:center;justify-content:space-between;text-align:left;background:white;color:#20382d;height:auto;min-height:44px;gap:12px;overflow-wrap:anywhere; }
+.menu-picker-trigger::after { content:'선택';font-size:13px;color:#14633e;flex:none; }
+.menu-picker { width:min(560px,calc(100% - 24px));max-height:85dvh;padding:0;border:1px solid #bdcdc2;border-radius:14px;color:#20382d;overflow:hidden; }
+.menu-picker[open] { display:flex;flex-direction:column; }
+.menu-picker::backdrop { background:#0007; }
+.menu-picker header { display:flex;align-items:center;gap:10px;padding:14px;border-bottom:1px solid #dce7df;flex:none;background:#edf5ef; }
+.menu-picker h2 { font-size:18px;margin:0;flex:1;outline:none; }
+.menu-picker header button { width:auto;min-height:44px;background:white;color:#14633e; }
+.menu-picker [hidden] { display:none!important; }
+.picker-options { overflow:auto;overscroll-behavior:contain;min-height:0;padding:12px 14px max(14px,env(safe-area-inset-bottom));display:grid;gap:8px; }
+.picker-option { height:auto;min-height:48px;padding:12px;text-align:left;background:#f5f8f5;color:#20382d;overflow-wrap:anywhere; }
+.picker-option[aria-pressed=true] { background:#e0f0e4;border-color:#14633e;color:#14633e; }
+.menu-picker button:focus-visible,.menu-picker-trigger:focus-visible { outline:2px solid #14633e;outline-offset:-3px; }
+@media(max-width:400px){.menu-picker header{gap:6px;padding:10px}.menu-picker h2{font-size:16px}.menu-picker header button{padding:8px}}

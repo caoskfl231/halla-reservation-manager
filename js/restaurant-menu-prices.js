@@ -1,3 +1,4 @@
+import {installMenuPickers} from './restaurant-menu-pickers.js?v=1';
 import {business} from './business-context.js';
 import {menuPrice,actualMargin,latestKgPurchases} from './restaurant-menu-calc.js?v=menu-02';
 const $=id=>document.getElementById(id),money=n=>Math.round(n).toLocaleString('ko-KR')+'원',SOURCE='restaurant-menu-prices';
@@ -14,7 +15,7 @@ function calculate(){
  catch(e){last=null;for(const k of ['result-cost','without-vat','price','price-per100g'])$(k).textContent='—';clearActual();$('error').textContent=$('cost').value?e.message:''}
 }
 function reset(){if(busy)return;editing=null;linked=null;manualPrice=false;$('calculator').reset();$('form-title').textContent='판매가 계산';$('source-note').textContent='';calculate()}
-function open(r){if(busy)return;editing=r;linked=r.linkedPurchase||null;$('purchase').value='';$('item-name').value=r.ingredientName||'';$('menu-name').value=r.name||'';$('menu-category').value=menuCategories.includes(r.menuCategory)?r.menuCategory:'';for(const [id,key] of [['cost','costPerKg'],['grams','grams'],['margin','margin']])$(id).value=r[key]??3;$('applied').value=r.sellingPrice;manualPrice=true;$('form-title').textContent='메뉴 수정';$('source-note').textContent=linked?'저장 당시 매입단가입니다. 최신 단가는 매입품목에서 다시 선택해 주세요.':'';calculate();$('calculator').scrollIntoView({behavior:'smooth'})}
+function open(r){if(busy)return;editing=r;linked=r.linkedPurchase||null;$('purchase').value='';$('item-name').value=r.ingredientName||'';$('menu-name').value=r.name||'';$('menu-category').value=menuCategories.includes(r.menuCategory)?r.menuCategory:'';for(const [id,key] of [['cost','costPerKg'],['grams','grams'],['margin','margin']])$(id).value=r[key]??3;$('applied').value=r.sellingPrice;manualPrice=true;$('form-title').textContent='메뉴 수정';$('source-note').textContent=linked?'저장 당시 매입단가입니다. 최신 단가는 매입품목에서 다시 선택해 주세요.':'';calculate();syncPickers();$('calculator').scrollIntoView({behavior:'smooth'})}
 async function reload(){menus=(await db.getItems()).filter(r=>r.source===SOURCE);draw()}
 function draw(){
  if(!listPage)return;
@@ -50,6 +51,7 @@ $('calculator').onsubmit=e=>{
  mutate(()=>editing?db.updateItem(row):db.addItemMaster(row));
  }catch(e){$('error').textContent=e.message}
 };
+const syncPickers=listPage?()=>{}:installMenuPickers(()=>purchases);
 try{
  if(business!=='restaurant')throw Error('식당 사업장을 선택해 주세요.');
  db=await import('./db.js?v=app-20261018-working-mobile-02');
