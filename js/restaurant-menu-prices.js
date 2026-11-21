@@ -56,7 +56,7 @@ try{
  const [items,transactions]=await Promise.all([db.getItems(),db.getTransactions()]);
  menus=items.filter(r=>r.source===SOURCE);purchases=latestKgPurchases(transactions);
  for(const [i,r] of purchases.entries())$('purchase').add(new Option((r.itemGroup?r.itemGroup+' · ':'')+r.itemName+' · '+money(Number(r.unitPrice))+'/kg',String(i)));
- draw();const editId=new URL(location.href).searchParams.get('edit');if(!listPage&&editId){const row=menus.find(r=>String(r.id)===editId);if(row)open(row)}$('save').disabled=false;$('status').textContent='저장한 메뉴 페이지에서 메뉴를 누르면 계산 상세가 펼쳐집니다.';
+ draw();const editId=new URL(location.href).searchParams.get('edit');if(!listPage&&editId){const row=menus.find(r=>String(r.id)===editId);if(row)open(row)}$('save').disabled=false;$('status').textContent=listPage?'':'저장한 메뉴 페이지에서 메뉴를 누르면 계산 상세가 펼쳐집니다.';
 }catch(e){$('status').textContent='메뉴를 불러오지 못했습니다. '+e.message}
 calculate();
 
