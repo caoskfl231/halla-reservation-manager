@@ -3,12 +3,13 @@ import {menuPrice,actualMargin,latestKgPurchases} from './restaurant-menu-calc.j
 const $=id=>document.getElementById(id),money=n=>Math.round(n).toLocaleString('ko-KR')+'원',SOURCE='restaurant-menu-prices';
 let db,menus=[],purchases=[],editing=null,busy=false,manualPrice=false,last=null,linked=null;
 const el=(tag,text='',cls='')=>{const e=document.createElement(tag);e.textContent=text;e.className=cls;return e};
+function per100g(price,grams){const p=Number(price),g=Number(grams);return Number.isFinite(p)&&p>0&&Number.isFinite(g)&&g>0?money(p*100/g):'—'}
 function input(){return {costPerKg:Number($('cost').value),grams:Number($('grams').value),margin:Number($('margin').value)}}
-function actual(){if(!last)return;const a=actualMargin(Number($('applied').value),last.cost);for(const key of ['supply','vat','profit'])$(key).textContent=money(a[key]);$('actual-margin').textContent=a.actualMargin.toFixed(2)+'%';$('actual-margin').classList.toggle('negative',a.actualMargin+1e-8<last.margin);return a}
-function clearActual(){for(const k of ['supply','vat','profit','actual-margin'])$(k).textContent='—'}
+function actual(){if(!last)return;const a=actualMargin(Number($('applied').value),last.cost);$('applied-per100g').textContent=per100g($('applied').value,$('grams').value);for(const key of ['supply','vat','profit'])$(key).textContent=money(a[key]);$('actual-margin').textContent=a.actualMargin.toFixed(2)+'%';$('actual-margin').classList.toggle('negative',a.actualMargin+1e-8<last.margin);return a}
+function clearActual(){for(const k of ['supply','vat','profit','actual-margin','applied-per100g'])$(k).textContent='—'}
 function calculate(){
- try{last=menuPrice(input());$('result-cost').textContent=money(last.cost);$('without-vat').textContent=money(last.withoutVat);$('price').textContent=money(last.price);if(!manualPrice)$('applied').value=last.price;actual();$('error').textContent=''}
- catch(e){last=null;for(const k of ['result-cost','without-vat','price'])$(k).textContent='—';clearActual();$('error').textContent=$('cost').value?e.message:''}
+ try{last=menuPrice(input());$('result-cost').textContent=money(last.cost);$('without-vat').textContent=money(last.withoutVat);$('price').textContent=money(last.price);$('price-per100g').textContent=per100g(last.price,$('grams').value);if(!manualPrice)$('applied').value=last.price;actual();$('error').textContent=''}
+ catch(e){last=null;for(const k of ['result-cost','without-vat','price','price-per100g'])$(k).textContent='—';clearActual();$('error').textContent=$('cost').value?e.message:''}
 }
 function reset(){if(busy)return;editing=null;linked=null;manualPrice=false;$('calculator').reset();$('form-title').textContent='판매가 계산';$('source-note').textContent='';calculate()}
 function open(r){if(busy)return;editing=r;linked=r.linkedPurchase||null;$('purchase').value='';$('item-name').value=r.ingredientName||'';$('menu-name').value=r.name||'';for(const [id,key] of [['cost','costPerKg'],['grams','grams'],['margin','margin']])$(id).value=r[key]??3;$('applied').value=r.sellingPrice;manualPrice=true;$('form-title').textContent='메뉴 수정';$('source-note').textContent=linked?'저장 당시 매입단가입니다. 최신 단가는 매입품목에서 다시 선택해 주세요.':'';calculate();$('calculator').scrollIntoView({behavior:'smooth'})}
@@ -18,7 +19,7 @@ function draw(){
  if(!menus.length){$('menus').append(el('p','저장한 메뉴가 없습니다. 계산 후 메뉴 저장을 눌러 주세요.','note'));return}
  for(const r of menus){
   const row=el('article','','menu-row'),top=el('div','','menu-top');top.append(el('strong',r.name),el('strong',money(r.sellingPrice)));
-  row.append(top,el('p',(r.ingredientName||'')+' · '+r.grams+'g · 매입단가 '+money(r.costPerKg)+'/kg','note'));
+  row.append(top,el('p','100g당 판매가 '+per100g(r.sellingPrice,r.grams),'note'),el('p',(r.ingredientName||'')+' · '+r.grams+'g · 매입단가 '+money(r.costPerKg)+'/kg','note'));
   try{const c=menuPrice({costPerKg:r.costPerKg,grams:r.grams,margin:r.margin});const a=actualMargin(r.sellingPrice,c.cost);row.append(el('p','목표 '+r.margin+'% · 실제 '+a.actualMargin.toFixed(2)+'% · 남는 금액 '+money(a.profit),'note'))}catch{row.append(el('p','계산값을 확인해 주세요.','note'))}
   const actions=el('div','','actions'),edit=el('button','수정'),remove=el('button','삭제','secondary');edit.type=remove.type='button';edit.disabled=remove.disabled=busy;edit.onclick=()=>open(r);remove.onclick=()=>{if(!busy&&confirm('저장한 메뉴를 삭제할까요?'))mutate(()=>db.deleteItem(r.id),r.id)};actions.append(edit,remove);row.append(actions);$('menus').append(row);
  }
