@@ -6,11 +6,11 @@ export function installMenuPickers(getPurchases,categoryStore) {
  const title=dialog.querySelector('h2'),list=dialog.querySelector('.picker-options'),back=dialog.querySelector('.picker-back');
  const controls=new Map();let active=null,opener=null,saving=false;
  const group=r=>String(r.itemGroup||'').trim()||'미분류';
- const money=n=>Number(n).toLocaleString('ko-KR')+'원/kg';
+ const money=(n,unit)=>Number(n).toLocaleString('ko-KR')+'원/'+(String(unit||'').trim()||'개');
  function button(text,action,selected=false){const b=document.createElement('button');b.type='button';b.textContent=text;b.className='picker-option';b.setAttribute('aria-pressed',String(selected));b.onclick=action;list.append(b);return b;}
  function sync(){for(const [id,{select,trigger}] of controls){trigger.textContent=select.selectedOptions[0]?.textContent||(id==='purchase'?'직접 입력':'분류 선택');}}
  function choose(value){const {select}=controls.get(active);select.value=value;select.dispatchEvent(new Event('change',{bubbles:true}));sync();dialog.close();}
- function items(category){title.textContent=category+' · 품목 선택';back.hidden=false;list.replaceChildren();for(const [i,r] of getPurchases().entries()){if(group(r)!==category)continue;button(r.itemName+' · '+money(r.unitPrice),()=>choose(String(i)),controls.get(active).select.value===String(i));}if(!list.children.length){const p=document.createElement('p');p.textContent='이 분류에 등록된 매입품목이 없습니다.';list.append(p);}title.focus();}
+ function items(category){title.textContent=category+' · 품목 선택';back.hidden=false;list.replaceChildren();for(const [i,r] of getPurchases().entries()){if(group(r)!==category)continue;button(r.itemName+' · '+money(r.unitPrice,r.unit),()=>choose(String(i)),controls.get(active).select.value===String(i));}if(!list.children.length){const p=document.createElement('p');p.textContent='이 분류에 등록된 매입품목이 없습니다.';list.append(p);}title.focus();}
  function categoryButton(name,label,action,selected=false){
  const front=button(label,action,selected),row=document.createElement('div'),remove=document.createElement('button');
  row.className='picker-swipe';front.replaceWith(row);row.append(front,remove);remove.type='button';remove.className='picker-delete';remove.textContent='삭제';remove.inert=true;
@@ -38,7 +38,7 @@ export function installMenuPickers(getPurchases,categoryStore) {
    title.textContent='매입품목 · 분류 선택';button('직접 입력',()=>choose(''),controls.get(active).select.value==='');
    const counts=new Map();for(const r of getPurchases())counts.set(group(r),(counts.get(group(r))||0)+1);
    for(const name of categoryStore.names('purchase'))categoryButton(name,name+' · '+(counts.get(name)||0)+'개',()=>items(name));
-   if(!counts.size){const p=document.createElement('p');p.textContent='불러올 kg 단위 매입품목이 없습니다.';list.append(p);}
+   if(!counts.size){const p=document.createElement('p');p.textContent='불러올 매입품목이 없습니다.';list.append(p);}
   }else{title.textContent='메뉴 분류 선택';for(const option of controls.get(active).select.options){if(option.value)categoryButton(option.value,option.textContent,()=>choose(option.value),option.selected);}}
  }
  function show(id){active=id;opener=controls.get(id).trigger;categories();if(!dialog.open)dialog.showModal();opener.setAttribute('aria-expanded','true');title.focus();}
@@ -53,3 +53,4 @@ export function installMenuPickers(getPurchases,categoryStore) {
  dialog.addEventListener('close',()=>{opener?.setAttribute('aria-expanded','false');opener?.focus();});
  form.addEventListener('reset',()=>queueMicrotask(sync));sync();return sync;
 }
+
