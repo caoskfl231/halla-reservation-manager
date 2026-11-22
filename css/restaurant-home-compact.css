@@ -1,0 +1,16 @@
+/* Compact spacing for the restaurant home only. */
+.restaurant-app.home-compact .app-header{padding:6px 16px;gap:6px;min-height:52px}
+.restaurant-app.home-compact #business-switch.app-switch{padding-bottom:8px!important}
+.restaurant-app.home-compact #business-switch.app-switch a{padding:8px!important;min-height:44px}
+.restaurant-app.home-compact .home-main{margin:8px auto;padding:4px 6px}
+.home-compact .home-heading{margin-bottom:10px}
+.home-compact .home-hero{padding:12px 16px;border-radius:12px}
+.home-compact .home-hero strong{margin-top:2px}
+.home-compact .home-totals{gap:8px;margin-top:8px}
+.home-compact .home-totals a{padding:10px 14px;gap:2px}
+.home-compact .home-remaining{padding:9px 14px;margin-top:8px;gap:6px}
+.home-compact .home-note,.home-compact #home-status{margin:6px 0;line-height:1.4}
+.restaurant-app.home-compact .home-main>h2{margin:12px 0 8px}
+.home-compact .home-shortcuts{gap:8px}
+.home-compact .home-shortcuts a{padding:10px 12px;min-height:48px}
+.home-compact .home-statistics{padding:10px;margin-top:10px;min-height:44px}
