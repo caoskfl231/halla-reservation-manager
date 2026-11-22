@@ -1,22 +1,33 @@
 import {business} from './business-context.js';
 import {requireLedgerSession} from './cloud-session.js?v=app-20261018-working-mobile-02';
 import {loadFunds,fundWrite,won,today,el,fillAccountSelect} from './restaurant-fund-api.js?v=receipt-sync-01';
-const $=id=>document.getElementById(id);let state,editing=null,accountId=null,entryId=null,busy=false;
+const $=id=>document.getElementById(id);let state,editing=null,accountId=null,entryId=null,busy=false,accountTab='bank';
 const kinds={in:'입금',out:'출금·카드사용',transfer:'계좌이체·카드대금 납부',purchase:'매입대금 지불'};
 $('fund-from').value=today().slice(0,7)+'-01';$('fund-to').value=today();
 function draw(){
  const accounts=new Map(state.accounts.map(a=>[a.id,a]));
  const available=state.accounts.filter(a=>a.kind!=='card').reduce((s,a)=>s+Number(a.balance),0);
  const debt=state.accounts.filter(a=>a.kind==='card').reduce((s,a)=>s+Math.max(0,-Number(a.balance)),0);
- $('fund-total').textContent='현재 보유자금 '+won(available)+' · 카드 미결제금 '+won(debt);
+ $('fund-available').textContent=won(available);$('fund-debt').textContent=won(debt);$('fund-debt-line').textContent=won(debt);
  $('fund-accounts').replaceChildren();
- for(const a of state.accounts){
-  const card=el('article','','fund-card');card.append(el('h3',a.name+(a.archived?' · 사용 중지':'')));
-  card.append(el('small',a.kind==='card'?'미결제금':'현재 잔액'),el('strong',won(a.kind==='card'?Math.max(0,-a.balance):a.balance)));
-  if(a.kind==='card'&&a.balance>0)card.append(el('small','선납 잔액 '+won(a.balance)));
-  const edit=el('button','수정');edit.type='button';edit.onclick=()=>openAccount(a);card.append(edit);$('fund-accounts').append(card);
+ const shown=state.accounts.filter(a=>accountTab==='card'?a.kind==='card':a.kind!=='card');
+ for(const a of shown){
+  const row=el('article','','fund-account-row'),front=el('button','','fund-account-front');
+  front.type='button';const name=el('span','','fund-account-name');name.append(el('b',a.name+(a.archived?' · 사용 중지':'')),el('small',a.kind==='card'?'미결제금':'현재 잔액'));
+  const amount=el('span','','fund-account-amount');amount.append(el('strong',won(a.kind==='card'?Math.max(0,-a.balance):a.balance)));
+  if(a.kind==='card'&&a.balance>0)amount.append(el('small','선납 '+won(a.balance)));
+  front.append(name,amount);const edit=el('button','수정','fund-account-edit');edit.type='button';edit.inert=true;edit.onclick=()=>openAccount(a);
+  row.append(edit,front);$('fund-accounts').append(row);
+  let start=null,suppress=0;
+  const reveal=value=>{for(const other of $('fund-accounts').querySelectorAll('.revealed')){other.classList.remove('revealed');other.querySelector('.fund-account-edit').inert=true;}row.classList.toggle('revealed',value);edit.inert=!value;};
+  front.setAttribute('aria-label',a.name+' '+amount.textContent+' · 클릭하면 내역 조회, 왼쪽으로 밀면 수정');
+  front.onpointerdown=e=>{if(e.button===0)start={x:e.clientX,y:e.clientY};};
+  front.onpointermove=e=>{if(!start)return;const dx=e.clientX-start.x,dy=e.clientY-start.y;if(Math.abs(dy)>12&&Math.abs(dy)>Math.abs(dx)){start=null;return}if(Math.abs(dx)>24&&Math.abs(dx)>Math.abs(dy)*1.3){reveal(dx<0);suppress=Date.now()+500;start=null;}};
+  for(const event of ['pointerup','pointercancel','pointerleave'])front.addEventListener(event,()=>{start=null;});
+  front.onkeydown=e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();reveal(e.key==='ArrowLeft');}};
+  front.onclick=()=>{if(Date.now()<suppress)return;if(row.classList.contains('revealed')){reveal(false);return}$('fund-account-filter').value=a.id;draw();$('fund-filter').scrollIntoView({block:'start',behavior:'smooth'});};
  }
- if(!state.accounts.length)$('fund-accounts').append(el('p','계좌·카드를 등록하면 잔액을 관리할 수 있습니다.','fund-note'));
+ if(!shown.length)$('fund-accounts').append(el('p',accountTab==='card'?'등록된 카드가 없습니다.':'등록된 통장·현금 계좌가 없습니다.','fund-account-empty'));
  const selected=$('fund-account-filter').value;$('fund-account-filter').replaceChildren(new Option('전체',''));
  for(const a of state.accounts)$('fund-account-filter').add(new Option(a.name,a.id));$('fund-account-filter').value=selected;
  if(!$('fund-filter').reportValidity()||$('fund-from').value>$('fund-to').value){$('fund-status').textContent='조회 기간을 확인해 주세요.';return}
@@ -41,7 +52,7 @@ function draw(){
 function openAccount(a=null){
  if(busy)return;editing=a;accountId=a?.id||crypto.randomUUID();$('account-form').reset();
  $('account-title').textContent=a?'계좌·카드 수정':'계좌·카드 등록';
- $('account-name').value=a?.name||'';$('account-kind').value=a?.kind||'bank';$('account-date').value=a?.opening_date||today();$('account-date').max=today();
+ $('account-name').value=a?.name||'';$('account-kind').value=a?.kind||(accountTab==='card'?'card':'bank');$('account-date').value=a?.opening_date||today();$('account-date').max=today();
  $('account-opening').value=a?.opening_balance||0;$('account-active').value=a?.archived?'archived':'active';
  $('account-active').disabled=!a;$('account-error').textContent='';$('account-editor').showModal();
 }
@@ -49,9 +60,11 @@ function updateKind(){
  const transfer=$('fund-kind').value==='transfer';$('fund-destination-label').hidden=!transfer;$('fund-destination').required=transfer;
  $('fund-source-label').textContent=transfer?'출금통장·현금':'계좌·카드';
 }
-function openEntry(kind){
+function openEntry(kind,cardPayment=false){
  if(busy)return;entryId=crypto.randomUUID();$('fund-form').reset();$('fund-kind').value=kind;
  $('fund-date').value=today();$('fund-date').max=today();fillAccountSelect($('fund-source'),state.accounts);fillAccountSelect($('fund-destination'),state.accounts);
+ if(cardPayment){const card=state.accounts.find(a=>a.kind==='card'&&!a.archived);if(card)$('fund-destination').value=card.id;}
+ $('fund-title').textContent=cardPayment?'카드대금 납부':kind==='transfer'?'계좌이체':'입금·출금 등록';
  updateKind();$('fund-error').textContent='';$('fund-editor').showModal();
 }
 async function save(form,errorId,action,data,dialog){
@@ -65,6 +78,14 @@ async function cancelEntry(e){
  busy=true;draw();try{state=await fundWrite('cancel',{id:e.id})}catch(error){busy=false;draw();$('fund-status').textContent=error.message;return}busy=false;draw();
 }
 $('account-new').onclick=()=>openAccount();$('entry-new').onclick=()=>openEntry('in');$('transfer-new').onclick=()=>openEntry('transfer');
+$('card-payment-new').onclick=()=>openEntry('transfer',true);
+function selectTab(kind){
+ accountTab=kind;
+ for(const [id,value] of [['bank-tab','bank'],['card-tab','card']]){const active=kind===value;$(id).setAttribute('aria-selected',String(active));$(id).tabIndex=active?0:-1;}
+ $('fund-section-title').textContent=kind==='card'?'카드':'통장·현금';$('fund-accounts').setAttribute('aria-labelledby',kind==='card'?'card-tab':'bank-tab');
+ if(state)draw();
+}
+for(const [id,kind] of [['bank-tab','bank'],['card-tab','card']]){$(id).onclick=()=>selectTab(kind);$(id).onkeydown=e=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();const next=e.key==='Home'?'bank':e.key==='End'?'card':kind==='bank'?'card':'bank';selectTab(next);$(next==='bank'?'bank-tab':'card-tab').focus();}};}
 $('fund-kind').onchange=updateKind;
 $('account-close').onclick=()=>{if(!busy)$('account-editor').close()};$('fund-close').onclick=()=>{if(!busy)$('fund-editor').close()};
 for(const id of ['account-editor','fund-editor'])$(id).addEventListener('cancel',e=>{if(busy)e.preventDefault()});
@@ -72,4 +93,4 @@ $('account-form').onsubmit=e=>{e.preventDefault();if(!$('account-form').reportVa
 $('fund-form').onsubmit=e=>{e.preventDefault();if(!$('fund-form').reportValidity())return;const kind=$('fund-kind').value;save($('fund-form'),'fund-error','post',{id:entryId,kind,date:$('fund-date').value,account_id:$('fund-source').value,to_account_id:kind==='transfer'?$('fund-destination').value:null,amount:Number($('fund-amount').value),memo:$('fund-memo').value.trim()},$('fund-editor'))};
 $('fund-filter').onsubmit=e=>{e.preventDefault();if(state)draw()};$('fund-account-filter').onchange=()=>{if(state)draw()};
 $('fund-refresh').onclick=()=>location.reload();
-try{if(business!=='restaurant')throw Error('식당 사업장을 선택해 주세요.');state=await requireLedgerSession(loadFunds);draw();for(const id of ['account-new','entry-new','transfer-new'])$(id).disabled=false}catch(e){$('fund-status').textContent=e.message}
+try{if(business!=='restaurant')throw Error('식당 사업장을 선택해 주세요.');state=await requireLedgerSession(loadFunds);draw();for(const id of ['account-new','entry-new','transfer-new','card-payment-new'])$(id).disabled=false}catch(e){$('fund-status').textContent=e.message}
