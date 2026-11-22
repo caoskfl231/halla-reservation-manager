@@ -17,10 +17,11 @@ function draw(){
   const amount=el('span','','fund-account-amount');amount.append(el('strong',won(a.kind==='card'?Math.max(0,-a.balance):a.balance)));
   if(a.kind==='card'&&a.balance>0)amount.append(el('small','선납 '+won(a.balance)));
   front.append(name,amount);const edit=el('button','수정','fund-account-edit');edit.type='button';edit.inert=true;edit.onclick=()=>openAccount(a);
-  row.append(edit,front);$('fund-accounts').append(row);
+  const remove=el('button','삭제','fund-account-delete');remove.type='button';remove.inert=true;remove.onclick=()=>deleteAccount(a);
+  row.append(edit,remove,front);$('fund-accounts').append(row);
   let start=null,suppress=0;
-  const reveal=value=>{for(const other of $('fund-accounts').querySelectorAll('.revealed')){other.classList.remove('revealed');other.querySelector('.fund-account-edit').inert=true;}row.classList.toggle('revealed',value);edit.inert=!value;};
-  front.setAttribute('aria-label',a.name+' '+amount.textContent+' · 클릭하면 내역 조회, 왼쪽으로 밀면 수정');
+  const reveal=value=>{for(const other of $('fund-accounts').querySelectorAll('.revealed')){other.classList.remove('revealed');for(const button of other.querySelectorAll('.fund-account-edit,.fund-account-delete'))button.inert=true;}row.classList.toggle('revealed',value);edit.inert=!value;remove.inert=!value;};
+  front.setAttribute('aria-label',a.name+' '+amount.textContent+' · 클릭하면 내역 조회, 왼쪽으로 밀면 수정·삭제');
   front.onpointerdown=e=>{if(e.button===0)start={x:e.clientX,y:e.clientY};};
   front.onpointermove=e=>{if(!start)return;const dx=e.clientX-start.x,dy=e.clientY-start.y;if(Math.abs(dy)>12&&Math.abs(dy)>Math.abs(dx)){start=null;return}if(Math.abs(dx)>24&&Math.abs(dx)>Math.abs(dy)*1.3){reveal(dx<0);suppress=Date.now()+500;start=null;}};
   for(const event of ['pointerup','pointercancel','pointerleave'])front.addEventListener(event,()=>{start=null;});
@@ -48,6 +49,16 @@ function draw(){
   $('fund-list').append(row);
  }
  $('fund-status').textContent=entries.length?entries.length+'건 · 자동 반영된 지불은 정육점에서 수정·취소해 주세요.':'조회 기간에 내역이 없습니다.';
+}
+async function deleteAccount(a){
+ if(busy)return;
+ if(a.receipt_method){alert('정육점 수금과 연결된 계좌·카드는 삭제할 수 없습니다.');return;}
+ if(state.entries.some(e=>e.account_id===a.id||e.to_account_id===a.id)){alert('거래내역이 있는 계좌·카드는 삭제할 수 없습니다. 수정에서 사용 중지해 주세요.');return;}
+ if(!confirm(a.name+'을(를) 삭제할까요?'+(Number(a.opening_balance)?' 시작잔액 '+won(a.opening_balance)+'도 함께 제거됩니다.':'')))return;
+ busy=true;
+ try{state=await fundWrite('delete_account',{id:a.id,version:a.version});draw();$('fund-status').textContent='삭제되었습니다.';}
+ catch(error){$('fund-status').textContent=error.message;alert(error.message);}
+ finally{busy=false;}
 }
 function openAccount(a=null){
  if(busy)return;editing=a;accountId=a?.id||crypto.randomUUID();$('account-form').reset();
