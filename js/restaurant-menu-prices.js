@@ -68,7 +68,8 @@ function categoryNames(kind){
  const saved=categoryRows.filter(r=>r.source===categorySource(kind));
  const hidden=new Set(saved.filter(r=>r.archived).map(r=>r.name));
  const base=kind==='menu'?defaults:purchases.map(r=>String(r.itemGroup||'').trim()||'미분류');
- return [...new Set([...base,...saved.filter(r=>!r.archived).map(r=>r.name)])].filter(n=>!hidden.has(n));
+ // Existing purchases must remain reachable even if their category was previously hidden.
+ return [...new Set([...base,...saved.filter(r=>!r.archived).map(r=>r.name)])].filter(n=>!hidden.has(n)||(kind==='purchase'&&base.includes(n)));
 }
 function fillMenuCategories(){
  menuCategories=categoryNames('menu');const select=$('menu-category'),value=select.value;
