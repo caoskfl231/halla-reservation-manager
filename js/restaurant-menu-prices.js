@@ -1,9 +1,9 @@
-import {installMenuPickers} from './restaurant-menu-pickers.js?v=1';
+import {installMenuPickers} from './restaurant-menu-pickers.js?v=2';
 import {business} from './business-context.js';
 import {menuPrice,actualMargin,latestKgPurchases} from './restaurant-menu-calc.js?v=menu-02';
 const $=id=>document.getElementById(id),money=n=>Math.round(n).toLocaleString('ko-KR')+'원',SOURCE='restaurant-menu-prices';
 const listPage=location.pathname.endsWith('/restaurant-menus.html');
-const menuCategories=["한우구이류","한돈구이류","수입구이류","술안주","식사류","주류"];
+let menuCategories=["한우구이류","한돈구이류","수입구이류","술안주","식사류","주류"];
 let db,menus=[],purchases=[],editing=null,busy=false,manualPrice=false,last=null,linked=null;
 const el=(tag,text='',cls='')=>{const e=document.createElement(tag);e.textContent=text;e.className=cls;return e};
 function per100g(price,grams){const p=Number(price),g=Number(grams);return Number.isFinite(p)&&p>0&&Number.isFinite(g)&&g>0?money(p*100/g):'—'}
@@ -51,12 +51,39 @@ $('calculator').onsubmit=e=>{
  mutate(()=>editing?db.updateItem(row):db.addItemMaster(row));
  }catch(e){$('error').textContent=e.message}
 };
-const syncPickers=listPage?()=>{}:installMenuPickers(()=>purchases);
+let categoryRows=[],categoriesReady=false;
+const defaults=[...menuCategories];
+const categorySource=kind=>'restaurant-'+kind+'-picker-groups';
+function categoryNames(kind){
+ const saved=categoryRows.filter(r=>r.source===categorySource(kind));
+ const hidden=new Set(saved.filter(r=>r.archived).map(r=>r.name));
+ const base=kind==='menu'?defaults:purchases.map(r=>String(r.itemGroup||'').trim()||'미분류');
+ return [...new Set([...base,...saved.filter(r=>!r.archived).map(r=>r.name)])].filter(n=>!hidden.has(n));
+}
+function fillMenuCategories(){
+ menuCategories=categoryNames('menu');const select=$('menu-category'),value=select.value;
+ select.replaceChildren(new Option('분류 선택',''),...menuCategories.map(n=>new Option(n,n)));select.value=value;syncPickers();
+}
+async function changeCategory(kind,name,remove){
+ if(!db||!categoriesReady)throw Error('분류를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.');
+ name=name.trim().normalize('NFC');if(!name)throw Error('분류명을 입력해 주세요.');
+ if(name.length>40)throw Error('분류명은 40자 이내로 입력해 주세요.');
+ categoryRows=await db.getCashflowGroups();
+ if(!remove&&categoryNames(kind).some(n=>n.normalize('NFC').toLowerCase()===name.toLowerCase()))throw Error('이미 등록된 분류입니다.');
+ if(remove){
+  const rows=kind==='menu'?(await db.getItems()).filter(r=>r.source===SOURCE):latestKgPurchases(await db.getTransactions());
+  if(rows.some(r=>kind==='menu'?r.menuCategory===name:(String(r.itemGroup||'').trim()||'미분류')===name))throw Error('이 분류에 '+(kind==='menu'?'메뉴가':'매입품목이')+' 있습니다. 먼저 다른 분류로 옮긴 뒤 삭제해 주세요.');
+ }
+ const source=categorySource(kind),existing=categoryRows.find(r=>r.source===source&&r.name===name);
+ const row={...existing,code:existing?.code||source+'-'+encodeURIComponent(name),name,source,archived:remove};
+ await db.updateCashflowGroup(row);categoryRows=categoryRows.filter(r=>r.code!==row.code).concat(row);fillMenuCategories();draw();
+}
+const syncPickers=listPage?()=>{}:installMenuPickers(()=>purchases,{names:categoryNames,change:changeCategory});
 try{
  if(business!=='restaurant')throw Error('식당 사업장을 선택해 주세요.');
  db=await import('./db.js?v=app-20261018-working-mobile-02');
  const [items,transactions]=await Promise.all([db.getItems(),db.getTransactions()]);
- menus=items.filter(r=>r.source===SOURCE);purchases=latestKgPurchases(transactions);
+ menus=items.filter(r=>r.source===SOURCE);purchases=latestKgPurchases(transactions);categoryRows=await db.getCashflowGroups();categoriesReady=true;fillMenuCategories();
  for(const [i,r] of purchases.entries())$('purchase').add(new Option((r.itemGroup?r.itemGroup+' · ':'')+r.itemName+' · '+money(Number(r.unitPrice))+'/kg',String(i)));
  draw();const editId=new URL(location.href).searchParams.get('edit');if(!listPage&&editId){const row=menus.find(r=>String(r.id)===editId);if(row)open(row)}$('save').disabled=false;$('status').textContent=listPage?'':'저장한 메뉴 페이지에서 메뉴를 누르면 계산 상세가 펼쳐집니다.';
 }catch(e){$('status').textContent='메뉴를 불러오지 못했습니다. '+e.message}
