@@ -11,7 +11,7 @@ function render(){
  const ratio=salesRatio(s.remaining,s.gross);
  $('home-remaining').textContent=money(s.remaining)+' · '+(ratio===null?'—':ratio.toLocaleString('ko-KR',{maximumFractionDigits:1})+'%');
  $('home-remaining').classList.toggle('negative',s.remaining<0);
- $('home-status').textContent=month.value.replace('-','년 ')+'월 · 매출 '+s.salesCount+'건 · 매입 '+s.purchaseCount+'건 · 지출 '+s.expenseCount+'건';
+ $('home-status').textContent='';$('home-status').hidden=true;
 }
 month.addEventListener('change',render);
 try{const db=await import('./db.js?v=app-20261018-working-mobile-02');rows=await db.getTransactions();render();}
