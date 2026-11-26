@@ -973,7 +973,7 @@ function renderTableByMonth(list) {
           const a = Number(t?.amount) || 0;
           const p = Number(t?.payment || 0) || 0;
           running += a;
-          running -= p;
+          running -= p + (Number(t?.paymentDiscount || 0) || 0);
           idx += 1;
         }
         salesIndex.set(id, idx);
@@ -990,9 +990,9 @@ function renderTableByMonth(list) {
           if (!d || d > cutoff) break;
           const a = Number(t?.amount) || 0;
           const p = Number(t?.payment || 0) || 0;
-          // 매입 화면 규칙: 잔액 = 기초 - 매입합계 + 지불합계
+          // 매입 화면 규칙: 잔액 = 기초 - 매입합계 + 지불합계 + 할인·정산액
           running -= a;
-          running += p;
+          running += p + (Number(t?.paymentDiscount || 0) || 0);
           idx += 1;
         }
         purchaseIndex.set(id, idx);
@@ -1241,7 +1241,7 @@ async function renderTableByMonthLedger() {
         const a = Number(t?.amount) || 0;
         const p = Number(t?.payment || 0) || 0;
         running += a;
-        running -= p;
+        running -= p + (Number(t?.paymentDiscount || 0) || 0);
         idx += 1;
       }
       salesIndex.set(id, idx);
@@ -1262,7 +1262,7 @@ async function renderTableByMonthLedger() {
         const a = Number(t?.amount) || 0;
         const p = Number(t?.payment || 0) || 0;
         running -= a;
-        running += p;
+        running += p + (Number(t?.paymentDiscount || 0) || 0);
         idx += 1;
       }
       purchaseIndex.set(id, idx);
@@ -2177,8 +2177,9 @@ function renderTableBySupplier(list) {
     const cat = String(tx.category || '');
     const amount = Number(tx.amount || 0) || 0;
     const payment = Number(tx.payment || 0) || 0;
-    if (cat === 'sales') return running + amount - payment;
-    if (cat === 'purchase' || cat === 'expense') return running - amount + payment;
+    if (cat === 'sales') return running + amount - payment - (Number(tx.paymentDiscount || 0) || 0);
+    if (cat === 'purchase') return running - amount + payment + (Number(tx.paymentDiscount || 0) || 0);
+    if (cat === 'expense') return running - amount + payment;
     return running;
   }
 
@@ -2923,8 +2924,9 @@ function applySupplierPickerBalanceChange(running, tx) {
   const cat = String(tx?.category || '');
   const amount = Number(tx?.amount || 0) || 0;
   const payment = Number(tx?.payment || 0) || 0;
-  if (cat === 'sales') return running + amount - payment;
-  if (cat === 'purchase' || cat === 'expense') return running - amount + payment;
+  if (cat === 'sales') return running + amount - payment - (Number(tx.paymentDiscount || 0) || 0);
+  if (cat === 'purchase') return running - amount + payment + (Number(tx.paymentDiscount || 0) || 0);
+    if (cat === 'expense') return running - amount + payment;
   return running;
 }
 
