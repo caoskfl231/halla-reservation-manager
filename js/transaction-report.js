@@ -3107,6 +3107,7 @@ async function loadTransactions() {
     supplierName: tx.supplierName || '',
     amount: Number(tx.amount || 0),
     payment: Number(tx.payment || 0),
+    paymentDiscount: Number(tx.paymentDiscount || 0),
     supplierGroup: tx.supplierGroup || '',
     itemCode: tx.itemCode || tx.itemId || '',
     itemName: tx.itemName || '',
