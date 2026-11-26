@@ -1612,9 +1612,10 @@ async function renderList() {
       .forEach((t) => {
         const a = Number(t.amount) || 0;
         const p = Number(t.payment || 0);
-        // 매입 화면 규칙: 잔액 = 기초 - 매입합계 + 지불합계
+        const discount = Number(t.paymentDiscount || 0);
+        // 매입 화면과 동일: 잔액 = 기초 - 매입합계 + 지불합계 + 할인·정산액
         running -= a;
-        running += p;
+        running += p + discount;
       });
 
     if (running < 0) {
